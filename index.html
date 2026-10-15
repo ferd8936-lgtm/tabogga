@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>쿼드롤러스케이트 클럽 출석시스템</title>
+  <style>
+    /* 기본 초기화 및 반응형 레이아웃 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f0f2f5;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* PC에서는 중앙 모바일 카드 형태, 스마트폰에서는 꽉 찬 화면 */
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background-color: #ffffff;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* 화면(페이지) 전환용 클래스 */
+    .screen {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      padding: 20px;
+      width: 100%;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* 공통 상단 헤더 (뒤로가기 포함) */
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 15px;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #f0f2f5;
+    }
+
+    .header-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #1a1a1a;
+    }
+
+    .btn-back {
+      background: #f0f2f5;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #444;
+      cursor: pointer;
+    }
+
+    .btn-back:active {
+      background: #e2e5e9;
+    }
+
+    /* 1. GPS 위치 확인 화면 */
+    #screen-gps {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      gap: 16px;
+    }
+
+    .gps-icon {
+      font-size: 3.5rem;
+      margin-bottom: 10px;
+    }
+
+    .gps-status {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .gps-sub {
+      font-size: 0.9rem;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .btn-Skip {
+      margin-top: 25px;
+      padding: 12px 20px;
+      border: 1px dashed #888;
+      background: #fafafa;
+      color: #555;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    /* 2. 로그인 화면 (1.jpg + 비밀번호 입력) */
+    #screen-login {
+      justify-content: flex-start;
+      align-items: center;
+      padding-top: 30px;
+    }
+
+    .main-banner-wrap {
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 25px;
+      background-color: #eee;
+    }
+
+    .main-banner-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+
+    .login-box {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .input-pw {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.05rem;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-pw:focus {
+      border-color: #3b82f6;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      background-color: #2563eb;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .btn-primary:active {
+      background-color: #1d4ed8;
+    }
+
+    /* 3. 메인 메뉴 화면 (출석 체크 / 통계 박스) */
+    #screen-menu {
+      justify-content: center;
+      gap: 28px;
+    }
+
+    .btn-checkin-main {
+      width: 100%;
+      padding: 26px 20px;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #ffffff;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+      cursor: pointer;
+    }
+
+    .stats-box {
+      width: 100%;
+      border: 2px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 22px 18px;
+      background-color: #f9fafb;
+      text-align: center;
+    }
+
+    .stats-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #374151;
+      margin-bottom: 16px;
+    }
+
+    .stats-btn-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-stat {
+      flex: 1;
+      padding: 18px 10px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #1f2937;
+      background-color: #ffffff;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .btn-stat:active {
+      background-color: #f3f4f6;
+    }
+
+    /* 4. 출석 체크 리스트 화면 & 6. 월간 통계 테이블 공통 */
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      font-size: 0.92rem;
+    }
+
+    thead th {
+      background-color: #f3f4f6;
+      color: #374151;
+      font-weight: 700;
+      padding: 11px 6px;
+      border-bottom: 2px solid #e5e7eb;
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 12px 6px;
+      border-bottom: 1px solid #f0f2f5;
+      vertical-align: middle;
+    }
+
+    .grade-badge {
+      display: inline-block;
+      font-size: 0.82rem;
+      padding: 3px 7px;
+      border-radius: 6px;
+      background-color: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 600;
+    }
+
+    .btn-attend {
+      padding: 7px 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      background-color: #10b981;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-attend:disabled {
+      background-color: #d1d5db;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+
+    /* 5. 통계 - TODAY (2.jpg 롤러장 배경 + 캐릭터 트랙 회전) */
+    .rink-wrapper {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      min-height: 440px;
+      border-radius: 16px;
+      overflow: hidden;
+      background-color: #1e293b;
+      background-image: url('2.jpg');
+      background-size: cover;
+      background-position: center;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+    }
+
+    /* 트랙 가이드라인 (시각적 보조용 반투명 트랙) */
+    .rink-track-line {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 76%;
+      height: 68%;
+      transform: translate(-50%, -50%);
+      border: 2px dashed rgba(255, 255, 255, 0.35);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    /* 롤러 타는 캐릭터 아이템 */
+    .skater {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+      z-index: 10;
+      transition: transform 0.1s linear;
+    }
+
+    .skater-avatar {
+      font-size: 2.1rem;
+      filter: drop-shadow(0 3px 5px rgba(0,0,0,0.45));
+      line-height: 1;
+    }
+
+    .skater-name {
+      margin-top: 3px;
+      padding: 2px 8px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #ffffff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-radius: 10px;
+      white-space: nowrap;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .empty-rink-msg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .today-count-bar {
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #2563eb;
+      text-align: right;
+    }
+
+    /* 6. 통계 - MONTH 탭 버튼 */
+    .month-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .btn-tab {
+      flex: 1;
+      padding: 12px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      border: 2px solid #d1d5db;
+      background-color: #fff;
+      color: #4b5563;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .btn-tab.active {
+      background-color: #2563eb;
+      border-color: #2563eb;
+      color: #ffffff;
+    }
+
+    /* 팝업 모달 (출석 처리 완료!) */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #fff;
+      width: 100%;
+      max-width: 320px;
+      border-radius: 16px;
+      padding: 28px 20px 20px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-text {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 22px;
+    }
+
+    .btn-modal-ok {
+      width: 100%;
+      padding: 13px;
+      background-color: #2563eb;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- [화면 1] 위치 인증 화면 (조건 2) -->
+  <div id="screen-gps" class="screen active">
+    <div class="gps-icon">🛼</div>
+    <div id="gps-message" class="gps-status">롤러장 위치 확인 중...</div>
+    <div id="gps-sub-message" class="gps-sub">롤러장 반경 내에서만 접속이 가능합니다.<br>위치 권한을 허용해 주세요.</div>
+    <button class="btn-primary" style="margin-top:15px; max-width:220px;" onclick="checkLocation()">위치 다시 확인</button>
+    <!-- UI 테스트를 위해 어디서든 바로 들어갈 수 있는 테스트 버튼 -->
+    <button class="btn-Skip" onclick="goToScreen('screen-login')">[테스트용] 위치 제한 건너뛰기</button>
+  </div>
+
+  <!-- [화면 2] 메인 로그인 화면 (조건 4) -->
+  <div id="screen-login" class="screen">
+    <div class="main-banner-wrap">
+      <!-- 같은 폴더의 1.jpg 표시 -->
+      <img src="1.jpg" alt="롤러 클럽 메인 이미지" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22260%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%232563eb%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22>1.jpg 이미지를 업로드해주세요</text></svg>';">
+    </div>
+    <div class="login-box">
+      <input type="password" id="pw-input" class="input-pw" placeholder="비밀번호를 입력하세요" onkeyup="if(event.key==='Enter') checkPassword()">
+      <button class="btn-primary" onclick="checkPassword()">입장하기</button>
+    </div>
+  </div>
+
+  <!-- [화면 3] 버튼 3개 메뉴 화면 (조건 5) -->
+  <div id="screen-menu" class="screen">
+    <button class="btn-checkin-main" onclick="openCheckinScreen()">출석 체크</button>
+
+    <div class="stats-box">
+      <div class="stats-title">통계</div>
+      <div class="stats-btn-group">
+        <button class="btn-stat" onclick="openTodayScreen()">today</button>
+        <button class="btn-stat" onclick="openMonthScreen('this')">month</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- [화면 4] 출석 체크 리스트 화면 (조건 6, 7) -->
+  <div id="screen-checkin" class="screen">
+    <div class="header-bar">
+      <span class="header-title">출석 체크</span>
+      <button class="btn-back" onclick="goToScreen('screen-menu')">뒤로</button>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>NO</th>
+            <th>이름</th>
+            <th>등급(지난달)</th>
+            <th>출석 횟수</th>
+            <th>출석</th>
+          </tr>
+        </thead>
+        <tbody id="checkin-tbody">
+          <!-- JS로 렌더링 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- [화면 5] 통계 - TODAY 롤러장 화면 (조건 8) -->
+  <div id="screen-today" class="screen">
+    <div class="header-bar">
+      <span class="header-title">TODAY 롤러장 현황</span>
+      <button class="btn-back" onclick="stopRinkAnimation(); goToScreen('screen-menu')">뒤로</button>
+    </div>
+    <div id="today-count" class="today-count-bar">현재 탑승 인원: 0명</div>
+    <div class="rink-wrapper" id="rink-stage">
+      <div class="rink-track-line"></div>
+      <!-- 출석한 캐릭터들이 이곳에 생성되어 회전함 -->
+    </div>
+  </div>
+
+  <!-- [화면 6] 통계 - MONTH 순위 화면 (조건 9) -->
+  <div id="screen-month" class="screen">
+    <div class="header-bar">
+      <span class="header-title">월간 출석 통계</span>
+      <button class="btn-back" onclick="goToScreen('screen-menu')">뒤로</button>
+    </div>
+    <div class="month-tabs">
+      <button id="tab-this-month" class="btn-tab active" onclick="renderMonthTable('this')">this month</button>
+      <button id="tab-last-month" class="btn-tab" onclick="renderMonthTable('last')">last month</button>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>NO</th>
+            <th>이름</th>
+            <th>출석</th>
+          </tr>
+        </thead>
+        <tbody id="month-tbody">
+          <!-- JS로 렌더링 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- [팝업] 출석 처리 완료 모달 (조건 7) -->
+<div id="modal-complete" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-text">출석 처리 완료!</div>
+    <button class="btn-modal-ok" onclick="closeModal()">확인</button>
+  </div>
+</div>
+
+<script>
+  /********************************************************************
+   * 1. 롤러장 위치 설정 (실제 롤러장 위도/경도로 수정해서 사용하세요)
+   ********************************************************************/
+  const RINK_LAT = 35.8714;       // 예시 위도
+  const RINK_LNG = 128.6014;      // 예시 경도
+  const ALLOWED_RADIUS_M = 200;   // 허용 반경 (미터 단위: 200m 이내 접속 허용)
+
+  /********************************************************************
+   * 2. 초기 샘플 회원 데이터
+   * - lastGrade: 지난달 등급 (숫자가 작을수록 높은 등급)
+   * - lastCount: 지난달 출석 횟수
+   * - thisCount: 이번달 출석 횟수
+   * - avatar: 롤러장 화면에 표시될 캐릭터 아이콘
+   ********************************************************************/
+  const DEFAULT_MEMBERS = [
+    { id: 1,  name: '강롤러', lastGrade: 1, lastCount: 25, thisCount: 12, avatar: '🛼' },
+    { id: 2,  name: '김스케이트', lastGrade: 1, lastCount: 25, thisCount: 10, avatar: '🏃‍♂️' },
+    { id: 3,  name: '박쿼드', lastGrade: 2, lastCount: 19, thisCount: 14, avatar: '💃' },
+    { id: 4,  name: '이질주', lastGrade: 2, lastCount: 18, thisCount: 8,  avatar: '🕺' },
+    { id: 5,  name: '정스핀', lastGrade: 2, lastCount: 18, thisCount: 8,  avatar: '🧚‍♀️' },
+    { id: 6,  name: '최드리프트', lastGrade: 3, lastCount: 14, thisCount: 11, avatar: '🦸‍♂️' },
+    { id: 7,  name: '홍슬라이드', lastGrade: 3, lastCount: 12, thisCount: 6,  avatar: '🦸‍♀️' },
+    { id: 8,  name: 'Alex', lastGrade: 4, lastCount: 8,  thisCount: 9,  avatar: '🦊' },
+    { id: 9,  name: 'Bravo', lastGrade: 4, lastCount: 8,  thisCount: 5,  avatar: '🐯' },
+    { id: 10, name: 'Charlie', lastGrade: 5, lastCount: 4,  thisCount: 3,  avatar: '🐰' }
+  ];
+
+  // 오늘 날짜 문자열 (YYYY-MM-DD) - 하루 1번 출석 제한용
+  function getTodayKey() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  // 데이터 불러오기 및 저장 (브라우저 LocalStorage 유지)
+  let members = JSON.parse(localStorage.getItem('roller_members_v1')) || DEFAULT_MEMBERS;
+  let attendanceLog = JSON.parse(localStorage.getItem('roller_log_v1')) || {};
+
+  function saveData() {
+    localStorage.setItem('roller_members_v1', JSON.stringify(members));
+    localStorage.setItem('roller_log_v1', JSON.stringify(attendanceLog));
+  }
+
+  // 오늘 해당 회원이 출석했는지 여부 확인
+  function isAttendedToday(memberId) {
+    const today = getTodayKey();
+    if (!attendanceLog[today]) return false;
+    return attendanceLog[today].includes(memberId);
+  }
+
+  /********************************************************************
+   * 3. 화면 전환 및 위치 확인 (조건 2)
+   ********************************************************************/
+  function goToScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+  }
+
+  // 두 위경도 좌표 사이의 거리(m) 계산 (Haversine 공식)
+  function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  function checkLocation() {
+    const msgEl = document.getElementById('gps-message');
+    const subEl = document.getElementById('gps-sub-message');
+
+    if (!navigator.geolocation) {
+      msgEl.innerText = '위치 정보를 지원하지 않는 브라우저입니다.';
+      return;
+    }
+
+    msgEl.innerText = '현재 위치를 확인하고 있습니다...';
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const dist = getDistanceFromLatLonInM(
+          position.coords.latitude,
+          position.coords.longitude,
+          RINK_LAT,
+          RINK_LNG
+        );
+
+        if (dist <= ALLOWED_RADIUS_M) {
+          goToScreen('screen-login');
+        } else {
+          msgEl.innerText = '롤러장 근처가 아닙니다.';
+          subEl.innerHTML = `롤러장 반경 ${ALLOWED_RADIUS_M}m 이내에서만 접속 가능합니다.<br>(현재 거리: 약 ${Math.round(dist)}m)`;
+        }
+      },
+      (err) => {
+        msgEl.innerText = '위치 권한 확인 실패';
+        subEl.innerHTML = '스마트폰의 위치(GPS) 권한을 허용한 뒤 다시 시도해 주세요.';
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+    );
+  }
+
+  /********************************************************************
+   * 4. 비밀번호 확인 (조건 4, 5)
+   ********************************************************************/
+  function checkPassword() {
+    const input = document.getElementById('pw-input').value.trim();
+    if (input === 'tabogga2025') {
+      document.getElementById('pw-input').value = '';
+      goToScreen('screen-menu');
+    } else {
+      alert('비밀번호가 일치하지 않습니다.');
+    }
+  }
+
+  /********************************************************************
+   * 5. 출석 체크 화면 및 정렬 로직 (조건 6, 7)
+   * - NO: 지난달 등급(lastGrade) 표시 (등급이 동일하면 같은 숫자)
+   * - 정렬: 1순위 지난달 등급 오름차순 -> 2순위 출석 횟수 내림차순 -> 3순위 이름 가나다/abc 순
+   ********************************************************************/
+  function openCheckinScreen() {
+    renderCheckinTable();
+    goToScreen('screen-checkin');
+  }
+
+  function renderCheckinTable() {
+    const tbody = document.getElementById('checkin-tbody');
+    tbody.innerHTML = '';
+
+    // 조건 6 정렬 기준 적용
+    const sorted = [...members].sort((a, b) => {
+      if (a.lastGrade !== b.lastGrade) {
+        return a.lastGrade - b.lastGrade; // 지난달 등급 순
+      }
+      if (b.thisCount !== a.thisCount) {
+        return b.thisCount - a.thisCount; // 출석 횟수 많은 순
+      }
+      return a.name.localeCompare(b.name, 'ko'); // 이름 가나다/abc 순
+    });
+
+    sorted.forEach(member => {
+      const attended = isAttendedToday(member.id);
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td><strong>${member.lastGrade}</strong></td>
+        <td>${member.name}</td>
+        <td><span class="grade-badge">${member.lastGrade}등급 (${member.lastCount}회)</span></td>
+        <td><strong>${member.thisCount}</strong>회</td>
+        <td>
+          <button class="btn-attend" ${attended ? 'disabled' : ''} onclick="handleAttend(${member.id})">
+            ${attended ? '출석완료' : '출석'}
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function handleAttend(memberId) {
+    if (isAttendedToday(memberId)) return;
+
+    const target = members.find(m => m.id === memberId);
+    if (!target) return;
+
+    // 이번 달 출석 횟수 +1
+    target.thisCount += 1;
+
+    // 오늘 날짜 출석 기록 저장 (하루 1회 제한)
+    const today = getTodayKey();
+    if (!attendanceLog[today]) {
+      attendanceLog[today] = [];
+    }
+    attendanceLog[today].push(memberId);
+
+    saveData();
+    renderCheckinTable();
+
+    // '출석 처리 완료!' 팝업 표시
+    document.getElementById('modal-complete').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('modal-complete').classList.remove('show');
+  }
+
+  /********************************************************************
+   * 6. 통계 - TODAY 화면 (조건 8: 2.jpg 배경 위 캐릭터 롤러 주행)
+   ********************************************************************/
+  let animFrameId = null;
+  let skaterAngles = [];
+
+  function openTodayScreen() {
+    goToScreen('screen-today');
+    initRinkSkaters();
+  }
+
+  function stopRinkAnimation() {
+    if (animFrameId) {
+      cancelAnimationFrame(animFrameId);
+      animFrameId = null;
+    }
+  }
+
+  function initRinkSkaters() {
+    stopRinkAnimation();
+    const stage = document.getElementById('rink-stage');
+    // 기존 캐릭터 제거 (트랙 라인은 유지)
+    stage.querySelectorAll('.skater, .empty-rink-msg').forEach(el => el.remove());
+
+    const today = getTodayKey();
+    const todayIds = attendanceLog[today] || [];
+    const todayMembers = members.filter(m => todayIds.includes(m.id));
+
+    document.getElementById('today-count').innerText = `오늘 출석(탑승 중): ${todayMembers.length}명`;
+
+    if (todayMembers.length === 0) {
+      const emptyMsg = document.createElement('div');
+      emptyMsg.className = 'empty-rink-msg';
+      emptyMsg.innerText = '오늘 출석 체크한 회원이 아직 없습니다.';
+      stage.appendChild(emptyMsg);
+      return;
+    }
+
+    skaterAngles = [];
+
+    // 출석한 회원 캐릭터 생성 및 트랙 위 균등 배치
+    todayMembers.forEach((member, idx) => {
+      const el = document.createElement('div');
+      el.className = 'skater';
+      el.innerHTML = `
+        <div class="skater-avatar">${member.avatar || '🛼'}</div>
+        <div class="skater-name">${member.name}</div>
+      `;
+      stage.appendChild(el);
+
+      const initialAngle = (2 * Math.PI / todayMembers.length) * idx;
+      skaterAngles.push({
+        el: el,
+        avatarEl: el.querySelector('.skater-avatar'),
+        angle: initialAngle,
+        speed: 0.012 // 회전 속도
+      });
+    });
+
+    // 타원형 링크장 트랙을 따라 부드럽게 도는 애니메이션 실행
+    function animate() {
+      skaterAngles.forEach(item => {
+        item.angle -= item.speed; // 반시계 방향(실제 롤러장 주행 방향) 회전
+
+        // 중심(50%, 50%) 기준 반지름 X: 36%, Y: 32% 타원 궤도
+        const x = 50 + 36 * Math.cos(item.angle);
+        const y = 50 + 32 * Math.sin(item.angle);
+
+        item.el.style.left = `${x}%`;
+        item.el.style.top = `${y}%`;
+
+        // 이동 방향에 따라 캐릭터 좌우 반전 연출
+        const flip = Math.sin(item.angle) > 0 ? 1 : -1;
+        item.avatarEl.style.transform = `scaleX(${flip})`;
+      });
+
+      animFrameId = requestAnimationFrame(animate);
+    }
+
+    animate();
+  }
+
+  /********************************************************************
+   * 7. 통계 - MONTH 화면 (조건 9: this month / last month 순위)
+   ********************************************************************/
+  function openMonthScreen(type) {
+    goToScreen('screen-month');
+    renderMonthTable(type);
+  }
+
+  function renderMonthTable(type) {
+    const btnThis = document.getElementById('tab-this-month');
+    const btnLast = document.getElementById('tab-last-month');
+    const tbody = document.getElementById('month-tbody');
+    tbody.innerHTML = '';
+
+    if (type === 'this') {
+      btnThis.classList.add('active');
+      btnLast.classList.remove('active');
+    } else {
+      btnLast.classList.add('active');
+      btnThis.classList.remove('active');
+    }
+
+    // 선택된 월(이번달 or 지난달)의 출석 횟수가 많은 순서대로 정렬 (동률 시 이름 가나다순)
+    const sorted = [...members].sort((a, b) => {
+      const countA = type === 'this' ? a.thisCount : a.lastCount;
+      const countB = type === 'this' ? b.thisCount : b.lastCount;
+      if (countB !== countA) {
+        return countB - countA;
+      }
+      return a.name.localeCompare(b.name, 'ko');
+    });
+
+    sorted.forEach((member, index) => {
+      const count = type === 'this' ? member.thisCount : member.lastCount;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${index + 1}</strong></td>
+        <td>${member.name}</td>
+        <td><strong>${count}</strong>회</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // 페이지 로드 시 위치 확인 자동 실행
+  window.addEventListener('DOMContentLoaded', () => {
+    checkLocation();
+  });
+</script>
+
+</body>
+</html>
