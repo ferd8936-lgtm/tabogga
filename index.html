@@ -262,7 +262,7 @@
       padding: 3px 7px;
       border-radius: 6px;
       background-color: #eff6ff;
-      color: #000000;
+      color: #1d4ed8;
       font-weight: 600;
     }
 
@@ -462,17 +462,51 @@
       text-align: right;
       margin-bottom: 8px;
     }
+
+    /* 로딩 오버레이 및 아이콘 */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.85);
+      z-index: 1000;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .loading-overlay.show {
+      display: flex;
+    }
+
+    .loading-spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid #e5e7eb;
+      border-top: 4px solid #0d9488;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
 
 <div class="app-container">
 
-  <!-- [화면 1] 위치 인증 화면 (상단바, 선 삭제 및 주소 반영) -->
+  <!-- [화면 1] 위치 인증 화면 (요약 문구 반영) -->
   <div id="screen-gps" class="screen" style="justify-content: center; align-items: center; text-align: center; gap: 16px;">
     <div class="gps-icon">🛼</div>
-    <div id="gps-message" class="gps-status">롤러장 위치 확인 중...</div>
-    <div id="gps-sub-message" class="gps-sub">롤러장 위치: 대구 달서구 와룡로 143<br>반경 내에서만 출석 체크가 가능합니다.</div>
+    <div id="gps-message" class="gps-status">위치 확인 중...</div>
+    <div id="gps-sub-message" class="gps-sub">롤러장 반경 300m 이내만 가능</div>
     <button class="btn-primary" style="margin-top:15px; max-width:220px;" onclick="checkLocation()">위치 다시 확인</button>
     <button class="btn-Skip" onclick="enterCheckinAfterGps()">[테스트용] 위치 제한 건너뛰기</button>
   </div>
@@ -498,7 +532,7 @@
     <button class="btn-menu-custom btn-menu-rolling" onclick="openTodayScreen()">실시간 롤딩 현황</button>
   </div>
 
-  <!-- [화면 4] 출석 체크 리스트 화면 (동기화 문구 및 여백 삭제) -->
+  <!-- [화면 4] 출석 체크 리스트 화면 (누적 현황 버튼 추가) -->
   <div id="screen-checkin" class="screen">
     <div class="header-bar">
       <span class="header-title">출석 체크</span>
@@ -538,10 +572,10 @@
     </div>
   </div>
 
-  <!-- [화면 6] 누적 현황 클릭 시 보이는 전체 회원 월간 출석 통계 화면 -->
+  <!-- [화면 6] 누적 현황 화면 (상단 문구 '누적 현황' 변경) -->
   <div id="screen-month" class="screen">
     <div class="header-bar">
-      <span class="header-title">월간 출석 통계</span>
+      <span class="header-title">누적 현황</span>
       <button class="btn-back" onclick="goBack('screen-checkin')">뒤로</button>
     </div>
     <div class="table-wrapper">
@@ -559,6 +593,11 @@
     </div>
   </div>
 
+</div>
+
+<!-- [로딩] 페이지 전환용 로딩 아이콘 오버레이 -->
+<div id="loading-overlay" class="loading-overlay">
+  <div class="loading-spinner"></div>
 </div>
 
 <!-- [팝업] 출석 처리 완료 모달 (조건 7) -->
@@ -671,6 +710,22 @@
     const hh = String(now.getHours()).padStart(2, '0');
     const mi = String(now.getMinutes()).padStart(2, '0');
     return `${hh}:${mi}`;
+  }
+
+  // 1월부터 현재월까지의 누적 출석 합계 계산 함수
+  function getMemberTotalCount(member) {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonthNum = now.getMonth() + 1;
+    const countsObj = member.monthlyCounts || {};
+    let total = 0;
+    for (let m = 1; m <= currentMonthNum; m++) {
+      const mm = String(m).padStart(2, '0');
+      const ymKey = `${currentYear}-${mm}`;
+      const cnt = (m === currentMonthNum) ? (member.thisCount ?? countsObj[ymKey] ?? 0) : (countsObj[ymKey] || 0);
+      total += cnt;
+    }
+    return total;
   }
 
   // 첨부된 회원등급 기준에 따른 월말 등급 산정 함수
@@ -884,11 +939,13 @@
     const subEl = document.getElementById('gps-sub-message');
 
     if (!navigator.geolocation) {
-      msgEl.innerText = '위치 정보를 지원하지 않는 브라우저입니다.';
+      msgEl.innerText = '위치 미지원 브라우저';
+      subEl.innerText = '';
       return;
     }
 
-    msgEl.innerText = '현재 롤러장 위치를 확인하고 있습니다...';
+    msgEl.innerText = '위치 확인 중...';
+    subEl.innerText = '롤러장 반경 300m 이내만 가능';
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const dist = getDistanceFromLatLonInM(
@@ -902,12 +959,12 @@
           enterCheckinAfterGps();
         } else {
           msgEl.innerText = '롤러장 근처가 아닙니다.';
-          subEl.innerHTML = `출석 체크는 롤러장 반경 ${ALLOWED_RADIUS_M}m 이내에서만 가능합니다.<br>(현재 거리: 약 ${Math.round(dist)}m)`;
+          subEl.innerText = `반경 ${ALLOWED_RADIUS_M}m 이내만 가능 (현재 ${Math.round(dist)}m)`;
         }
       },
       () => {
-        msgEl.innerText = '위치 권한 확인 실패';
-        subEl.innerHTML = '스마트폰의 위치(GPS) 권한을 허용한 뒤 다시 시도해 주세요.';
+        msgEl.innerText = '위치 확인 실패';
+        subEl.innerText = '위치(GPS) 권한을 허용해 주세요.';
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
@@ -939,13 +996,17 @@
     const tbody = document.getElementById('checkin-tbody');
     tbody.innerHTML = '';
 
-    // 정렬: 1순위 등급 높은 순(4:Tabogga Core -> 1:Guest) -> 2순위 이번달 출석 횟수 많은 순 -> 3순위 이름 가나다순
+    // 정렬: 1순위 등급순 -> 2순위 이번달 출석수 -> 3순위 누적 현황 합계순 -> 4순위 이름 가나다순
     const sorted = [...members].sort((a, b) => {
       if (b.lastGrade !== a.lastGrade) {
         return b.lastGrade - a.lastGrade;
       }
       if (b.thisCount !== a.thisCount) {
         return b.thisCount - a.thisCount;
+      }
+      const totalDiff = getMemberTotalCount(b) - getMemberTotalCount(a);
+      if (totalDiff !== 0) {
+        return totalDiff;
       }
       return a.name.localeCompare(b.name, 'ko');
     });
@@ -961,8 +1022,8 @@
 
       tr.innerHTML = `
         <td><strong>${gradeNo}</strong></td>
-        <td style="color:#000000;">${member.name}</td>
-        <td><span class="grade-badge" style="color:#000000;">${gradeName} (${member.lastCount}회)</span></td>
+        <td>${member.name}</td>
+        <td>${gradeName} (${member.lastCount}회)</td>
         <td><strong>${member.thisCount}</strong>회</td>
         <td>
           <button class="btn-attend ${attended ? 'completed' : ''}" id="btn-attend-${member.id}" onclick="handleAttend(${member.id})">
@@ -1046,15 +1107,33 @@
   }
 
   /********************************************************************
-   * 7. 통계 - TODAY 화면 (조건 7: 속도 감속, 쿼드/부츠 아이콘, 00:00 시간, 트랙/중앙/링크밖 배치)
+   * 7. 통계 - TODAY 화면 (배경 이미지 및 데이터 로딩 완료 후 화면 표시)
    ********************************************************************/
   let animFrameId = null;
   let skaterAngles = [];
 
+  function preloadRinkImage() {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = '2.jpg';
+    });
+  }
+
   async function openTodayScreen() {
+    const loader = document.getElementById('loading-overlay');
+    if (loader) loader.classList.add('show');
+
+    await Promise.all([
+      syncFromFirebase(),
+      preloadRinkImage()
+    ]);
+
     goToScreen('screen-today');
-    await syncFromFirebase();
     initRinkSkaters();
+
+    if (loader) loader.classList.remove('show');
   }
 
   function stopRinkAnimation() {
@@ -1177,7 +1256,7 @@
   }
 
   /********************************************************************
-   * 8. 누적 현황 버튼 클릭 시 전체 회원 월간 출석 통계 화면 (NO, 이름, 현재월~1월 가로 스크롤)
+   * 8. 누적 현황 화면 (합계 많은 순 정렬 및 현재월~1월 가로 스크롤)
    ********************************************************************/
   async function openMonthScreen() {
     goToScreen('screen-month');
@@ -1206,7 +1285,14 @@
       ${months.map(m => `<th style="padding: 11px 10px; white-space: nowrap;">${m}월</th>`).join('')}
     `;
 
-    const sorted = [...members].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+    // 누적 합계가 제일 많은 이름을 위로 배치 (동점 시 이름 가나다순)
+    const sorted = [...members].sort((a, b) => {
+      const totalDiff = getMemberTotalCount(b) - getMemberTotalCount(a);
+      if (totalDiff !== 0) {
+        return totalDiff;
+      }
+      return a.name.localeCompare(b.name, 'ko');
+    });
 
     sorted.forEach((member, index) => {
       const countsObj = member.monthlyCounts || {};
