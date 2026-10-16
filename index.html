@@ -262,7 +262,7 @@
       padding: 3px 7px;
       border-radius: 6px;
       background-color: #eff6ff;
-      color: #1d4ed8;
+      color: #000000;
       font-weight: 600;
     }
 
@@ -502,7 +502,10 @@
   <div id="screen-checkin" class="screen">
     <div class="header-bar">
       <span class="header-title">출석 체크</span>
-      <button class="btn-back" onclick="goBack('screen-menu')">뒤로</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-back" onclick="openMonthScreen()">누적 현황</button>
+        <button class="btn-back" onclick="goBack('screen-menu')">뒤로</button>
+      </div>
     </div>
     <div class="table-wrapper">
       <table>
@@ -535,7 +538,7 @@
     </div>
   </div>
 
-  <!-- [화면 6] 출석 체크에서 이름 클릭 시 보이는 개인별 월간 출석 통계 화면 -->
+  <!-- [화면 6] 누적 현황 클릭 시 보이는 전체 회원 월간 출석 통계 화면 -->
   <div id="screen-month" class="screen">
     <div class="header-bar">
       <span class="header-title">월간 출석 통계</span>
@@ -958,8 +961,8 @@
 
       tr.innerHTML = `
         <td><strong>${gradeNo}</strong></td>
-        <td style="cursor:pointer;" onclick="openMemberMonthScreen(${member.id})"><span style="color:#2563eb; font-weight:700; text-decoration:underline;">${member.name}</span></td>
-        <td><span class="grade-badge">${gradeName} (${member.lastCount}회)</span></td>
+        <td style="color:#000000;">${member.name}</td>
+        <td><span class="grade-badge" style="color:#000000;">${gradeName} (${member.lastCount}회)</span></td>
         <td><strong>${member.thisCount}</strong>회</td>
         <td>
           <button class="btn-attend ${attended ? 'completed' : ''}" id="btn-attend-${member.id}" onclick="handleAttend(${member.id})">
@@ -1174,13 +1177,11 @@
   }
 
   /********************************************************************
-   * 8. 출석 체크에서 이름 클릭 시 개인별 월간 출석 통계 화면 (NO, 이름, 현재월~1월 가로 스크롤)
+   * 8. 누적 현황 버튼 클릭 시 전체 회원 월간 출석 통계 화면 (NO, 이름, 현재월~1월 가로 스크롤)
    ********************************************************************/
-  let selectedMemberIdForDetail = null;
-
-  function openMemberMonthScreen(memberId) {
-    selectedMemberIdForDetail = memberId;
+  async function openMonthScreen() {
     goToScreen('screen-month');
+    await syncFromFirebase();
     renderMonthTable();
   }
 
@@ -1188,9 +1189,6 @@
     const theadRow = document.getElementById('month-thead-row');
     const tbody = document.getElementById('month-tbody');
     tbody.innerHTML = '';
-
-    const member = members.find(m => m.id === selectedMemberIdForDetail);
-    if (!member) return;
 
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -1208,21 +1206,25 @@
       ${months.map(m => `<th style="padding: 11px 10px; white-space: nowrap;">${m}월</th>`).join('')}
     `;
 
-    const countsObj = member.monthlyCounts || {};
-    const monthCells = months.map(m => {
-      const mm = String(m).padStart(2, '0');
-      const ymKey = `${currentYear}-${mm}`;
-      const cnt = (m === currentMonthNum) ? (member.thisCount ?? countsObj[ymKey] ?? 0) : (countsObj[ymKey] || 0);
-      return `<td style="padding: 12px 10px; white-space: nowrap;"><strong>${cnt}</strong>회</td>`;
-    }).join('');
+    const sorted = [...members].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
 
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td style="padding: 12px 10px; white-space: nowrap;"><strong>1</strong></td>
-      <td style="padding: 12px 10px; white-space: nowrap;">${member.name}</td>
-      ${monthCells}
-    `;
-    tbody.appendChild(tr);
+    sorted.forEach((member, index) => {
+      const countsObj = member.monthlyCounts || {};
+      const monthCells = months.map(m => {
+        const mm = String(m).padStart(2, '0');
+        const ymKey = `${currentYear}-${mm}`;
+        const cnt = (m === currentMonthNum) ? (member.thisCount ?? countsObj[ymKey] ?? 0) : (countsObj[ymKey] || 0);
+        return `<td style="padding: 12px 10px; white-space: nowrap;"><strong>${cnt}</strong>회</td>`;
+      }).join('');
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="padding: 12px 10px; white-space: nowrap;"><strong>${index + 1}</strong></td>
+        <td style="padding: 12px 10px; white-space: nowrap;">${member.name}</td>
+        ${monthCells}
+      `;
+      tbody.appendChild(tr);
+    });
   }
 
   // 페이지 로드 시 저장된 비밀번호가 있으면 바로 메뉴 화면으로 이동, 없으면 로그인 화면 유지
