@@ -185,7 +185,7 @@
       background-color: #1d4ed8;
     }
 
-    /* 3. 메인 메뉴 화면 (버튼 3개 세로 배치 및 세련된 색상 조화) */
+    /* 3. 메인 메뉴 화면 (버튼 세로 배치 및 세련된 색상 조화) */
     #screen-menu {
       justify-content: flex-start;
       padding-top: 20px;
@@ -488,14 +488,13 @@
     </div>
   </div>
 
-  <!-- [화면 3] 버튼 3개 메뉴 화면 (입장하기와 동일 크기 및 세련된 3색 버튼) -->
+  <!-- [화면 3] 메뉴 화면 (출석 통계 버튼 삭제 반영) -->
   <div id="screen-menu" class="screen">
     <div class="main-banner-wrap">
       <img src="1.jpg" alt="롤러 클럽 메인 이미지" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22260%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%232563eb%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22>1.jpg 이미지를 업로드해주세요</text></svg>';">
     </div>
 
     <button class="btn-menu-custom btn-menu-checkin" onclick="openCheckinScreen()">출석 체크</button>
-    <button class="btn-menu-custom btn-menu-stats" onclick="openMonthScreen()">출석 통계</button>
     <button class="btn-menu-custom btn-menu-rolling" onclick="openTodayScreen()">실시간 롤딩 현황</button>
   </div>
 
@@ -503,7 +502,7 @@
   <div id="screen-checkin" class="screen">
     <div class="header-bar">
       <span class="header-title">출석 체크</span>
-      <button class="btn-back" onclick="goToScreen('screen-menu')">뒤로</button>
+      <button class="btn-back" onclick="goBack('screen-menu')">뒤로</button>
     </div>
     <div class="table-wrapper">
       <table>
@@ -527,7 +526,7 @@
   <div id="screen-today" class="screen">
     <div class="header-bar">
       <span class="header-title">TODAY 롤러장</span>
-      <button class="btn-back" onclick="stopRinkAnimation(); goToScreen('screen-menu')">뒤로</button>
+      <button class="btn-back" onclick="stopRinkAnimation(); goBack('screen-menu')">뒤로</button>
     </div>
     <div id="today-count" class="today-count-bar">현재 탑승 인원: 0명</div>
     <div class="rink-wrapper" id="rink-stage">
@@ -536,11 +535,11 @@
     </div>
   </div>
 
-  <!-- [화면 6] 통계 - MONTH 누적 월별 통계 화면 -->
+  <!-- [화면 6] 출석 체크에서 이름 클릭 시 보이는 개인별 월간 출석 통계 화면 -->
   <div id="screen-month" class="screen">
     <div class="header-bar">
       <span class="header-title">월간 출석 통계</span>
-      <button class="btn-back" onclick="goToScreen('screen-menu')">뒤로</button>
+      <button class="btn-back" onclick="goBack('screen-checkin')">뒤로</button>
     </div>
     <div class="table-wrapper">
       <table>
@@ -822,12 +821,41 @@
   }
 
   /********************************************************************
-   * 4. 화면 전환 및 위치 확인 (출석 체크 버튼 클릭 시에만 위치 확인)
+   * 4. 화면 전환 및 스마트폰 뒤로가기(History API) 제어
    ********************************************************************/
-  function goToScreen(screenId) {
+  function goToScreen(screenId, skipHistory = false, replaceHistory = false) {
+    const currentActive = document.querySelector('.screen.active');
+    const currentId = currentActive ? currentActive.id : null;
+
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
+
+    if (!skipHistory && currentId !== screenId) {
+      if (replaceHistory || (currentId === 'screen-gps' && screenId === 'screen-checkin')) {
+        history.replaceState({ screenId: screenId }, '');
+      } else {
+        history.pushState({ screenId: screenId }, '');
+      }
+    }
   }
+
+  function goBack(fallbackScreenId) {
+    if (history.state && history.state.screenId && history.state.screenId !== 'screen-menu' && history.state.screenId !== 'screen-login') {
+      history.back();
+    } else {
+      goToScreen(fallbackScreenId, true);
+    }
+  }
+
+  window.addEventListener('popstate', (event) => {
+    stopRinkAnimation();
+    if (event.state && event.state.screenId) {
+      goToScreen(event.state.screenId, true);
+    } else {
+      const defaultScreen = localStorage.getItem('tabogga_saved_auth') === 'tabogga2025' ? 'screen-menu' : 'screen-login';
+      goToScreen(defaultScreen, true);
+    }
+  });
 
   function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
     const R = 6371000;
@@ -842,7 +870,7 @@
   }
 
   async function enterCheckinAfterGps() {
-    goToScreen('screen-checkin');
+    goToScreen('screen-checkin', false, true);
     await syncFromFirebase();
     renderCheckinTable();
   }
@@ -891,7 +919,7 @@
       localStorage.setItem('tabogga_saved_auth', 'tabogga2025');
       document.getElementById('pw-input').value = '';
       await syncFromFirebase();
-      goToScreen('screen-menu');
+      goToScreen('screen-menu', false, true);
     } else {
       alert('비밀번호가 일치하지 않습니다.');
     }
@@ -930,7 +958,7 @@
 
       tr.innerHTML = `
         <td><strong>${gradeNo}</strong></td>
-        <td>${member.name}</td>
+        <td style="cursor:pointer;" onclick="openMemberMonthScreen(${member.id})"><span style="color:#2563eb; font-weight:700; text-decoration:underline;">${member.name}</span></td>
         <td><span class="grade-badge">${gradeName} (${member.lastCount}회)</span></td>
         <td><strong>${member.thisCount}</strong>회</td>
         <td>
@@ -1146,14 +1174,13 @@
   }
 
   /********************************************************************
-   * 8. 통계 - MONTH 화면 (NO, 이름, 등급, 등록일 및 연도별 가로 스크롤 상세 보기)
+   * 8. 출석 체크에서 이름 클릭 시 개인별 월간 출석 통계 화면 (NO, 이름, 현재월~1월 가로 스크롤)
    ********************************************************************/
   let selectedMemberIdForDetail = null;
 
-  async function openMonthScreen() {
-    selectedMemberIdForDetail = null;
+  function openMemberMonthScreen(memberId) {
+    selectedMemberIdForDetail = memberId;
     goToScreen('screen-month');
-    await syncFromFirebase();
     renderMonthTable();
   }
 
@@ -1162,89 +1189,50 @@
     const tbody = document.getElementById('month-tbody');
     tbody.innerHTML = '';
 
-    const currentYear = new Date().getFullYear();
+    const member = members.find(m => m.id === selectedMemberIdForDetail);
+    if (!member) return;
 
-    if (selectedMemberIdForDetail === null) {
-      // 1. 전체 멤버 리스트 화면 (NO, 이름, 등급, 등록일)
-      theadRow.innerHTML = `
-        <th>NO</th>
-        <th>이름</th>
-        <th>등급</th>
-        <th>등록일</th>
-      `;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonthNum = now.getMonth() + 1;
 
-      const sorted = [...members].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-
-      sorted.forEach((member, index) => {
-        const gradeName = GRADE_NAMES[member.lastGrade] || 'Guest';
-        const reg = member.regDate || '2026-10-16';
-        const tr = document.createElement('tr');
-        tr.style.cursor = 'pointer';
-        tr.onclick = () => {
-          selectedMemberIdForDetail = member.id;
-          renderMonthTable();
-        };
-
-        tr.innerHTML = `
-          <td><strong>${index + 1}</strong></td>
-          <td><span style="color:#2563eb; font-weight:700; text-decoration:underline;">${member.name}</span></td>
-          <td><span class="grade-badge">${gradeName}</span></td>
-          <td>${reg}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    } else {
-      // 2. 특정 멤버 상세 보기 화면 (이름, 등급, 연도 선택, 1~12월 옆으로 스크롤 표)
-      const member = members.find(m => m.id === selectedMemberIdForDetail);
-      if (!member) {
-        openMonthScreen();
-        return;
-      }
-
-      const gradeName = GRADE_NAMES[member.lastGrade] || 'Guest';
-      const activeYear = window._selectedYear || currentYear;
-
-      theadRow.innerHTML = `
-        <th colspan="12" style="background:#fff; padding:10px; text-align:left;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <button class="btn-back" onclick="selectedMemberIdForDetail = null; renderMonthTable();" style="padding:4px 10px; font-size:0.8rem;">← 목록으로</button>
-            <select id="year-select" onchange="window._selectedYear = parseInt(this.value); renderMonthTable();" style="padding:6px 10px; border-radius:8px; border:1px solid #d1d5db; font-weight:700;">
-              <option value="${currentYear-1}" ${activeYear === currentYear-1 ? 'selected' : ''}>${currentYear-1}년</option>
-              <option value="${currentYear}" ${activeYear === currentYear ? 'selected' : ''}>${currentYear}년</option>
-              <option value="${currentYear+1}" ${activeYear === currentYear+1 ? 'selected' : ''}>${currentYear+1}년</option>
-            </select>
-          </div>
-          <div style="font-size:1.05rem; font-weight:800; color:#1f2937; text-align:center;">
-            👤 ${member.name} <span class="grade-badge" style="margin-left:6px;">${gradeName}</span>
-          </div>
-        </th>
-      `;
-
-      // 가로 스크롤을 위한 1~12월 헤더 행 추가
-      const subHeaderTr = document.createElement('tr');
-      subHeaderTr.innerHTML = Array.from({length: 12}, (_, i) => `<th>${i+1}월</th>`).join('');
-      tbody.appendChild(subHeaderTr);
-
-      const dataTr = document.createElement('tr');
-      const countsObj = member.monthlyCounts || {};
-      const cells = Array.from({length: 12}, (_, i) => {
-        const mm = String(i + 1).padStart(2, '0');
-        const ymKey = `${activeYear}-${mm}`;
-        const cnt = countsObj[ymKey] || 0;
-        return `<td><strong>${cnt}</strong>회</td>`;
-      }).join('');
-
-      dataTr.innerHTML = cells;
-      tbody.appendChild(dataTr);
+    // 현재월부터 1월까지 배열 생성 (옆으로 스크롤해서 1월까지 확인 가능)
+    const months = [];
+    for (let m = currentMonthNum; m >= 1; m--) {
+      months.push(m);
     }
+
+    theadRow.innerHTML = `
+      <th style="padding: 11px 10px; white-space: nowrap;">NO</th>
+      <th style="padding: 11px 10px; white-space: nowrap;">이름</th>
+      ${months.map(m => `<th style="padding: 11px 10px; white-space: nowrap;">${m}월</th>`).join('')}
+    `;
+
+    const countsObj = member.monthlyCounts || {};
+    const monthCells = months.map(m => {
+      const mm = String(m).padStart(2, '0');
+      const ymKey = `${currentYear}-${mm}`;
+      const cnt = (m === currentMonthNum) ? (member.thisCount ?? countsObj[ymKey] ?? 0) : (countsObj[ymKey] || 0);
+      return `<td style="padding: 12px 10px; white-space: nowrap;"><strong>${cnt}</strong>회</td>`;
+    }).join('');
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="padding: 12px 10px; white-space: nowrap;"><strong>1</strong></td>
+      <td style="padding: 12px 10px; white-space: nowrap;">${member.name}</td>
+      ${monthCells}
+    `;
+    tbody.appendChild(tr);
   }
 
   // 페이지 로드 시 저장된 비밀번호가 있으면 바로 메뉴 화면으로 이동, 없으면 로그인 화면 유지
   window.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('tabogga_saved_auth') === 'tabogga2025') {
-      goToScreen('screen-menu');
+      goToScreen('screen-menu', true);
+      history.replaceState({ screenId: 'screen-menu' }, '');
     } else {
-      goToScreen('screen-login');
+      goToScreen('screen-login', true);
+      history.replaceState({ screenId: 'screen-login' }, '');
     }
     syncFromFirebase();
   });
