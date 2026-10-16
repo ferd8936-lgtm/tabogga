@@ -565,7 +565,7 @@
       <span class="header-title">TODAY 롤러장</span>
       <button class="btn-back" onclick="stopRinkAnimation(); goBack('screen-menu')">뒤로</button>
     </div>
-    <div id="today-count" class="today-count-bar">현재 탑승 인원: 0명</div>
+    <div id="today-count" class="today-count-bar">현재 롤딩 현황: 0</div>
     <div class="rink-wrapper" id="rink-stage">
       <div class="rink-track-line"></div>
       <!-- 출석한 캐릭터들이 이곳에 생성되어 회전 및 휴식함 -->
@@ -615,10 +615,10 @@
   const FIREBASE_DB_URL = "https://tabogga-ff473-default-rtdb.asia-southeast1.firebasedatabase.app";
 
   /********************************************************************
-   * 1. 롤러장 위치 설정 (대구 달서구 와룡로 143 좌표)
+   * 1. 롤러장 위치 설정 (대구 달서구 와룡로 143 놀고롤러스케이트장 좌표)
    ********************************************************************/
-  const RINK_LAT = 35.8454;       // 와룡로 143 위도
-  const RINK_LNG = 128.5364;      // 와룡로 143 경도
+  const RINK_LAT = 35.8428;       // 와룡로 143 위도
+  const RINK_LNG = 128.5362;      // 와룡로 143 경도
   const ALLOWED_RADIUS_M = 300;   // 허용 반경 (300m 이내 접속 허용)
 
   /********************************************************************
@@ -917,14 +917,12 @@
 
   function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
     const R = 6371000;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    const dLat = Math.abs(lat2 - lat1) * Math.PI / 180;
+    const dLon = Math.abs(lon2 - lon1) * Math.PI / 180;
+    const midLat = ((lat1 + lat2) / 2) * Math.PI / 180;
+    const latDist = R * dLat;
+    const lonDist = R * dLon * Math.cos(midLat);
+    return latDist + lonDist;
   }
 
   async function enterCheckinAfterGps() {
@@ -1011,12 +1009,9 @@
       return a.name.localeCompare(b.name, 'ko');
     });
 
-    // 동일한 등급이면 같은 NO 숫자를 부여 (가장 높은 등급 그룹부터 1, 2, 3, 4)
-    const uniqueGradesDesc = [...new Set(sorted.map(m => m.lastGrade))];
-
-    sorted.forEach(member => {
+    sorted.forEach((member, index) => {
       const attended = isAttendedToday(member.id);
-      const gradeNo = uniqueGradesDesc.indexOf(member.lastGrade) + 1;
+      const gradeNo = index + 1;
       const gradeName = GRADE_NAMES[member.lastGrade] || 'Guest';
       const tr = document.createElement('tr');
 
@@ -1163,7 +1158,7 @@
     const todayMap = attendanceLog[today] || {};
     const todayMembers = members.filter(m => Boolean(todayMap[m.id]));
 
-    document.getElementById('today-count').innerText = `현재 롤딩 현황: ${todayMembers.length}명`;
+    document.getElementById('today-count').innerText = `현재 롤딩 현황: ${todayMembers.length}`;
 
     if (todayMembers.length === 0) {
       const emptyMsg = document.createElement('div');
@@ -1300,7 +1295,7 @@
         const mm = String(m).padStart(2, '0');
         const ymKey = `${currentYear}-${mm}`;
         const cnt = (m === currentMonthNum) ? (member.thisCount ?? countsObj[ymKey] ?? 0) : (countsObj[ymKey] || 0);
-        return `<td style="padding: 12px 10px; white-space: nowrap;"><strong>${cnt}</strong>회</td>`;
+        return `<td style="padding: 12px 10px; white-space: nowrap;"><strong>${cnt}</strong></td>`;
       }).join('');
 
       const tr = document.createElement('tr');
