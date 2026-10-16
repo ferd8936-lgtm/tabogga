@@ -502,17 +502,17 @@
 
 <div class="app-container">
 
-  <!-- [화면 1] 위치 인증 화면 (요약 문구 반영) -->
+  <!-- [화면 1] 위치 인증 화면 (km 단위 요약 문구 반영) -->
   <div id="screen-gps" class="screen" style="justify-content: center; align-items: center; text-align: center; gap: 16px;">
     <div class="gps-icon">🛼</div>
     <div id="gps-message" class="gps-status">위치 확인 중...</div>
-    <div id="gps-sub-message" class="gps-sub">롤러장 반경 300m 이내만 가능</div>
+    <div id="gps-sub-message" class="gps-sub">롤러장 반경 0.3km 이내만 가능</div>
     <button class="btn-primary" style="margin-top:15px; max-width:220px;" onclick="checkLocation()">위치 다시 확인</button>
     <button class="btn-Skip" onclick="enterCheckinAfterGps()">[테스트용] 위치 제한 건너뛰기</button>
   </div>
 
-  <!-- [화면 2] 메인 로그인 화면 (최초 접속 화면, 테두리 삭제) -->
-  <div id="screen-login" class="screen active">
+  <!-- [화면 2] 메인 로그인 화면 (로딩 완료 후 표시) -->
+  <div id="screen-login" class="screen">
     <div class="main-banner-wrap">
       <img src="1.jpg" alt="롤러 클럽 메인 이미지" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22260%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%232563eb%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22>1.jpg 이미지를 업로드해주세요</text></svg>';">
     </div>
@@ -595,8 +595,8 @@
 
 </div>
 
-<!-- [로딩] 페이지 전환용 로딩 아이콘 오버레이 -->
-<div id="loading-overlay" class="loading-overlay">
+<!-- [로딩] 최초 접속 및 페이지 전환용 로딩 아이콘 오버레이 -->
+<div id="loading-overlay" class="loading-overlay show">
   <div class="loading-spinner"></div>
 </div>
 
@@ -935,6 +935,7 @@
     goToScreen('screen-gps');
     const msgEl = document.getElementById('gps-message');
     const subEl = document.getElementById('gps-sub-message');
+    const allowedKm = (ALLOWED_RADIUS_M / 1000).toFixed(1);
 
     if (!navigator.geolocation) {
       msgEl.innerText = '위치 미지원 브라우저';
@@ -943,7 +944,7 @@
     }
 
     msgEl.innerText = '위치 확인 중...';
-    subEl.innerText = '롤러장 반경 300m 이내만 가능';
+    subEl.innerText = `롤러장 반경 ${allowedKm}km 이내만 가능`;
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const dist = getDistanceFromLatLonInM(
@@ -956,8 +957,9 @@
         if (dist <= ALLOWED_RADIUS_M) {
           enterCheckinAfterGps();
         } else {
+          const distKm = (dist / 1000).toFixed(2);
           msgEl.innerText = '롤러장 근처가 아닙니다.';
-          subEl.innerText = `반경 ${ALLOWED_RADIUS_M}m 이내만 가능 (현재 ${Math.round(dist)}m)`;
+          subEl.innerText = `반경 ${allowedKm}km 이내만 가능 (현재 ${distKm}km)`;
         }
       },
       () => {
@@ -974,10 +976,18 @@
   async function checkPassword() {
     const input = document.getElementById('pw-input').value.trim();
     if (input === 'tabogga2025') {
+      const loader = document.getElementById('loading-overlay');
+      if (loader) loader.classList.add('show');
+
       localStorage.setItem('tabogga_saved_auth', 'tabogga2025');
       document.getElementById('pw-input').value = '';
-      await syncFromFirebase();
+      await Promise.all([
+        syncFromFirebase(),
+        preloadMainImage()
+      ]);
       goToScreen('screen-menu', false, true);
+
+      if (loader) loader.classList.remove('show');
     } else {
       alert('비밀번호가 일치하지 않습니다.');
     }
@@ -1107,12 +1117,31 @@
   let animFrameId = null;
   let skaterAngles = [];
 
+  function preloadMainImage() {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = '1.jpg';
+    });
+  }
+
   function preloadRinkImage() {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => resolve();
       img.onerror = () => resolve();
       img.src = '2.jpg';
+    });
+  }
+
+  function waitForWindowLoad() {
+    return new Promise((resolve) => {
+      if (document.readyState === 'complete') {
+        resolve();
+      } else {
+        window.addEventListener('load', () => resolve(), { once: true });
+      }
     });
   }
 
@@ -1308,8 +1337,20 @@
     });
   }
 
-  // 페이지 로드 시 저장된 비밀번호가 있으면 바로 메뉴 화면으로 이동, 없으면 로그인 화면 유지
-  window.addEventListener('DOMContentLoaded', () => {
+  // 최초 URL 접속 시 이미지·글씨체·전체 화면 및 데이터 로딩 완료 후 화면 표시
+  window.addEventListener('DOMContentLoaded', async () => {
+    const loader = document.getElementById('loading-overlay');
+    if (loader) loader.classList.add('show');
+
+    const fontReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+
+    await Promise.all([
+      waitForWindowLoad(),
+      fontReady,
+      preloadMainImage(),
+      syncFromFirebase()
+    ]);
+
     if (localStorage.getItem('tabogga_saved_auth') === 'tabogga2025') {
       goToScreen('screen-menu', true);
       history.replaceState({ screenId: 'screen-menu' }, '');
@@ -1317,7 +1358,8 @@
       goToScreen('screen-login', true);
       history.replaceState({ screenId: 'screen-login' }, '');
     }
-    syncFromFirebase();
+
+    if (loader) loader.classList.remove('show');
   });
 </script>
 
