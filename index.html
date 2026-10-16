@@ -136,11 +136,8 @@
 
     .main-banner-wrap {
       width: 100%;
-      border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       margin-bottom: 25px;
-      background-color: #eee;
     }
 
     .main-banner-wrap img {
@@ -188,62 +185,47 @@
       background-color: #1d4ed8;
     }
 
-    /* 3. 메인 메뉴 화면 (출석 체크 / 통계 박스) */
+    /* 3. 메인 메뉴 화면 (버튼 3개 세로 배치 및 세련된 색상 조화) */
     #screen-menu {
-      justify-content: center;
-      gap: 28px;
+      justify-content: flex-start;
+      padding-top: 20px;
+      gap: 14px;
     }
 
-    .btn-checkin-main {
+    .btn-menu-custom {
       width: 100%;
-      padding: 26px 20px;
-      font-size: 1.4rem;
-      font-weight: 800;
-      color: #ffffff;
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      border: none;
-      border-radius: 16px;
-      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
-      cursor: pointer;
-    }
-
-    .stats-box {
-      width: 100%;
-      border: 2px solid #e5e7eb;
-      border-radius: 16px;
-      padding: 22px 18px;
-      background-color: #f9fafb;
-      text-align: center;
-    }
-
-    .stats-title {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #374151;
-      margin-bottom: 16px;
-    }
-
-    .stats-btn-group {
-      display: flex;
-      gap: 12px;
-    }
-
-    .btn-stat {
-      flex: 1;
-      padding: 18px 10px;
+      padding: 15px;
       font-size: 1.1rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      color: #1f2937;
-      background-color: #ffffff;
-      border: 2px solid #d1d5db;
-      border-radius: 12px;
+      font-weight: 700;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     }
 
-    .btn-stat:active {
-      background-color: #f3f4f6;
+    .btn-menu-checkin {
+      background-color: #2563eb; /* 로얄 블루 */
+    }
+
+    .btn-menu-checkin:active {
+      background-color: #1d4ed8;
+    }
+
+    .btn-menu-stats {
+      background-color: #4f46e5; /* 인디고 네이비 */
+    }
+
+    .btn-menu-stats:active {
+      background-color: #4338ca;
+    }
+
+    .btn-menu-rolling {
+      background-color: #0d9488; /* 틸 에메랄드 */
+    }
+
+    .btn-menu-rolling:active {
+      background-color: #0f766e;
     }
 
     /* 4. 출석 체크 리스트 화면 & 6. 월간 통계 테이블 공통 */
@@ -486,20 +468,16 @@
 
 <div class="app-container">
 
-  <!-- [화면 1] 위치 인증 화면 (출석 체크 클릭 시에만 확인) -->
-  <div id="screen-gps" class="screen">
-    <div class="header-bar" style="width:100%;">
-      <span class="header-title">롤러장 위치 확인</span>
-      <button class="btn-back" onclick="goToScreen('screen-menu')">뒤로</button>
-    </div>
+  <!-- [화면 1] 위치 인증 화면 (상단바, 선 삭제 및 주소 반영) -->
+  <div id="screen-gps" class="screen" style="justify-content: center; align-items: center; text-align: center; gap: 16px;">
     <div class="gps-icon">🛼</div>
     <div id="gps-message" class="gps-status">롤러장 위치 확인 중...</div>
-    <div id="gps-sub-message" class="gps-sub">출석 체크는 롤러장 반경 내에서만 가능합니다.<br>위치 권한을 허용해 주세요.</div>
+    <div id="gps-sub-message" class="gps-sub">롤러장 위치: 대구 달서구 와룡로 143<br>반경 내에서만 출석 체크가 가능합니다.</div>
     <button class="btn-primary" style="margin-top:15px; max-width:220px;" onclick="checkLocation()">위치 다시 확인</button>
     <button class="btn-Skip" onclick="enterCheckinAfterGps()">[테스트용] 위치 제한 건너뛰기</button>
   </div>
 
-  <!-- [화면 2] 메인 로그인 화면 (최초 접속 화면) -->
+  <!-- [화면 2] 메인 로그인 화면 (최초 접속 화면, 테두리 삭제) -->
   <div id="screen-login" class="screen active">
     <div class="main-banner-wrap">
       <img src="1.jpg" alt="롤러 클럽 메인 이미지" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22260%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%232563eb%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22>1.jpg 이미지를 업로드해주세요</text></svg>';">
@@ -510,30 +488,23 @@
     </div>
   </div>
 
-  <!-- [화면 3] 버튼 3개 메뉴 화면 (상단 1.jpg 반영) -->
-  <div id="screen-menu" class="screen" style="justify-content: flex-start; padding-top: 30px;">
+  <!-- [화면 3] 버튼 3개 메뉴 화면 (입장하기와 동일 크기 및 세련된 3색 버튼) -->
+  <div id="screen-menu" class="screen">
     <div class="main-banner-wrap">
       <img src="1.jpg" alt="롤러 클럽 메인 이미지" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22260%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%232563eb%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22>1.jpg 이미지를 업로드해주세요</text></svg>';">
     </div>
 
-    <button class="btn-checkin-main" onclick="openCheckinScreen()">출석 체크</button>
-
-    <div class="stats-box">
-      <div class="stats-title">통계</div>
-      <div class="stats-btn-group">
-        <button class="btn-stat" onclick="openTodayScreen()">today</button>
-        <button class="btn-stat" onclick="openMonthScreen()">month</button>
-      </div>
-    </div>
+    <button class="btn-menu-custom btn-menu-checkin" onclick="openCheckinScreen()">출석 체크</button>
+    <button class="btn-menu-custom btn-menu-stats" onclick="openMonthScreen()">출석 통계</button>
+    <button class="btn-menu-custom btn-menu-rolling" onclick="openTodayScreen()">실시간 롤딩 현황</button>
   </div>
 
-  <!-- [화면 4] 출석 체크 리스트 화면 -->
+  <!-- [화면 4] 출석 체크 리스트 화면 (동기화 문구 및 여백 삭제) -->
   <div id="screen-checkin" class="screen">
     <div class="header-bar">
       <span class="header-title">출석 체크</span>
       <button class="btn-back" onclick="goToScreen('screen-menu')">뒤로</button>
     </div>
-    <div id="sync-indicator" class="sync-status">데이터 동기화 완료</div>
     <div class="table-wrapper">
       <table>
         <thead>
@@ -555,7 +526,7 @@
   <!-- [화면 5] 통계 - TODAY 롤러장 화면 -->
   <div id="screen-today" class="screen">
     <div class="header-bar">
-      <span class="header-title">TODAY 롤러장 현황</span>
+      <span class="header-title">TODAY 롤러장</span>
       <button class="btn-back" onclick="stopRinkAnimation(); goToScreen('screen-menu')">뒤로</button>
     </div>
     <div id="today-count" class="today-count-bar">현재 탑승 인원: 0명</div>
@@ -603,15 +574,14 @@
   const FIREBASE_DB_URL = "https://tabogga-ff473-default-rtdb.asia-southeast1.firebasedatabase.app";
 
   /********************************************************************
-   * 1. 롤러장 위치 설정 (실제 롤러장 위도/경도로 수정해서 사용하세요)
+   * 1. 롤러장 위치 설정 (대구 달서구 와룡로 143 좌표)
    ********************************************************************/
-  const RINK_LAT = 35.8714;       // 예시 위도
-  const RINK_LNG = 128.6014;      // 예시 경도
-  const ALLOWED_RADIUS_M = 200;   // 허용 반경 (200m 이내 접속 허용)
+  const RINK_LAT = 35.8454;       // 와룡로 143 위도
+  const RINK_LNG = 128.5364;      // 와룡로 143 경도
+  const ALLOWED_RADIUS_M = 300;   // 허용 반경 (300m 이내 접속 허용)
 
   /********************************************************************
-   * 2. 회원 등급 기준 (1: Guest, 2: Member, 3: Family, 4: Tabogga Core)
-   * 및 클럽 회원 명단 설정
+   * 2. 회원 등급 기준 및 신규 멤버 19명 명단 설정 (등록일: 2026-10-16)
    ********************************************************************/
   const GRADE_NAMES = {
     1: 'Guest',
@@ -620,25 +590,24 @@
     4: 'Tabogga Core'
   };
 
-  // 각각 다른 쿼드롤러 및 하이탑 부츠 아이콘 SVG 생성 (회원별 고유 롤러스케이트)
   const SKATE_PALETTES = [
-    { boot: '#ef4444', stripe: '#ffffff', wheel: '#fbbf24', style: 'high' },   // 레드 하이탑 쿼드
-    { boot: '#3b82f6', stripe: '#93c5fd', wheel: '#f43f5e', style: 'low' },    // 블루 레이싱 쿼드
-    { boot: '#ec4899', stripe: '#fbcfe8', wheel: '#38bdf8', style: 'high' },   // 핑크 부츠 롤러
-    { boot: '#10b981', stripe: '#ffffff', wheel: '#f59e0b', style: 'low' },    // 에메랄드 쿼드
-    { boot: '#8b5cf6', stripe: '#ddd6fe', wheel: '#ec4899', style: 'high' },   // 퍼플 하이탑 부츠
-    { boot: '#f97316', stripe: '#ffedd5', wheel: '#22c55e', style: 'low' },    // 오렌지 스피드 쿼드
-    { boot: '#facc15', stripe: '#1e293b', wheel: '#ef4444', style: 'high' },   // 옐로우 레트로 부츠
-    { boot: '#06b6d4', stripe: '#ffffff', wheel: '#a855f7', style: 'low' },    // 민트 쿼드 롤러
-    { boot: '#ffffff', stripe: '#ef4444', wheel: '#3b82f6', style: 'high' },   // 화이트 클래식 부츠
-    { boot: '#1e293b', stripe: '#38bdf8', wheel: '#facc15', style: 'low' }     // 블랙 네온 쿼드
+    { boot: '#ef4444', stripe: '#ffffff', wheel: '#fbbf24', style: 'high' },
+    { boot: '#3b82f6', stripe: '#93c5fd', wheel: '#f43f5e', style: 'low' },
+    { boot: '#ec4899', stripe: '#fbcfe8', wheel: '#38bdf8', style: 'high' },
+    { boot: '#10b981', stripe: '#ffffff', wheel: '#f59e0b', style: 'low' },
+    { boot: '#8b5cf6', stripe: '#ddd6fe', wheel: '#ec4899', style: 'high' },
+    { boot: '#f97316', stripe: '#ffedd5', wheel: '#22c55e', style: 'low' },
+    { boot: '#facc15', stripe: '#1e293b', wheel: '#ef4444', style: 'high' },
+    { boot: '#06b6d4', stripe: '#ffffff', wheel: '#a855f7', style: 'low' },
+    { boot: '#ffffff', stripe: '#ef4444', wheel: '#3b82f6', style: 'high' },
+    { boot: '#1e293b', stripe: '#38bdf8', wheel: '#facc15', style: 'low' }
   ];
 
   function getSkateSvg(memberId) {
     const p = SKATE_PALETTES[(memberId - 1) % SKATE_PALETTES.length];
     const bootPath = p.style === 'high'
-      ? 'M10 6 H24 V20 H36 C39 20 41 23 41 26 V28 H10 Z' // 하이탑 부츠형
-      : 'M10 13 H25 L38 20 C40 21 41 24 41 26 V28 H10 Z'; // 로우컷 쿼드형
+      ? 'M10 6 H24 V20 H36 C39 20 41 23 41 26 V28 H10 Z'
+      : 'M10 13 H25 L38 20 C40 21 41 24 41 26 V28 H10 Z';
     return `
       <svg viewBox="0 0 48 44" width="40" height="38" xmlns="http://www.w3.org/2000/svg">
         <path d="${bootPath}" fill="${p.boot}" stroke="#111" stroke-width="2" stroke-linejoin="round"/>
@@ -653,19 +622,21 @@
     `;
   }
 
-  // lastGrade: 4(Tabogga Core), 3(Family), 2(Member), 1(Guest)
-  const DEFAULT_MEMBERS = [
-    { id: 1,  name: '강롤러',     lastGrade: 4, lastCount: 25, thisCount: 12 },
-    { id: 2,  name: '김스케이트', lastGrade: 4, lastCount: 25, thisCount: 10 },
-    { id: 3,  name: '박쿼드',     lastGrade: 3, lastCount: 19, thisCount: 14 },
-    { id: 4,  name: '이질주',     lastGrade: 3, lastCount: 18, thisCount: 8  },
-    { id: 5,  name: '정스핀',     lastGrade: 3, lastCount: 18, thisCount: 8  },
-    { id: 6,  name: '최드리프트', lastGrade: 2, lastCount: 14, thisCount: 11 },
-    { id: 7,  name: '홍슬라이드', lastGrade: 2, lastCount: 12, thisCount: 6  },
-    { id: 8,  name: 'Alex',       lastGrade: 2, lastCount: 8,  thisCount: 9  },
-    { id: 9,  name: 'Bravo',      lastGrade: 1, lastCount: 8,  thisCount: 5  },
-    { id: 10, name: 'Charlie',    lastGrade: 1, lastCount: 4,  thisCount: 3  }
+  const MEMBER_NAMES = [
+    '아인 가족', '채빈채환 가족', '리더', '가영 가족', '다온 가족',
+    '다은 가족', '라경 가족', '리원 가족', '멋찌', '배지혜',
+    '민선태양 가족', '선우 가족', '세영주원 가족', '소율 가족', '수민 가족',
+    '수빈 가족', '수아맘', '은성 가족', '현규 삼촌'
   ];
+
+  const DEFAULT_MEMBERS = MEMBER_NAMES.map((name, idx) => ({
+    id: idx + 1,
+    name: name,
+    lastGrade: 1,
+    lastCount: 0,
+    thisCount: 0,
+    regDate: '2026-10-16'
+  }));
 
   let members = [...DEFAULT_MEMBERS];
   let attendanceLog = {};
@@ -964,7 +935,7 @@
         <td><strong>${member.thisCount}</strong>회</td>
         <td>
           <button class="btn-attend ${attended ? 'completed' : ''}" id="btn-attend-${member.id}" onclick="handleAttend(${member.id})">
-            ${attended ? '출석완료' : '출석'}
+            ${attended ? '완료' : '출석'}
           </button>
         </td>
       `;
@@ -1082,7 +1053,7 @@
     const todayMap = attendanceLog[today] || {};
     const todayMembers = members.filter(m => Boolean(todayMap[m.id]));
 
-    document.getElementById('today-count').innerText = `오늘 출석(탑승/휴식 중): ${todayMembers.length}명`;
+    document.getElementById('today-count').innerText = `현재 롤딩 현황: ${todayMembers.length}명`;
 
     if (todayMembers.length === 0) {
       const emptyMsg = document.createElement('div');
@@ -1175,9 +1146,12 @@
   }
 
   /********************************************************************
-   * 8. 통계 - MONTH 화면 (조건 8: NO, 이름, 누적된 각 월별 출석 횟수 표시)
+   * 8. 통계 - MONTH 화면 (NO, 이름, 등급, 등록일 및 연도별 가로 스크롤 상세 보기)
    ********************************************************************/
+  let selectedMemberIdForDetail = null;
+
   async function openMonthScreen() {
+    selectedMemberIdForDetail = null;
     goToScreen('screen-month');
     await syncFromFirebase();
     renderMonthTable();
@@ -1188,53 +1162,81 @@
     const tbody = document.getElementById('month-tbody');
     tbody.innerHTML = '';
 
-    // 모든 회원의 기록에서 누적된 월(YYYY-MM) 목록 추출 후 시간순 정렬
-    const monthSet = new Set();
-    monthSet.add(getPrevMonthKey());
-    monthSet.add(getCurrentMonthKey());
-    members.forEach(m => {
-      if (m.monthlyCounts) {
-        Object.keys(m.monthlyCounts).forEach(k => monthSet.add(k));
+    const currentYear = new Date().getFullYear();
+
+    if (selectedMemberIdForDetail === null) {
+      // 1. 전체 멤버 리스트 화면 (NO, 이름, 등급, 등록일)
+      theadRow.innerHTML = `
+        <th>NO</th>
+        <th>이름</th>
+        <th>등급</th>
+        <th>등록일</th>
+      `;
+
+      const sorted = [...members].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+
+      sorted.forEach((member, index) => {
+        const gradeName = GRADE_NAMES[member.lastGrade] || 'Guest';
+        const reg = member.regDate || '2026-10-16';
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.onclick = () => {
+          selectedMemberIdForDetail = member.id;
+          renderMonthTable();
+        };
+
+        tr.innerHTML = `
+          <td><strong>${index + 1}</strong></td>
+          <td><span style="color:#2563eb; font-weight:700; text-decoration:underline;">${member.name}</span></td>
+          <td><span class="grade-badge">${gradeName}</span></td>
+          <td>${reg}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } else {
+      // 2. 특정 멤버 상세 보기 화면 (이름, 등급, 연도 선택, 1~12월 옆으로 스크롤 표)
+      const member = members.find(m => m.id === selectedMemberIdForDetail);
+      if (!member) {
+        openMonthScreen();
+        return;
       }
-    });
-    const monthKeys = Array.from(monthSet).sort();
 
-    // 상단 열 헤더: NO | 이름 | 누적된 각 월 (예: 9월, 10월...)
-    theadRow.innerHTML = `
-      <th>NO</th>
-      <th>이름</th>
-      ${monthKeys.map(ym => {
-        const monthNum = parseInt(ym.split('-')[1], 10);
-        return `<th>${monthNum}월</th>`;
-      }).join('')}
-    `;
+      const gradeName = GRADE_NAMES[member.lastGrade] || 'Guest';
+      const activeYear = window._selectedYear || currentYear;
 
-    const currentMonth = getCurrentMonthKey();
+      theadRow.innerHTML = `
+        <th colspan="12" style="background:#fff; padding:10px; text-align:left;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <button class="btn-back" onclick="selectedMemberIdForDetail = null; renderMonthTable();" style="padding:4px 10px; font-size:0.8rem;">← 목록으로</button>
+            <select id="year-select" onchange="window._selectedYear = parseInt(this.value); renderMonthTable();" style="padding:6px 10px; border-radius:8px; border:1px solid #d1d5db; font-weight:700;">
+              <option value="${currentYear-1}" ${activeYear === currentYear-1 ? 'selected' : ''}>${currentYear-1}년</option>
+              <option value="${currentYear}" ${activeYear === currentYear ? 'selected' : ''}>${currentYear}년</option>
+              <option value="${currentYear+1}" ${activeYear === currentYear+1 ? 'selected' : ''}>${currentYear+1}년</option>
+            </select>
+          </div>
+          <div style="font-size:1.05rem; font-weight:800; color:#1f2937; text-align:center;">
+            👤 ${member.name} <span class="grade-badge" style="margin-left:6px;">${gradeName}</span>
+          </div>
+        </th>
+      `;
 
-    // 이번 달 출석 횟수 많은 순(동률 시 이름순)으로 정렬
-    const sorted = [...members].sort((a, b) => {
-      const countA = (a.monthlyCounts && a.monthlyCounts[currentMonth] !== undefined) ? a.monthlyCounts[currentMonth] : a.thisCount;
-      const countB = (b.monthlyCounts && b.monthlyCounts[currentMonth] !== undefined) ? b.monthlyCounts[currentMonth] : b.thisCount;
-      if (countB !== countA) {
-        return countB - countA;
-      }
-      return a.name.localeCompare(b.name, 'ko');
-    });
+      // 가로 스크롤을 위한 1~12월 헤더 행 추가
+      const subHeaderTr = document.createElement('tr');
+      subHeaderTr.innerHTML = Array.from({length: 12}, (_, i) => `<th>${i+1}월</th>`).join('');
+      tbody.appendChild(subHeaderTr);
 
-    sorted.forEach((member, index) => {
-      const tr = document.createElement('tr');
-      const monthCells = monthKeys.map(ym => {
-        const cnt = (member.monthlyCounts && member.monthlyCounts[ym] !== undefined) ? member.monthlyCounts[ym] : 0;
+      const dataTr = document.createElement('tr');
+      const countsObj = member.monthlyCounts || {};
+      const cells = Array.from({length: 12}, (_, i) => {
+        const mm = String(i + 1).padStart(2, '0');
+        const ymKey = `${activeYear}-${mm}`;
+        const cnt = countsObj[ymKey] || 0;
         return `<td><strong>${cnt}</strong>회</td>`;
       }).join('');
 
-      tr.innerHTML = `
-        <td><strong>${index + 1}</strong></td>
-        <td>${member.name}</td>
-        ${monthCells}
-      `;
-      tbody.appendChild(tr);
-    });
+      dataTr.innerHTML = cells;
+      tbody.appendChild(dataTr);
+    }
   }
 
   // 페이지 로드 시 저장된 비밀번호가 있으면 바로 메뉴 화면으로 이동, 없으면 로그인 화면 유지
