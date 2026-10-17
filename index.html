@@ -307,17 +307,17 @@
       text-shadow: none;
       -webkit-font-smoothing: antialiased;
       will-change: transform, left;
-      animation: ledLeftToRight 13s linear infinite;
+      animation: ledRightToLeft 13s linear infinite;
     }
 
-    @keyframes ledLeftToRight {
+    @keyframes ledRightToLeft {
       0% {
-        left: 0%;
-        transform: translateX(-100%);
-      }
-      100% {
         left: 100%;
         transform: translateX(0%);
+      }
+      100% {
+        left: 0%;
+        transform: translateX(-100%);
       }
     }
 
