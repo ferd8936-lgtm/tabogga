@@ -229,7 +229,7 @@
       background-color: #0f766e;
     }
 
-    /* 실시간 롤딩 현황 아래 회칙 보기 텍스트 버튼 */
+    /* 실시간 롤딩 현황 아래 클럽 회칙 보기 텍스트 버튼 */
     .btn-rules-link {
       background: none;
       border: none;
@@ -240,6 +240,9 @@
       margin-top: 2px;
       align-self: center;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .btn-rules-link:active {
@@ -556,7 +559,7 @@
     </div>
   </div>
 
-  <!-- [화면 3] 메뉴 화면 (회칙 보기 버튼 추가 반영) -->
+  <!-- [화면 3] 메뉴 화면 (아이콘+클럽 회칙 보기 버튼 반영) -->
   <div id="screen-menu" class="screen">
     <div class="main-banner-wrap">
       <img src="1.jpg" alt="롤러 클럽 메인 이미지" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22260%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%232563eb%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22>1.jpg 이미지를 업로드해주세요</text></svg>';">
@@ -564,7 +567,15 @@
 
     <button class="btn-menu-custom btn-menu-checkin" onclick="openCheckinScreen()">출석 체크</button>
     <button class="btn-menu-custom btn-menu-rolling" onclick="openTodayScreen()">실시간 롤딩 현황</button>
-    <button class="btn-rules-link" onclick="openRulesScreen()">회칙 보기</button>
+    <button class="btn-rules-link" onclick="openRulesScreen()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/>
+        <path d="M19 17V5a2 2 0 0 0-2-2H4"/>
+        <path d="M11 8h4"/>
+        <path d="M11 12h4"/>
+      </svg>
+      <span>클럽 회칙 보기</span>
+    </button>
   </div>
 
   <!-- [화면 4] 출석 체크 리스트 화면 (누적 현황 버튼 추가) -->
@@ -628,13 +639,14 @@
     </div>
   </div>
 
-  <!-- [화면 7] 타보까 롤러 클럽 회칙 화면 (OCR 텍스트 반영) -->
+  <!-- [화면 7] 타보까 롤러 클럽 회칙 화면 (상단 볼드 및 한 줄 띄움 반영) -->
   <div id="screen-rules" class="screen">
     <div class="header-bar">
       <span class="header-title">타보까 롤러 클럽 회칙</span>
       <button class="btn-back" onclick="goBack('screen-menu')">뒤로</button>
     </div>
-    <div class="rules-box">&lt;&lt;&lt; 타보까 롤러 클럽 회칙 &gt;&gt;&gt;
+    <div class="rules-box"><strong>&lt;&lt;&lt; 타보까 롤러 클럽 회칙 &gt;&gt;&gt;</strong>
+
 제1조 (명칭)
 본 동호회의 명칭은 ‘타보까 롤러 클럽’이라 하며, 영문 표기는 ‘TABOGGA ROLLER CLUB’으로 한다.
 
@@ -794,12 +806,10 @@
     `;
   }
 
-  // 1, 2, 3위 금·은·동메달 표시 함수
+  // 1, 2, 3위 금·은·동메달 표시 함수 (숫자 밀림 없이 세로 정렬 유지)
   function getRankBadgeHtml(rank) {
-    if (rank === 1) return '🥇 <strong>1</strong>';
-    if (rank === 2) return '🥈 <strong>2</strong>';
-    if (rank === 3) return '🥉 <strong>3</strong>';
-    return `<strong>${rank}</strong>`;
+    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+    return `<span style="position:relative; display:inline-block; width:20px; text-align:center; margin:0 16px;">${medal ? `<span style="position:absolute; right:100%; top:50%; transform:translateY(-50%); margin-right:1px; line-height:1;">${medal}</span>` : ''}<strong>${rank}</strong></span>`;
   }
 
   const MEMBER_NAMES = [
@@ -1143,7 +1153,7 @@
   }
 
   /********************************************************************
-   * 6. 출석 체크 화면 및 출석/복구 토글 (1~3위 금은동 메달 반영)
+   * 6. 출석 체크 화면 및 출석/복구 토글 (1~3위 금은동 메달 및 숫자 정렬 반영)
    ********************************************************************/
   function openCheckinScreen() {
     checkLocation();
