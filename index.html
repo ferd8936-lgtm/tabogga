@@ -5,16 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>쿼드롤러스케이트 클럽 출석시스템</title>
   <style>
-    /* 폴더 내 NexonLv2Gothic 폰트 불러오기 */
+    /* 폴더 내 NexonLv2Gothic 폰트 불러오기 (폰트 지연 시 텍스트 숨김 현상 방지) */
     @font-face {
       font-family: 'NexonLv2Gothic';
-      src: url('NexonLv2Gothic.woff2') format('woff2'),
+      src: local('NexonLv2Gothic'),
+           url('NexonLv2Gothic.woff2') format('woff2'),
            url('NexonLv2Gothic.woff') format('woff'),
            url('NexonLv2Gothic.ttf') format('truetype'),
-           url('NexonLv2Gothic.otf') format('opentype'),
-           local('NexonLv2Gothic');
+           url('NexonLv2Gothic.otf') format('opentype');
       font-weight: normal;
       font-style: normal;
+      font-display: swap;
     }
 
     /* 기본 초기화 및 반응형 레이아웃 */
@@ -226,6 +227,39 @@
 
     .btn-menu-rolling:active {
       background-color: #0f766e;
+    }
+
+    /* 실시간 롤딩 현황 아래 회칙 보기 텍스트 버튼 */
+    .btn-rules-link {
+      background: none;
+      border: none;
+      color: #888888;
+      font-size: 0.92rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      margin-top: 2px;
+      align-self: center;
+      cursor: pointer;
+    }
+
+    .btn-rules-link:active {
+      color: #555555;
+    }
+
+    /* 회칙 페이지 스타일 */
+    .rules-box {
+      width: 100%;
+      flex: 1;
+      overflow-y: auto;
+      background-color: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 18px 16px;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      color: #1f2937;
+      white-space: pre-line;
+      word-break: keep-all;
     }
 
     /* 4. 출석 체크 리스트 화면 & 6. 월간 통계 테이블 공통 */
@@ -463,7 +497,7 @@
       margin-bottom: 8px;
     }
 
-    /* 로딩 오버레이 및 아이콘 */
+    /* 로딩 오버레이 및 아이콘 (완전 불투명 배경으로 텍스트 렌더링 전 노출 방지) */
     .loading-overlay {
       display: none;
       position: fixed;
@@ -471,7 +505,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(255, 255, 255, 0.85);
+      background: #ffffff;
       z-index: 1000;
       flex-direction: column;
       justify-content: center;
@@ -522,7 +556,7 @@
     </div>
   </div>
 
-  <!-- [화면 3] 메뉴 화면 (출석 통계 버튼 삭제 반영) -->
+  <!-- [화면 3] 메뉴 화면 (회칙 보기 버튼 추가 반영) -->
   <div id="screen-menu" class="screen">
     <div class="main-banner-wrap">
       <img src="1.jpg" alt="롤러 클럽 메인 이미지" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22260%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%232563eb%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22>1.jpg 이미지를 업로드해주세요</text></svg>';">
@@ -530,6 +564,7 @@
 
     <button class="btn-menu-custom btn-menu-checkin" onclick="openCheckinScreen()">출석 체크</button>
     <button class="btn-menu-custom btn-menu-rolling" onclick="openTodayScreen()">실시간 롤딩 현황</button>
+    <button class="btn-rules-link" onclick="openRulesScreen()">회칙 보기</button>
   </div>
 
   <!-- [화면 4] 출석 체크 리스트 화면 (누적 현황 버튼 추가) -->
@@ -568,7 +603,7 @@
     <div id="today-count" class="today-count-bar">현재 롤딩 현황: 0</div>
     <div class="rink-wrapper" id="rink-stage">
       <div class="rink-track-line"></div>
-      <!-- 출석한 캐릭터들이 이곳에 생성되어 회전 및 휴식함 -->
+      <!-- 출석한 캐릭터들이 이곳에 생성되어 유동적으로 회전함 -->
     </div>
   </div>
 
@@ -591,6 +626,102 @@
         </tbody>
       </table>
     </div>
+  </div>
+
+  <!-- [화면 7] 타보까 롤러 클럽 회칙 화면 (OCR 텍스트 반영) -->
+  <div id="screen-rules" class="screen">
+    <div class="header-bar">
+      <span class="header-title">타보까 롤러 클럽 회칙</span>
+      <button class="btn-back" onclick="goBack('screen-menu')">뒤로</button>
+    </div>
+    <div class="rules-box">&lt;&lt;&lt; 타보까 롤러 클럽 회칙 &gt;&gt;&gt;
+제1조 (명칭)
+본 동호회의 명칭은 ‘타보까 롤러 클럽’이라 하며, 영문 표기는 ‘TABOGGA ROLLER CLUB’으로 한다.
+
+제2조 (목적)
+본 클럽은 롤러스케이트를 즐기는 동호인들의 모임으로, 개인 및 가족 단위 활동을 통해 건전한 모임 취지를 지키고 롤러스케이트 실력 향상과 회원 간 상호 조력을 도모하며, 올바른 롤러스케이팅 문화를 통한 긍정적 공동체 형성을 목적으로 한다.
+
+제3조 (운영진 구성 및 회원 등급)
+운영진 구성: 운영자 1명, 공동운영자 1명, 총무 1명으로 구성한다.
+공동운영자: 회원(멤버 등급 이상) 투표를 통해 '패밀리 등급 이상' 회원 중 다수 득표자로 선출한다.
+총무: 회원들의 추대 또는 운영자의 지명으로 선출한다.
+운영자 교체: 운영자(공동운영자 포함)가 지속적인 운영이 어렵거나 모임 취지에 반하는 행위를 할 경우, 카페 회원(멤버 등급 이상) 과반수의 찬성으로 교체를 의결한다. 이후 표결을 통해 '패밀리 등급 이상' 회원을 후보로 하여 다수 득표자를 다음 운영자로 선출한다.
+회원 등급: 회원은 Guest, 멤버, 패밀리, 타보까 core, 매니저 등으로 구분하며, 활동 정도에 따라 등급이 상향 또는 하향 조정될 수 있다. 또한 회원 최소 활동 규칙에 따라 제명될 수 있다
+
+&lt;&lt;회원등급&gt;&gt;
+1. Guest (게스트)
+자격 및 조건: 단티 착용 의무는 없으나, 월 2회 이상 참여
+상향: 2개월 연속 조건 충족 시 등급 상향 조정
+유지: 2개월 조건 미충족 시 등급 유지
+강제 탈퇴: 2개월 이상 미참석 시 강제 탈퇴
+
+2. Member (멤버) - 준회원
+자격 및 조건: 단티 착용 필수 복장으로 월 2회 이상 참여
+상향: 3개월 연속 조건 충족 시 등급 상향 조정
+유지: 조건 미충족 시 등급 유지
+하향: 3개월 평균 월 2회 이하 또는 2개월 연속 미참석시 등급 하향 조정
+
+3. Family (패밀리) - 정회원
+자격 및 조건: 단티 착용 필수 복장으로 월 3회 이상 참여
+상향: 6개월 조건 충족 시 등급 상향 조정
+유지: 조건 미충족 시 등급 유지
+하향: 6개월 평균 월 3회 이하 또는 2개월 연속 미참석시 등급 하향 조정
+
+4. Tabogga Core (타보까 코어)
+자격 및 조건: 단티 착용 필수 복장으로 월 4회 이상 지속적 참여
+유지: 조건 충족 시 등급 유지
+하향: 조건 미충족시 또는 2개월 연속 미참석시 등급 하향 조정
+
+부칙 —회원 등급에 따라 권리와 의무에 차등이 있으며 이벤트 및 행사 참여에 인원제한등의
+요건이 생길 경우에는 차등이 있을수 있다.
+2026년 12월 31일까지 현 등급유지하며 조건충족
+요건에 따라 2027년 1월 1일이후부터 등급 변경을 시행한다
+
+제4조 (주요 활동 장소 및 인정 범위)
+본 클럽의 주요 활동 장소는 ‘놀고 롤러스케이트장 5층’으로 하며, 동호회 현수막이 게시된 장소에 모이는 것을 정식 활동으로 인정한다.
+야유회, 소풍, 타 스포츠 동참, 원정 등 이벤트성 활동은 자율 참석을 원칙으로 하며, 정식 활동으로 인정하지 아니한다.
+
+제5조 (회원 자격 및 가입 절차)
+롤러스케이트에 관심과 애정이 있고 설립 목적에 동의하는 자로서, 소정의 가입 절차 후 운영자의 승인을 받아 회원 자격을 얻는다.
+미성년자는 단독으로 가입할 수 없으며, 부모(보호자 또는 부모 동의에 의한 보호자)가 함께 동참하는 경우에 한하여 부모 및 보호자와 같은 회원등급의 자격을 가진다
+미성년 동반 부모 및 보호자는 부칙에 따른 사항을 준수한다
+
+—부칙(미성년 자녀 동반 회원 준수사항)
+• 동반 의무: 미성년 자녀는 모임 시 항상 부모(보호자)가 동반해야 하며 부모 동반 아닌경우 동호회 활동을 금지한다
+• 보호자 위임: 타 회원의 동의로 미성년자의 보호자가 된 경우, 부모와 동일한 책임을 진다
+• 안내 및 지도: 보호자는 자녀에게 동호회 취지·규칙을 설명하고, 모임 질서를 지킬 수 있도록 지도해야 한다
+&lt;분쟁 발생 및 제재 규정&gt;
+• 미성년자 간 문제 해결:
+  ◦ 미성년자 간 개인 친목에 타 회원이나 운영자는 원칙적으로 개입하지 않는다
+  ◦ 다만, 마찰이나 분쟁이 발생하면 보호자가 적극적으로 문제 해결 및 제재를 해야 한다.
+• 분쟁 지속 시 운영 조치:
+  ◦ 지속적인 분쟁으로 동호회 분위기를 실추시킬 경우, 운영자는 원인을 제공한 미성년자의 보호자에 대해 책임을 물어 [등급 하향] 또는 [강제 탈퇴] 투표를 올릴 수 있으며, 투표 결과에 따라 처리한다
+
+제6조 (회비)
+정기 회비는 두지 않으며, 동호회 행사에 필요한 비용은 참석자 1/N 분담을 원칙으로 한다.
+
+제7조 (회원의 의무 및 매너)
+◦회원은 모임 내에서 타인을 존중하고 건전하고 긍정적인 언행을 유지해야 한다.
+◦성별, 정치, 종교, 외교, 회원 간 비하(경제적 능력, 사회적 위치, 외모 비교 등 불쾌감을 줄 수 있는 발언) 등 사회적 이슈나 회원 간 감정을 상하게 할 수 있는 대화는 지양한다.
+◦회원은 동호회내 게시물에 대해서 게시자 동의가 없는 게시글에 대해서는 외부에 공유하지않는다
+
+제8조 (사적 거래 및 친목 개입 금지)
+개인 간 금전거래, 사업적 연계, 가족/개인 간 친목 활동에는 동호회가 관여하지 않는다. 사적 친목 등으로 인해 문제가 발생할 경우 운영진 및 타 회원은 일절 개입하지 않으며, 당사자는 해당 내용을 카페에 공론화하지 않고 당사자 간 해결하는 것을 원칙으로 한다. 불필요한 공론화 등을 지속적으로 일으킬 경우 탈퇴 권유 또는 제명될 수 있다.
+
+제9조 (소통 및 분쟁 해결)
+회원 간 또는 회원과 운영자 간의 클럽 운영상 개선사항이나 이견은 게시판 및 대화창을 통해 직접적으로 의견을 나누고 해결할 수 있다.
+정당한 사유 없이 개인 성향이나 감정으로 불필요한 논쟁을 유발하고 불화를 일으키는 회원에게는 1차 경고 조치하며, 이후에도 지속될 경우 탈퇴 권유 또는 제명될 수 있다.
+
+제10조 (강제 탈퇴 및 제명 권한)
+회원은 운영자가 운영자 자격 유지에 부합하지 않는 행위를 할 경우, 제3조 조항에 의거하여 운영자 제명에 대한 투표권을 행사할 수 있는 권한을 갖는다. 투표로 제명된 운영자는 다음 운영자에게 매니저 권한을 위임한다.
+운영자는 회원 자격 유지 조건에 부합하지 않거나 제3조, 제7조, 제8조, 제9조 조항에 의거하여 동호회 취지에 어긋나는 행위를 지속하는 회원에 대해 강제 탈퇴(제명) 조치를 취할 수 있는 권한을 갖는다.
+
+제11조 (회칙 내용 변경·추가·삭제)
+운영자 및 멤버 등급 이상의 회원은 회칙에 대해 변경, 추가, 삭제를 게시판에 건의할 수 있으며, 운영자는 건의 내용을 투표 사항으로 게시해야 한다. 회원(멤버 등급 이상) 과반수가 동의할 경우 건의 내용대로 수정할 수 있다.
+
+본 회칙은 2026년 11월 1일부터 시행한다.
+
+— 타보까 롤러 클럽 운영자 작성—</div>
   </div>
 
 </div>
@@ -663,6 +794,14 @@
     `;
   }
 
+  // 1, 2, 3위 금·은·동메달 표시 함수
+  function getRankBadgeHtml(rank) {
+    if (rank === 1) return '🥇 <strong>1</strong>';
+    if (rank === 2) return '🥈 <strong>2</strong>';
+    if (rank === 3) return '🥉 <strong>3</strong>';
+    return `<strong>${rank}</strong>`;
+  }
+
   const MEMBER_NAMES = [
     '아인 가족', '채빈채환 가족', '리더', '가영 가족', '다온 가족',
     '다은 가족', '라경 가족', '리원 가족', '멋찌', '배지혜',
@@ -729,10 +868,6 @@
   }
 
   // 첨부된 회원등급 기준에 따른 월말 등급 산정 함수
-  // 1: Guest(월2회 이상, 2개월 연속 충족 시 상향)
-  // 2: Member(월2회 이상, 3개월 연속 충족 시 상향 / 3개월 평균 2회 이하·2개월 연속 미참석 시 하향)
-  // 3: Family(월3회 이상, 6개월 충족 시 상향 / 6개월 평균 3회 이하·2개월 연속 미참석 시 하향)
-  // 4: Tabogga Core(월4회 이상 유지 / 미충족·2개월 연속 미참석 시 하향)
   function recalculateGrades(memberList) {
     memberList.forEach(m => {
       const countsObj = m.monthlyCounts || {};
@@ -915,6 +1050,10 @@
     }
   });
 
+  function openRulesScreen() {
+    goToScreen('screen-rules');
+  }
+
   function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
     const R = 6371000;
     const dLat = Math.abs(lat2 - lat1) * Math.PI / 180;
@@ -971,8 +1110,16 @@
   }
 
   /********************************************************************
-   * 5. 비밀번호 확인 및 브라우저 자동 저장 (조건 9)
+   * 5. 비밀번호 확인 및 브라우저 자동 저장 (텍스트/화면 완전 렌더링 후 표시)
    ********************************************************************/
+  function waitForPaint() {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => resolve());
+      });
+    });
+  }
+
   async function checkPassword() {
     const input = document.getElementById('pw-input').value.trim();
     if (input === 'tabogga2025') {
@@ -983,9 +1130,11 @@
       document.getElementById('pw-input').value = '';
       await Promise.all([
         syncFromFirebase(),
-        preloadMainImage()
+        preloadMainImage(),
+        ensureFontsLoaded()
       ]);
       goToScreen('screen-menu', false, true);
+      await waitForPaint();
 
       if (loader) loader.classList.remove('show');
     } else {
@@ -994,7 +1143,7 @@
   }
 
   /********************************************************************
-   * 6. 출석 체크 화면 및 출석/복구 토글 (조건 1, 2, 5, 6)
+   * 6. 출석 체크 화면 및 출석/복구 토글 (1~3위 금은동 메달 반영)
    ********************************************************************/
   function openCheckinScreen() {
     checkLocation();
@@ -1026,7 +1175,7 @@
       const tr = document.createElement('tr');
 
       tr.innerHTML = `
-        <td><strong>${gradeNo}</strong></td>
+        <td style="white-space: nowrap;">${getRankBadgeHtml(gradeNo)}</td>
         <td>${member.name}</td>
         <td>${gradeName} (${member.lastCount}회)</td>
         <td><strong>${member.thisCount}</strong>회</td>
@@ -1112,7 +1261,7 @@
   }
 
   /********************************************************************
-   * 7. 통계 - TODAY 화면 (배경 이미지 및 데이터 로딩 완료 후 화면 표시)
+   * 7. 통계 - TODAY 화면 (전원 유동적 주행 및 캐릭터 겹침 방지 적용)
    ********************************************************************/
   let animFrameId = null;
   let skaterAngles = [];
@@ -1133,6 +1282,17 @@
       img.onerror = () => resolve();
       img.src = '2.jpg';
     });
+  }
+
+  function ensureFontsLoaded() {
+    if (!document.fonts) return Promise.resolve();
+    const timeout = new Promise((resolve) => setTimeout(resolve, 600));
+    const fontLoad = Promise.all([
+      document.fonts.ready,
+      document.fonts.load('700 1rem NexonLv2Gothic').catch(() => {}),
+      document.fonts.load('400 1rem NexonLv2Gothic').catch(() => {})
+    ]);
+    return Promise.race([fontLoad, timeout]);
   }
 
   function waitForWindowLoad() {
@@ -1156,6 +1316,7 @@
 
     goToScreen('screen-today');
     initRinkSkaters();
+    await waitForPaint();
 
     if (loader) loader.classList.remove('show');
   }
@@ -1166,17 +1327,6 @@
       animFrameId = null;
     }
   }
-
-  // 링크 중앙 및 링크 바깥 휴식 구역 좌표
-  const REST_POSITIONS = [
-    { x: 50, y: 48, zone: 'center' },  // 링크 정중앙 휴식
-    { x: 14, y: 18, zone: 'outside' }, // 좌측 상단 링크 밖 휴식
-    { x: 43, y: 54, zone: 'center' },  // 링크 중앙 좌측 휴식
-    { x: 86, y: 20, zone: 'outside' }, // 우측 상단 링크 밖 휴식
-    { x: 57, y: 45, zone: 'center' },  // 링크 중앙 우측 휴식
-    { x: 15, y: 84, zone: 'outside' }, // 좌측 하단 링크 밖 휴식
-    { x: 85, y: 82, zone: 'outside' }  // 우측 하단 링크 밖 휴식
-  ];
 
   function initRinkSkaters() {
     stopRinkAnimation();
@@ -1198,9 +1348,9 @@
     }
 
     skaterAngles = [];
-    let trackCount = 0;
-    let restCount = 0;
+    const total = todayMembers.length;
 
+    // 모든 캐릭터가 한곳에 멈춰있지 않고 유동적으로 코스를 바꾸며 주행하도록 설정
     todayMembers.forEach((member, idx) => {
       const rawTime = todayMap[member.id];
       const timeText = (typeof rawTime === 'string' && rawTime.includes(':')) ? rawTime : '00:00';
@@ -1214,63 +1364,83 @@
       `;
       stage.appendChild(el);
 
-      // 일부는 트랙 주행, 일부는 링크 중간이나 링크 밖에서 휴식하도록 다양하게 배치
-      const isResting = (idx % 3 === 1) || (idx % 4 === 3);
+      const initialAngle = (2 * Math.PI / total) * idx;
+      const laneOffset = (idx % 3 === 0) ? 0 : (idx % 3 === 1 ? -7 : 6);
 
-      if (isResting) {
-        const pos = REST_POSITIONS[restCount % REST_POSITIONS.length];
-        restCount++;
-        el.style.left = `${pos.x}%`;
-        el.style.top = `${pos.y}%`;
-        skaterAngles.push({
-          el: el,
-          avatarEl: el.querySelector('.skater-avatar'),
-          isResting: true,
-          baseX: pos.x,
-          baseY: pos.y,
-          phase: idx * 1.3
-        });
-      } else {
-        trackCount++;
-        skaterAngles.push({
-          el: el,
-          avatarEl: el.querySelector('.skater-avatar'),
-          isResting: false,
-          trackIdx: trackCount,
-          angle: 0,
-          speed: 0.0032 // 기존(0.012)보다 약 4배 천천히 주행
-        });
-      }
-    });
-
-    // 트랙 주행 인원 각도 균등 분배
-    const totalTrack = Math.max(1, trackCount);
-    skaterAngles.forEach(item => {
-      if (!item.isResting) {
-        item.angle = (2 * Math.PI / totalTrack) * (item.trackIdx - 1);
-      }
+      skaterAngles.push({
+        el: el,
+        avatarEl: el.querySelector('.skater-avatar'),
+        angle: initialAngle,
+        speed: 0.0028 + (idx % 5) * 0.00035,
+        baseRx: 33 + laneOffset,
+        baseRy: 29 + laneOffset * 0.85,
+        wavePhase: idx * 1.7,
+        waveSpeed: 0.012 + (idx % 4) * 0.003,
+        x: 50,
+        y: 50
+      });
     });
 
     function animate() {
+      // 1단계: 각 캐릭터의 유동적인 궤적 위치 계산 (안쪽·바깥쪽 레인을 자연스럽게 오가며 이동)
       skaterAngles.forEach(item => {
-        if (item.isResting) {
-          // 링크 중앙이나 밖에서 쉬고 있는 캐릭터는 제자리에서 살짝 흔들리는 모션
-          item.phase += 0.03;
-          const bobY = item.baseY + Math.sin(item.phase) * 0.6;
-          item.el.style.left = `${item.baseX}%`;
-          item.el.style.top = `${bobY}%`;
-        } else {
-          item.angle -= item.speed;
+        item.angle -= item.speed;
+        item.wavePhase += item.waveSpeed;
 
-          const x = 50 + 36 * Math.cos(item.angle);
-          const y = 50 + 32 * Math.sin(item.angle);
+        const dynamicRx = item.baseRx + Math.sin(item.wavePhase) * 6.5;
+        const dynamicRy = item.baseRy + Math.cos(item.wavePhase * 0.8) * 6.0;
 
-          item.el.style.left = `${x}%`;
-          item.el.style.top = `${y}%`;
+        item.x = 50 + dynamicRx * Math.cos(item.angle);
+        item.y = 50 + dynamicRy * Math.sin(item.angle);
 
-          const flip = Math.sin(item.angle) > 0 ? 1 : -1;
-          item.avatarEl.style.transform = `scaleX(${flip})`;
+        const flip = Math.sin(item.angle) > 0 ? 1 : -1;
+        item.avatarEl.style.transform = `scaleX(${flip})`;
+      });
+
+      // 2단계: 캐릭터 간 이름·시간이 겹치지 않도록 최소 간격 유지(충돌 회피) 보정
+      const minSepX = 18; // 가로 최소 간격 (%)
+      const minSepY = 15; // 세로 최소 간격 (%)
+
+      for (let pass = 0; pass < 3; pass++) {
+        for (let i = 0; i < skaterAngles.length; i++) {
+          for (let j = i + 1; j < skaterAngles.length; j++) {
+            const a = skaterAngles[i];
+            const b = skaterAngles[j];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+
+            const normX = dx / minSepX;
+            const normY = dy / minSepY;
+            const distSq = normX * normX + normY * normY;
+
+            if (distSq < 1 && distSq > 0.0001) {
+              const dist = Math.sqrt(distSq);
+              const overlap = (1 - dist) * 0.5;
+              const pushX = (normX / dist) * overlap * minSepX;
+              const pushY = (normY / dist) * overlap * minSepY;
+
+              a.x -= pushX;
+              a.y -= pushY;
+              b.x += pushX;
+              b.y += pushY;
+            } else if (distSq <= 0.0001) {
+              a.x -= 4;
+              b.x += 4;
+            }
+          }
         }
+
+        // 화면 밖으로 벗어나지 않도록 안전 범위 제한
+        skaterAngles.forEach(item => {
+          item.x = Math.max(12, Math.min(88, item.x));
+          item.y = Math.max(12, Math.min(86, item.y));
+        });
+      }
+
+      // 3단계: 최종 좌표 반영
+      skaterAngles.forEach(item => {
+        item.el.style.left = `${item.x}%`;
+        item.el.style.top = `${item.y}%`;
       });
 
       animFrameId = requestAnimationFrame(animate);
@@ -1280,7 +1450,7 @@
   }
 
   /********************************************************************
-   * 8. 누적 현황 화면 (합계 많은 순 정렬 및 현재월~1월 가로 스크롤)
+   * 8. 누적 현황 화면 (1~3위 금은동 메달 및 합계 많은 순 정렬 반영)
    ********************************************************************/
   async function openMonthScreen() {
     goToScreen('screen-month');
@@ -1319,6 +1489,7 @@
     });
 
     sorted.forEach((member, index) => {
+      const rank = index + 1;
       const countsObj = member.monthlyCounts || {};
       const monthCells = months.map(m => {
         const mm = String(m).padStart(2, '0');
@@ -1329,7 +1500,7 @@
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td style="padding: 12px 10px; white-space: nowrap;"><strong>${index + 1}</strong></td>
+        <td style="padding: 12px 10px; white-space: nowrap;">${getRankBadgeHtml(rank)}</td>
         <td style="padding: 12px 10px; white-space: nowrap;">${member.name}</td>
         ${monthCells}
       `;
@@ -1337,16 +1508,14 @@
     });
   }
 
-  // 최초 URL 접속 시 이미지·글씨체·전체 화면 및 데이터 로딩 완료 후 화면 표시
+  // 최초 URL 접속 시 이미지·글씨체·버튼 텍스트 및 데이터 로딩이 완전히 끝난 후 화면 표시
   window.addEventListener('DOMContentLoaded', async () => {
     const loader = document.getElementById('loading-overlay');
     if (loader) loader.classList.add('show');
 
-    const fontReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-
     await Promise.all([
       waitForWindowLoad(),
-      fontReady,
+      ensureFontsLoaded(),
       preloadMainImage(),
       syncFromFirebase()
     ]);
@@ -1359,6 +1528,7 @@
       history.replaceState({ screenId: 'screen-login' }, '');
     }
 
+    await waitForPaint();
     if (loader) loader.classList.remove('show');
   });
 </script>
