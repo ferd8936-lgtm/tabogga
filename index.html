@@ -293,6 +293,31 @@
       vertical-align: middle;
     }
 
+    /* 출석 체크 표 열 폭 및 여백 최적화 (이름 5글자 폭 확보 및 타 열 여백 축소) */
+    #screen-checkin table th,
+    #screen-checkin table td {
+      padding-left: 3px;
+      padding-right: 3px;
+    }
+
+    #screen-checkin table th:nth-child(1),
+    #screen-checkin table td:nth-child(1),
+    #screen-checkin table th:nth-child(3),
+    #screen-checkin table td:nth-child(3),
+    #screen-checkin table th:nth-child(4),
+    #screen-checkin table td:nth-child(4),
+    #screen-checkin table th:nth-child(5),
+    #screen-checkin table td:nth-child(5) {
+      white-space: nowrap;
+      width: 1%;
+    }
+
+    #screen-checkin table th:nth-child(2),
+    #screen-checkin table td:nth-child(2) {
+      min-width: 5.2em;
+      word-break: keep-all;
+    }
+
     .grade-badge {
       display: inline-block;
       font-size: 0.82rem;
@@ -304,7 +329,7 @@
     }
 
     .btn-attend {
-      padding: 7px 12px;
+      padding: 7px 10px;
       font-size: 0.85rem;
       font-weight: 700;
       color: #fff;
@@ -806,10 +831,10 @@
     `;
   }
 
-  // 1, 2, 3위 금·은·동메달 표시 함수 (숫자 밀림 없이 세로 정렬 유지)
+  // 1, 2, 3위 금·은·동메달 표시 함수 (불필요한 여백 축소 및 숫자 세로 정렬 유지)
   function getRankBadgeHtml(rank) {
     const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
-    return `<span style="position:relative; display:inline-block; width:20px; text-align:center; margin:0 16px;">${medal ? `<span style="position:absolute; right:100%; top:50%; transform:translateY(-50%); margin-right:1px; line-height:1;">${medal}</span>` : ''}<strong>${rank}</strong></span>`;
+    return `<span style="position:relative; display:inline-block; width:18px; text-align:center; margin:0 0 0 13px;">${medal ? `<span style="position:absolute; right:100%; top:50%; transform:translateY(-50%); margin-right:0px; font-size:0.82rem; line-height:1;">${medal}</span>` : ''}<strong>${rank}</strong></span>`;
   }
 
   const MEMBER_NAMES = [
