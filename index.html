@@ -118,7 +118,7 @@
       line-height: 1.4;
     }
 
-    /* 위치 확인 화면 하단 TEST 문구 */
+    /* 위치 확인 화면 하단 TEST 문구 (기존 대비 50% 축소) */
     .btn-test-link {
       position: absolute;
       bottom: 20px;
@@ -127,7 +127,7 @@
       background: none;
       border: none;
       color: #555;
-      font-size: 0.85rem;
+      font-size: 0.425rem;
       cursor: pointer;
       padding: 4px 8px;
     }
@@ -253,21 +253,12 @@
       color: #555555;
     }
 
-    /* 한줄 게시판 (LED 전광판 영역) */
+    /* 한줄 게시판 (LED 전광판 영역 - 이미지 바로 위 배치 및 클릭 시 설정 연결) */
     .led-board-section {
       width: 100%;
-      margin-top: 8px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-    }
-
-    .led-board-label {
-      font-size: 0.84rem;
-      font-weight: 700;
-      color: #4b5563;
-      padding-left: 2px;
-      text-align: left;
+      cursor: pointer;
     }
 
     .led-board-frame {
@@ -283,7 +274,7 @@
       align-items: center;
     }
 
-    /* LED 전광판 도트 매트릭스 질감 오버레이 */
+    /* LED 전광판 도트 매트릭스 배경 (글자 뒤로 배치하여 텍스트 선명도 유지) */
     .led-board-frame::after {
       content: "";
       position: absolute;
@@ -291,12 +282,11 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-image: radial-gradient(rgba(255, 200, 0, 0.08) 1px, transparent 1px),
-                        radial-gradient(rgba(0, 0, 0, 0.65) 1px, transparent 1.5px);
+      background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
       background-size: 4px 4px;
-      background-position: 0 0, 2px 2px;
+      background-position: 0 0;
       pointer-events: none;
-      z-index: 2;
+      z-index: 1;
     }
 
     .led-marquee-track {
@@ -306,7 +296,7 @@
       overflow: hidden;
       display: flex;
       align-items: center;
-      z-index: 1;
+      z-index: 2;
     }
 
     .led-marquee-text {
@@ -314,7 +304,8 @@
       white-space: nowrap;
       font-weight: 800;
       letter-spacing: 1px;
-      text-shadow: 0 0 6px currentColor;
+      text-shadow: none;
+      -webkit-font-smoothing: antialiased;
       will-change: transform, left;
       animation: ledLeftToRight 13s linear infinite;
     }
@@ -328,23 +319,6 @@
         left: 100%;
         transform: translateX(0%);
       }
-    }
-
-    /* 페이지 제일 아래 중간 '게시판 설정' 회색 작은 문구 */
-    .btn-board-setting {
-      margin-top: auto;
-      padding-top: 16px;
-      align-self: center;
-      background: none;
-      border: none;
-      color: #9ca3af;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-board-setting:active {
-      color: #6b7280;
     }
 
     /* 게시판 설정 모달 폼 요소 */
@@ -738,8 +712,17 @@
     </div>
   </div>
 
-  <!-- [화면 3] 메뉴 화면 (아이콘+클럽 회칙 보기, LED 한줄 게시판, 하단 게시판 설정 반영) -->
+  <!-- [화면 3] 메뉴 화면 (상단 LED 전광판, 메인 이미지, 메뉴 버튼 반영) -->
   <div id="screen-menu" class="screen">
+    <!-- LED 전광판 (이미지 바로 위 배치, 클릭 시 비밀번호 입력 후 설정) -->
+    <div class="led-board-section" onclick="openBoardPwModal()">
+      <div class="led-board-frame">
+        <div class="led-marquee-track">
+          <span id="led-board-text" class="led-marquee-text">타보까 롤러 클럽에 오신 것을 환영합니다! 즐겁고 안전한 롤딩 되세요 🛼</span>
+        </div>
+      </div>
+    </div>
+
     <div class="main-banner-wrap">
       <img src="1.jpg" alt="롤러 클럽 메인 이미지" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22260%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%232563eb%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22>1.jpg 이미지를 업로드해주세요</text></svg>';">
     </div>
@@ -755,19 +738,6 @@
       </svg>
       <span>클럽 회칙 보기</span>
     </button>
-
-    <!-- LED 전광판 한줄 게시판 -->
-    <div class="led-board-section">
-      <div class="led-board-label">한줄 게시판</div>
-      <div class="led-board-frame">
-        <div class="led-marquee-track">
-          <span id="led-board-text" class="led-marquee-text">타보까 롤러 클럽에 오신 것을 환영합니다! 즐겁고 안전한 롤딩 되세요 🛼</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 페이지 제일 아래 중간 게시판 설정 버튼 -->
-    <button class="btn-board-setting" onclick="openBoardPwModal()">게시판 설정</button>
   </div>
 
   <!-- [화면 4] 출석 체크 리스트 화면 (누적 현황 버튼 추가) -->
@@ -1420,7 +1390,7 @@
     }
   }
 
-  // 게시판 설정 클릭 시 비밀번호('710200') 팝업 및 수정 모달 제어
+  // 게시판 클릭 시 비밀번호('710200') 팝업 및 수정 모달 제어
   function openBoardPwModal() {
     const input = document.getElementById('board-pw-input');
     if (input) input.value = '';
