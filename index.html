@@ -97,6 +97,7 @@
       align-items: center;
       text-align: center;
       gap: 16px;
+      position: relative;
     }
 
     .gps-icon {
@@ -117,15 +118,18 @@
       line-height: 1.4;
     }
 
-    .btn-Skip {
-      margin-top: 25px;
-      padding: 12px 20px;
-      border: 1px dashed #888;
-      background: #fafafa;
+    /* 위치 확인 화면 하단 TEST 문구 */
+    .btn-test-link {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: none;
+      border: none;
       color: #555;
-      border-radius: 8px;
       font-size: 0.85rem;
       cursor: pointer;
+      padding: 4px 8px;
     }
 
     /* 2. 로그인 화면 (1.jpg + 비밀번호 입력) */
@@ -247,6 +251,144 @@
 
     .btn-rules-link:active {
       color: #555555;
+    }
+
+    /* 한줄 게시판 (LED 전광판 영역) */
+    .led-board-section {
+      width: 100%;
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .led-board-label {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #4b5563;
+      padding-left: 2px;
+      text-align: left;
+    }
+
+    .led-board-frame {
+      width: 100%;
+      height: 58px;
+      background-color: #0a0a0a;
+      border: 6px solid #26292e;
+      border-radius: 4px;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.95), 0 4px 10px rgba(0, 0, 0, 0.12);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+
+    /* LED 전광판 도트 매트릭스 질감 오버레이 */
+    .led-board-frame::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: radial-gradient(rgba(255, 200, 0, 0.08) 1px, transparent 1px),
+                        radial-gradient(rgba(0, 0, 0, 0.65) 1px, transparent 1.5px);
+      background-size: 4px 4px;
+      background-position: 0 0, 2px 2px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .led-marquee-track {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      z-index: 1;
+    }
+
+    .led-marquee-text {
+      position: absolute;
+      white-space: nowrap;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-shadow: 0 0 6px currentColor;
+      will-change: transform, left;
+      animation: ledLeftToRight 13s linear infinite;
+    }
+
+    @keyframes ledLeftToRight {
+      0% {
+        left: 0%;
+        transform: translateX(-100%);
+      }
+      100% {
+        left: 100%;
+        transform: translateX(0%);
+      }
+    }
+
+    /* 페이지 제일 아래 중간 '게시판 설정' 회색 작은 문구 */
+    .btn-board-setting {
+      margin-top: auto;
+      padding-top: 16px;
+      align-self: center;
+      background: none;
+      border: none;
+      color: #9ca3af;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-board-setting:active {
+      color: #6b7280;
+    }
+
+    /* 게시판 설정 모달 폼 요소 */
+    .form-group {
+      text-align: left;
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    .form-input,
+    .form-select {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    .color-preset-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .color-chip {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid #e5e7eb;
+      cursor: pointer;
+    }
+
+    .color-chip.selected {
+      border-color: #111827;
+      transform: scale(1.1);
     }
 
     /* 회칙 페이지 스타일 */
@@ -470,7 +612,7 @@
       color: #ffffff;
     }
 
-    /* 팝업 모달 (출석 처리 완료!) */
+    /* 팝업 모달 공통 */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -511,6 +653,18 @@
       padding: 13px;
       background-color: #2563eb;
       color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .btn-modal-cancel {
+      width: 100%;
+      padding: 13px;
+      background-color: #e5e7eb;
+      color: #374151;
       font-size: 1rem;
       font-weight: 700;
       border: none;
@@ -564,13 +718,13 @@
 
 <div class="app-container">
 
-  <!-- [화면 1] 위치 인증 화면 (km 단위 요약 문구 반영) -->
+  <!-- [화면 1] 위치 인증 화면 (500m 반경 및 하단 TEST 문구 반영) -->
   <div id="screen-gps" class="screen" style="justify-content: center; align-items: center; text-align: center; gap: 16px;">
     <div class="gps-icon">🛼</div>
     <div id="gps-message" class="gps-status">위치 확인 중...</div>
     <div id="gps-sub-message" class="gps-sub">롤러장 반경 0.5km 이내만 가능</div>
     <button class="btn-primary" style="margin-top:15px; max-width:220px;" onclick="checkLocation()">위치 다시 확인</button>
-    <button class="btn-Skip" onclick="enterCheckinAfterGps()">[테스트용] 위치 제한 건너뛰기</button>
+    <button class="btn-test-link" onclick="openTestPwModal()">TEST</button>
   </div>
 
   <!-- [화면 2] 메인 로그인 화면 (로딩 완료 후 표시) -->
@@ -584,7 +738,7 @@
     </div>
   </div>
 
-  <!-- [화면 3] 메뉴 화면 (아이콘+클럽 회칙 보기 버튼 반영) -->
+  <!-- [화면 3] 메뉴 화면 (아이콘+클럽 회칙 보기, LED 한줄 게시판, 하단 게시판 설정 반영) -->
   <div id="screen-menu" class="screen">
     <div class="main-banner-wrap">
       <img src="1.jpg" alt="롤러 클럽 메인 이미지" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22260%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%232563eb%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22>1.jpg 이미지를 업로드해주세요</text></svg>';">
@@ -601,6 +755,19 @@
       </svg>
       <span>클럽 회칙 보기</span>
     </button>
+
+    <!-- LED 전광판 한줄 게시판 -->
+    <div class="led-board-section">
+      <div class="led-board-label">한줄 게시판</div>
+      <div class="led-board-frame">
+        <div class="led-marquee-track">
+          <span id="led-board-text" class="led-marquee-text">타보까 롤러 클럽에 오신 것을 환영합니다! 즐겁고 안전한 롤딩 되세요 🛼</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 페이지 제일 아래 중간 게시판 설정 버튼 -->
+    <button class="btn-board-setting" onclick="openBoardPwModal()">게시판 설정</button>
   </div>
 
   <!-- [화면 4] 출석 체크 리스트 화면 (누적 현황 버튼 추가) -->
@@ -768,11 +935,75 @@
   <div class="loading-spinner"></div>
 </div>
 
-<!-- [팝업] 출석 처리 완료 모달 (조건 7) -->
+<!-- [팝업] 출석 처리 완료 모달 -->
 <div id="modal-complete" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-text">출석 처리 완료!</div>
     <button class="btn-modal-ok" onclick="closeModal()">확인</button>
+  </div>
+</div>
+
+<!-- [팝업] TEST 위치 제한 건너뛰기 비밀번호 입력 모달 -->
+<div id="modal-test-pw" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-text" style="font-size:1.05rem; margin-bottom:14px;">비밀번호를 입력하세요</div>
+    <input type="password" id="test-pw-input" class="input-pw" style="padding:11px; font-size:0.95rem; margin-bottom:16px;" placeholder="비밀번호 입력" onkeyup="if(event.key==='Enter') confirmTestPw()">
+    <div style="display:flex; gap:8px;">
+      <button class="btn-modal-cancel" onclick="closeTestPwModal()">취소</button>
+      <button class="btn-modal-ok" onclick="confirmTestPw()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- [팝업] 게시판 설정 비밀번호 입력 모달 -->
+<div id="modal-board-pw" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-text" style="font-size:1.05rem; margin-bottom:14px;">게시판 설정 비밀번호</div>
+    <input type="password" id="board-pw-input" class="input-pw" style="padding:11px; font-size:0.95rem; margin-bottom:16px;" placeholder="비밀번호 입력" onkeyup="if(event.key==='Enter') confirmBoardPw()">
+    <div style="display:flex; gap:8px;">
+      <button class="btn-modal-cancel" onclick="closeBoardPwModal()">취소</button>
+      <button class="btn-modal-ok" onclick="confirmBoardPw()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- [팝업] 게시판 글 등록/수정 모달 (내용, 색상, 크기) -->
+<div id="modal-board-edit" class="modal-overlay">
+  <div class="modal-content" style="max-width:340px;">
+    <div class="modal-text" style="font-size:1.1rem; margin-bottom:16px;">한줄 게시판 설정</div>
+
+    <div class="form-group">
+      <label class="form-label">게시글 내용</label>
+      <input type="text" id="board-text-input" class="form-input" placeholder="전광판에 표시할 내용을 입력하세요">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">글자 색상</label>
+      <div class="color-preset-row">
+        <button type="button" class="color-chip" style="background:#facc15;" onclick="selectBoardColor('#facc15')"></button>
+        <button type="button" class="color-chip" style="background:#4ade80;" onclick="selectBoardColor('#4ade80')"></button>
+        <button type="button" class="color-chip" style="background:#38bdf8;" onclick="selectBoardColor('#38bdf8')"></button>
+        <button type="button" class="color-chip" style="background:#fb7185;" onclick="selectBoardColor('#fb7185')"></button>
+        <button type="button" class="color-chip" style="background:#f97316;" onclick="selectBoardColor('#f97316')"></button>
+        <button type="button" class="color-chip" style="background:#ffffff;" onclick="selectBoardColor('#ffffff')"></button>
+        <input type="color" id="board-color-input" value="#facc15" style="width:32px; height:32px; border:none; background:none; cursor:pointer;">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:20px;">
+      <label class="form-label">글자 크기</label>
+      <select id="board-size-input" class="form-select">
+        <option value="0.85rem">작게</option>
+        <option value="1.0rem" selected>보통</option>
+        <option value="1.2rem">크게</option>
+        <option value="1.4rem">아주 크게</option>
+      </select>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button class="btn-modal-cancel" onclick="closeBoardEditModal()">취소</button>
+      <button class="btn-modal-ok" onclick="saveBoardSettings()">저장</button>
+    </div>
   </div>
 </div>
 
@@ -838,7 +1069,7 @@
   }
 
   const MEMBER_NAMES = [
-    '아인 가족', '채빈채환 가족', '리더 재형', '가영 가족', '다온 가족',
+    '아인 가족', '채빈채환 가족', '리더', '가영 가족', '다온 가족',
     '다은 가족', '라경 가족', '리원 가족', '멋찌', '배지혜',
     '민선태양 가족', '선우 가족', '세영주원 가족', '소율 가족', '수민 가족',
     '수빈 가족', '수아맘', '은성 가족', '현규 삼촌'
@@ -855,6 +1086,19 @@
 
   let members = [...DEFAULT_MEMBERS];
   let attendanceLog = {};
+  let boardConfig = {
+    text: '타보까 롤러 클럽에 오신 것을 환영합니다! 즐겁고 안전한 롤딩 되세요 🛼',
+    color: '#facc15',
+    size: '1.0rem'
+  };
+
+  function renderLedBoard() {
+    const el = document.getElementById('led-board-text');
+    if (!el) return;
+    el.innerText = boardConfig.text || '공지사항이 없습니다.';
+    el.style.color = boardConfig.color || '#facc15';
+    el.style.fontSize = boardConfig.size || '1.0rem';
+  }
 
   function getTodayKey() {
     const now = new Date();
@@ -955,7 +1199,8 @@
         const initialObj = {
           currentMonth: currentMonth,
           members: {},
-          attendanceLog: {}
+          attendanceLog: {},
+          boardConfig: boardConfig
         };
         DEFAULT_MEMBERS.forEach(m => {
           m.monthlyCounts = {
@@ -976,6 +1221,13 @@
       } else {
         const dbMembers = data.members || {};
         attendanceLog = data.attendanceLog || {};
+        if (data.boardConfig) {
+          boardConfig = {
+            text: data.boardConfig.text ?? boardConfig.text,
+            color: data.boardConfig.color || boardConfig.color,
+            size: data.boardConfig.size || boardConfig.size
+          };
+        }
         let needUpdateDB = false;
 
         members = DEFAULT_MEMBERS.map(defMember => {
@@ -1034,9 +1286,11 @@
         }
       }
 
+      renderLedBoard();
       if (syncEl) syncEl.innerText = '실시간 동기화 완료';
     } catch (err) {
       console.error('Firebase 연동 오류:', err);
+      renderLedBoard();
       if (syncEl) syncEl.innerText = '오프라인 상태 (네트워크를 확인하세요)';
     }
   }
@@ -1142,6 +1396,91 @@
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
+  }
+
+  // TEST 클릭 시 비밀번호('710200') 팝업 제어
+  function openTestPwModal() {
+    const input = document.getElementById('test-pw-input');
+    if (input) input.value = '';
+    document.getElementById('modal-test-pw').classList.add('show');
+    setTimeout(() => { if (input) input.focus(); }, 50);
+  }
+
+  function closeTestPwModal() {
+    document.getElementById('modal-test-pw').classList.remove('show');
+  }
+
+  function confirmTestPw() {
+    const val = document.getElementById('test-pw-input').value.trim();
+    if (val === '710200') {
+      closeTestPwModal();
+      enterCheckinAfterGps();
+    } else {
+      alert('비밀번호가 일치하지 않습니다.');
+    }
+  }
+
+  // 게시판 설정 클릭 시 비밀번호('710200') 팝업 및 수정 모달 제어
+  function openBoardPwModal() {
+    const input = document.getElementById('board-pw-input');
+    if (input) input.value = '';
+    document.getElementById('modal-board-pw').classList.add('show');
+    setTimeout(() => { if (input) input.focus(); }, 50);
+  }
+
+  function closeBoardPwModal() {
+    document.getElementById('modal-board-pw').classList.remove('show');
+  }
+
+  function confirmBoardPw() {
+    const val = document.getElementById('board-pw-input').value.trim();
+    if (val === '710200') {
+      closeBoardPwModal();
+      openBoardEditModal();
+    } else {
+      alert('비밀번호가 일치하지 않습니다.');
+    }
+  }
+
+  function selectBoardColor(colorHex) {
+    const colorInput = document.getElementById('board-color-input');
+    if (colorInput) colorInput.value = colorHex;
+  }
+
+  function openBoardEditModal() {
+    document.getElementById('board-text-input').value = boardConfig.text || '';
+    document.getElementById('board-color-input').value = boardConfig.color || '#facc15';
+    document.getElementById('board-size-input').value = boardConfig.size || '1.0rem';
+    document.getElementById('modal-board-edit').classList.add('show');
+  }
+
+  function closeBoardEditModal() {
+    document.getElementById('modal-board-edit').classList.remove('show');
+  }
+
+  async function saveBoardSettings() {
+    const newText = document.getElementById('board-text-input').value.trim();
+    const newColor = document.getElementById('board-color-input').value || '#facc15';
+    const newSize = document.getElementById('board-size-input').value || '1.0rem';
+
+    boardConfig = {
+      text: newText || '공지사항이 없습니다.',
+      color: newColor,
+      size: newSize
+    };
+
+    renderLedBoard();
+    closeBoardEditModal();
+
+    try {
+      await fetch(`${FIREBASE_DB_URL}/clubData/boardConfig.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(boardConfig)
+      });
+    } catch (e) {
+      alert('게시판 저장 중 네트워크 오류가 발생했습니다.');
+    }
   }
 
   /********************************************************************
