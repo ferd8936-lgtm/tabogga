@@ -409,40 +409,45 @@
       vertical-align: middle;
     }
 
-    /* 출석 체크 표 가로 잘림 방지 및 등급 열 간격 축소 */
+    /* 출석 체크 표 전체 5개 열 균형 배분 (잘림 방지 및 열 간격 밸런스 최적화) */
     #screen-checkin table {
+      width: 100%;
+      table-layout: fixed;
       font-size: 0.88rem;
     }
 
     #screen-checkin table th,
     #screen-checkin table td {
-      padding-left: 2px;
-      padding-right: 2px;
+      padding-left: 4px;
+      padding-right: 4px;
+      white-space: nowrap;
     }
 
     #screen-checkin table th:nth-child(1),
-    #screen-checkin table td:nth-child(1),
-    #screen-checkin table th:nth-child(4),
-    #screen-checkin table td:nth-child(4),
-    #screen-checkin table th:nth-child(5),
-    #screen-checkin table td:nth-child(5) {
-      white-space: nowrap;
-      width: 1%;
+    #screen-checkin table td:nth-child(1) {
+      width: 14%;
     }
 
     #screen-checkin table th:nth-child(2),
     #screen-checkin table td:nth-child(2) {
-      min-width: 5.2em;
+      width: 28%;
       word-break: keep-all;
     }
 
     #screen-checkin table th:nth-child(3),
     #screen-checkin table td:nth-child(3) {
-      padding-left: 1px;
-      padding-right: 1px;
+      width: 21%;
       line-height: 1.25;
-      white-space: nowrap;
-      width: 1%;
+    }
+
+    #screen-checkin table th:nth-child(4),
+    #screen-checkin table td:nth-child(4) {
+      width: 19%;
+    }
+
+    #screen-checkin table th:nth-child(5),
+    #screen-checkin table td:nth-child(5) {
+      width: 18%;
     }
 
     .grade-badge {
@@ -456,7 +461,7 @@
     }
 
     .btn-attend {
-      padding: 7px 9px;
+      padding: 7px 10px;
       font-size: 0.83rem;
       font-weight: 700;
       color: #fff;
@@ -766,8 +771,8 @@
           <tr>
             <th>NO</th>
             <th>이름</th>
-            <th>등급(전월)</th>
-            <th>금월</th>
+            <th>등급(지난달)</th>
+            <th>출석(이번달)</th>
             <th>출석</th>
           </tr>
         </thead>
@@ -924,6 +929,14 @@
   </div>
 </div>
 
+<!-- [팝업] 대리 출석 금지 모달 -->
+<div id="modal-proxy-ban" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-text" style="color:#dc2626;">대리 출석 금지!</div>
+    <button class="btn-modal-ok" onclick="closeProxyBanModal()">확인</button>
+  </div>
+</div>
+
 <!-- [팝업] TEST 위치 제한 건너뛰기 비밀번호 입력 모달 -->
 <div id="modal-test-pw" class="modal-overlay">
   <div class="modal-content">
@@ -1051,10 +1064,10 @@
   }
 
   const MEMBER_NAMES = [
-    '아인 가족', '채빈채환 가족', '리더(재형)', '가영 가족', '다온 가족',
-    '다은 가족', '라경 가족', '리원 가족', '정환', '지혜',
+    '아인 가족', '채빈채환 가족', '리더', '가영 가족', '다온 가족',
+    '다은 가족', '라경 가족', '리원 가족', '멋찌', '배지혜',
     '민선태양 가족', '선우 가족', '세영주원 가족', '소율 가족', '수민 가족',
-    '수빈 가족', '유리', '은성 가족', '현규', '채언 가족', '은희'
+    '수빈 가족', '수아맘', '은성 가족', '현규 삼촌', '채언 가족', '은희'
   ];
 
   const DEFAULT_MEMBERS = MEMBER_NAMES.map((name, idx) => ({
@@ -1110,6 +1123,29 @@
     const hh = String(now.getHours()).padStart(2, '0');
     const mi = String(now.getMinutes()).padStart(2, '0');
     return `${hh}:${mi}`;
+  }
+
+  // 스마트폰 기기별 당일 출석 회원 기억 함수 (사이트 재접속 시에도 대리 출석 방지 유지)
+  function getMyTodayAttendedMemberId() {
+    const today = getTodayKey();
+    const saved = localStorage.getItem('tabogga_my_attend_' + today);
+    if (!saved) return null;
+    const savedId = parseInt(saved, 10);
+    // 만약 서버에서 해당 회원의 오늘 출석이 초기화된 상태라면 기기 잠금도 자동 해제
+    if (attendanceLog[today] && !attendanceLog[today][savedId]) {
+      localStorage.removeItem('tabogga_my_attend_' + today);
+      return null;
+    }
+    return savedId;
+  }
+
+  function setMyTodayAttendedMemberId(memberId) {
+    const today = getTodayKey();
+    if (memberId === null) {
+      localStorage.removeItem('tabogga_my_attend_' + today);
+    } else {
+      localStorage.setItem('tabogga_my_attend_' + today, String(memberId));
+    }
   }
 
   // 1월부터 현재월까지의 누적 출석 합계 계산 함수
@@ -1211,6 +1247,7 @@
         });
 
         attendanceLog = {};
+        setMyTodayAttendedMemberId(null);
 
         await fetch(`${FIREBASE_DB_URL}/clubData.json`, {
           method: 'PUT',
@@ -1369,6 +1406,7 @@
     goToScreen('screen-rules');
   }
 
+  // 카카오지도 실제 도로 주행 거리와 일치하도록 도로 우회 보정 계수(1.132) 반영
   function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
     const R = 6371000;
     const dLat = Math.abs(lat2 - lat1) * Math.PI / 180;
@@ -1376,7 +1414,7 @@
     const midLat = ((lat1 + lat2) / 2) * Math.PI / 180;
     const latDist = R * dLat;
     const lonDist = R * dLon * Math.cos(midLat);
-    return latDist + lonDist;
+    return (latDist + lonDist) * 1.132;
   }
 
   async function enterCheckinAfterGps() {
@@ -1543,7 +1581,7 @@
   }
 
   /********************************************************************
-   * 6. 출석 체크 화면 및 출석/복구 토글 (등급 줄바꿈 및 단독 순위 시에만 메달 표시)
+   * 6. 출석 체크 화면 및 대리 출석 방지 토글
    ********************************************************************/
   function openCheckinScreen() {
     checkLocation();
@@ -1608,10 +1646,30 @@
   }
 
   async function handleAttend(memberId) {
+    // 오늘 내 스마트폰에서 이미 출석 체크한 회원이 있는지 확인 (재접속 후에도 유지됨)
+    const myAttendedId = getMyTodayAttendedMemberId();
+    if (myAttendedId !== null && myAttendedId !== memberId) {
+      document.getElementById('modal-proxy-ban').classList.add('show');
+      return;
+    }
+
+    // 다른 스마트폰에서 이미 출석 완료된 타 회원의 버튼을 누른 경우에도 대리 취소/조작 방지
+    if (myAttendedId === null && isAttendedToday(memberId)) {
+      document.getElementById('modal-proxy-ban').classList.add('show');
+      return;
+    }
+
     const btn = document.getElementById(`btn-attend-${memberId}`);
     if (btn) btn.disabled = true;
 
     await syncFromFirebase();
+
+    const refreshedMyId = getMyTodayAttendedMemberId();
+    if (refreshedMyId !== null && refreshedMyId !== memberId) {
+      if (btn) btn.disabled = false;
+      document.getElementById('modal-proxy-ban').classList.add('show');
+      return;
+    }
 
     const target = members.find(m => m.id === memberId);
     if (!target) {
@@ -1628,10 +1686,11 @@
 
     try {
       if (alreadyAttended) {
-        // 이미 출석 완료된 상태에서 한 번 더 누르면 -> 출석 복구(취소)
+        // 본인이 출석 완료한 상태에서 본인 버튼을 한 번 더 누르면 -> 출석 복구(취소) 및 기기 제한 해제
         target.thisCount = Math.max(0, target.thisCount - 1);
         target.monthlyCounts[currentMonth] = target.thisCount;
         delete attendanceLog[today][memberId];
+        setMyTodayAttendedMemberId(null);
 
         await Promise.all([
           fetch(`${FIREBASE_DB_URL}/clubData/members/${memberId}.json`, {
@@ -1646,11 +1705,12 @@
 
         renderCheckinTable();
       } else {
-        // 미출석 상태에서 누르면 -> 출석 완료 처리 및 시간(00:00) 기록
+        // 미출석 상태에서 누르면 -> 출석 완료 처리, 시간 기록 및 내 스마트폰에 오늘 출석 회원 저장
         const timeStr = getCurrentTimeStr();
         target.thisCount += 1;
         target.monthlyCounts[currentMonth] = target.thisCount;
         attendanceLog[today][memberId] = timeStr;
+        setMyTodayAttendedMemberId(memberId);
 
         await Promise.all([
           fetch(`${FIREBASE_DB_URL}/clubData/members/${memberId}.json`, {
@@ -1676,6 +1736,10 @@
 
   function closeModal() {
     document.getElementById('modal-complete').classList.remove('show');
+  }
+
+  function closeProxyBanModal() {
+    document.getElementById('modal-proxy-ban').classList.remove('show');
   }
 
   /********************************************************************
