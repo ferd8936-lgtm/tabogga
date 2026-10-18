@@ -2,7 +2,14 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <!-- 스마트폰 홈 화면 추가 시 상단 URL 주소창 숨김 (전체화면 웹앱 모드) -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="타보까 클럽">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="manifest" href='data:application/manifest+json,{"name":"타보까 롤러 클럽","short_name":"타보까","start_url":".","display":"standalone","background_color":"#ffffff","theme_color":"#ffffff"}'>
   <title>쿼드롤러스케이트 클럽 출석시스템</title>
   <style>
     /* 폴더 내 NexonLv2Gothic 폰트 불러오기 (폰트 지연 시 텍스트 숨김 현상 방지) */
@@ -308,6 +315,19 @@
       flex-shrink: 0;
     }
 
+    /* 투표가 있는 공지글 전용 '투표' 배지 */
+    .badge-poll {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background-color: #dbeafe;
+      color: #2563eb;
+      font-size: 0.78rem;
+      font-weight: 800;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
     .kids-item-info {
       display: flex;
       flex-direction: column;
@@ -468,6 +488,11 @@
       border-radius: 6px;
     }
 
+    .kakao-poll-badge.closed {
+      color: #6b7280;
+      background: #e5e7eb;
+    }
+
     .kakao-poll-total {
       font-size: 0.78rem;
       color: #6b7280;
@@ -478,9 +503,20 @@
       font-size: 0.98rem;
       font-weight: 800;
       color: #111827;
-      margin-bottom: 12px;
+      margin-bottom: 4px;
       line-height: 1.4;
       word-break: break-word;
+    }
+
+    .kakao-poll-deadline {
+      font-size: 0.76rem;
+      color: #6b7280;
+      margin-bottom: 12px;
+    }
+
+    .kakao-poll-deadline.closed {
+      color: #dc2626;
+      font-weight: 700;
     }
 
     .kakao-poll-options {
@@ -504,10 +540,6 @@
     .kakao-poll-option.selected {
       border-color: #facc15;
       background: #fefce8;
-    }
-
-    .kakao-poll-option.voted- locked {
-      cursor: default;
     }
 
     .kakao-poll-bar {
@@ -623,7 +655,7 @@
       font-weight: 700;
       color: #4b5563;
       cursor: pointer;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .comment-section {
@@ -1240,14 +1272,14 @@
     <button class="btn-menu-custom btn-menu-checkin" onclick="openCheckinScreen()">출석 체크</button>
     <button class="btn-menu-custom btn-menu-rolling" onclick="openTodayScreen()">실시간 롤딩 현황</button>
 
-    <!-- 키즈 게시판 (최근 공지 3개 표시) -->
+    <!-- 키즈 게시판 (최근 공지/투표 3개 표시) -->
     <div class="kids-board-wrap">
       <div class="kids-board-header">
         <span class="kids-board-title">키즈 게시판</span>
         <button class="btn-kids-more" onclick="openBoardListScreen()">전체보기</button>
       </div>
       <div id="kids-board-preview" class="kids-board-card">
-        <!-- JS로 최근 공지 최대 3개 렌더링 -->
+        <!-- JS로 최근 공지/투표 최대 3개 렌더링 -->
       </div>
     </div>
 
@@ -1428,7 +1460,7 @@
     </div>
     <button class="btn-primary" style="margin-bottom: 14px; padding: 13px; font-size: 1rem;" onclick="openNoticePwModal('create')">공지 작성하기</button>
     <div id="kids-board-full-list" class="kids-board-card">
-      <!-- JS로 전체 공지 리스트 렌더링 -->
+      <!-- JS로 전체 공지/투표 리스트 렌더링 -->
     </div>
   </div>
 
@@ -1440,7 +1472,7 @@
     </div>
     <div class="board-detail-box">
       <div class="board-detail-top">
-        <span class="badge-notice">공지</span>
+        <span id="detail-post-badge" class="badge-notice">공지</span>
         <div id="detail-post-title" class="board-detail-title"></div>
       </div>
       <div class="board-detail-meta">
@@ -1527,19 +1559,35 @@
   </div>
 </div>
 
-<!-- [팝업] 카카오톡 스타일 투표 만들기 모달 -->
+<!-- [팝업] 새 게시글 등록 알림 모달 -->
+<div id="modal-new-notice-alert" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-text" style="font-size:1.05rem; margin-bottom:8px; color:#2563eb;">📢 키즈 게시판 새 글 알림</div>
+    <div id="new-notice-alert-title" style="font-size:0.95rem; font-weight:700; color:#1f2937; margin-bottom:18px; word-break:keep-all;"></div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn-modal-cancel" onclick="closeNewNoticeAlertModal()">닫기</button>
+      <button class="btn-modal-ok" onclick="goToNewNoticeFromAlert()">바로 보기</button>
+    </div>
+  </div>
+</div>
+
+<!-- [팝업] 카카오톡 스타일 투표 만들기 모달 (마감 일자 및 시간 설정 포함) -->
 <div id="modal-poll-setup" class="modal-overlay">
   <div class="modal-content" style="max-width:340px;">
     <div class="modal-text" style="font-size:1.1rem; margin-bottom:14px;">📊 투표 만들기</div>
-    <div class="form-group" style="margin-bottom:12px;">
+    <div class="form-group" style="margin-bottom:10px;">
       <label class="form-label">투표 제목</label>
-      <input type="text" id="poll-title-input" class="form-input" placeholder="투표 제목을 입력하세요">
+      <input type="text" id="poll-title-input" class="form-input" style="padding:8px 10px; font-size:0.9rem;" placeholder="투표 제목을 입력하세요">
     </div>
     <div class="form-group" style="margin-bottom:8px;">
       <label class="form-label">투표 항목</label>
-      <div id="poll-options-container" style="max-height:180px; overflow-y:auto;"></div>
+      <div id="poll-options-container" style="max-height:150px; overflow-y:auto;"></div>
     </div>
     <button type="button" class="btn-poll-opt-add" onclick="addPollOptionInput()">+ 항목 추가</button>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">마감 일자 및 시간</label>
+      <input type="datetime-local" id="poll-deadline-input" class="form-input" style="padding:8px 10px; font-size:0.88rem;">
+    </div>
     <div style="display:flex; gap:8px;">
       <button type="button" id="btn-poll-remove" class="btn-modal-cancel" style="display:none; background:#fee2e2; color:#dc2626;" onclick="removeAttachedPoll()">투표 삭제</button>
       <button type="button" class="btn-modal-cancel" onclick="closePollSetupModal()">취소</button>
@@ -1982,6 +2030,7 @@
 
       renderLedBoard();
       renderKidsBoardPreview();
+      checkNewNoticePopupAlert();
       if (syncEl) syncEl.innerText = '실시간 동기화 완료';
     } catch (err) {
       console.error('Firebase 연동 오류:', err);
@@ -2129,7 +2178,7 @@
     );
   }
 
-  // TEST 및 전광판 클릭 시 매번 비밀번호('89363341') 입력 확인 (브라우저 자동 접속 삭제)
+  // TEST 및 전광판 클릭 시 매번 비밀번호('89363341') 입력 확인
   const ADMIN_PASS_CODE = '89363341';
 
   function openTestPwModal() {
@@ -2216,7 +2265,7 @@
   }
 
   /********************************************************************
-   * 4-2. 키즈 게시판 (공지사항 프리뷰 3개, 전체보기, 상세보기, 카카오톡 투표, 댓글 삭제 확인)
+   * 4-2. 키즈 게시판 (투표 배지 구분, 투표 마감 일시 설정, 새 글 알림 팝업)
    ********************************************************************/
   let currentNoticeId = null;
   let noticeActionMode = 'create'; // 'create' | 'edit' | 'delete'
@@ -2225,6 +2274,48 @@
   let currentNoticePollData = null;
   let selectedPollOptionIdx = null;
   let pendingDeleteCommentId = null;
+  let pendingAlertNoticeId = null;
+
+  // 새 게시글 등록 시 스마트폰 팝업 및 브라우저 알림 표시
+  function checkNewNoticePopupAlert() {
+    const isAuth = (localStorage.getItem('tabogga_saved_auth') === 'tabogga2025');
+    if (!isAuth) return;
+
+    const sorted = getSortedNotices();
+    if (sorted.length === 0) return;
+
+    const latest = sorted[0];
+    const lastSeenId = localStorage.getItem('tabogga_last_seen_notice_id');
+
+    if (lastSeenId !== latest.id) {
+      localStorage.setItem('tabogga_last_seen_notice_id', latest.id);
+      pendingAlertNoticeId = latest.id;
+
+      const titleEl = document.getElementById('new-notice-alert-title');
+      if (titleEl) {
+        titleEl.innerText = latest.title || '새로운 공지사항이 등록되었습니다.';
+      }
+      document.getElementById('modal-new-notice-alert').classList.add('show');
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification('타보까 키즈 게시판 새 글 등록', { body: latest.title || '' });
+        } catch (e) {}
+      }
+    }
+  }
+
+  function closeNewNoticeAlertModal() {
+    document.getElementById('modal-new-notice-alert').classList.remove('show');
+  }
+
+  function goToNewNoticeFromAlert() {
+    const targetId = pendingAlertNoticeId;
+    closeNewNoticeAlertModal();
+    if (targetId && notices[targetId]) {
+      openBoardDetailScreen(targetId, 'screen-menu');
+    }
+  }
 
   // 본인 작성 댓글 확인 및 저장 함수
   function getMyCommentIds() {
@@ -2267,6 +2358,19 @@
     localStorage.setItem('tabogga_voted_polls', JSON.stringify(map));
   }
 
+  // 투표 마감 여부 확인 및 마감 일시 포맷팅 함수
+  function isPollClosed(poll) {
+    if (!poll || !poll.deadline) return false;
+    const deadlineTime = new Date(poll.deadline).getTime();
+    if (isNaN(deadlineTime)) return false;
+    return Date.now() >= deadlineTime;
+  }
+
+  function formatPollDeadline(deadlineStr) {
+    if (!deadlineStr) return '';
+    return String(deadlineStr).replace('T', ' ');
+  }
+
   // 공지 작성 시 투표 버튼 상태 업데이트
   function updatePollAttachButtonUI() {
     const btn = document.getElementById('btn-open-poll-modal');
@@ -2280,21 +2384,30 @@
     }
   }
 
-  // 카카오톡 스타일 투표 만들기 모달 제어
+  // 카카오톡 스타일 투표 만들기 모달 제어 (마감 일자 및 시간 포함)
   function openPollSetupModal() {
     const titleInput = document.getElementById('poll-title-input');
+    const deadlineInput = document.getElementById('poll-deadline-input');
     const container = document.getElementById('poll-options-container');
     const removeBtn = document.getElementById('btn-poll-remove');
     container.innerHTML = '';
 
     if (currentNoticePollData && currentNoticePollData.options && currentNoticePollData.options.length >= 2) {
       titleInput.value = currentNoticePollData.title || '';
+      deadlineInput.value = currentNoticePollData.deadline || '';
       currentNoticePollData.options.forEach((opt, idx) => {
         appendPollOptionRow(opt.text || '', idx + 1);
       });
       removeBtn.style.display = 'block';
     } else {
       titleInput.value = '';
+      // 기본 마감 일시를 내일 18:00로 자동 세팅
+      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const yyyy = tomorrow.getFullYear();
+      const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+      const dd = String(tomorrow.getDate()).padStart(2, '0');
+      deadlineInput.value = `${yyyy}-${mm}-${dd}T18:00`;
+
       appendPollOptionRow('', 1);
       appendPollOptionRow('', 2);
       removeBtn.style.display = 'none';
@@ -2346,6 +2459,7 @@
 
   function confirmPollSetup() {
     const title = document.getElementById('poll-title-input').value.trim();
+    const deadline = document.getElementById('poll-deadline-input').value.trim();
     const optInputs = document.querySelectorAll('#poll-options-container .poll-opt-input');
     const optTexts = [];
     optInputs.forEach(input => {
@@ -2361,6 +2475,10 @@
       alert('투표 항목을 최소 2개 이상 입력해 주세요.');
       return;
     }
+    if (!deadline) {
+      alert('마감 일자와 시간을 설정해 주세요.');
+      return;
+    }
 
     const prevOptions = (currentNoticePollData && currentNoticePollData.options) ? currentNoticePollData.options : [];
     const newOptions = optTexts.map((txt, idx) => {
@@ -2370,6 +2488,7 @@
 
     currentNoticePollData = {
       title: title,
+      deadline: deadline,
       options: newOptions
     };
 
@@ -2422,7 +2541,16 @@
       .replace(/"/g, '&quot;');
   }
 
-  // 메인 화면 최근 공지 3개 렌더링
+  // 투표 유무에 따라 '투표' 또는 '공지' 배지 반환
+  function getPostBadgeHtml(post) {
+    const hasPoll = Boolean(post && post.poll && post.poll.title && Array.isArray(post.poll.options) && post.poll.options.length >= 2);
+    if (hasPoll) {
+      return `<span class="badge-poll">투표</span>`;
+    }
+    return `<span class="badge-notice">공지</span>`;
+  }
+
+  // 메인 화면 최근 공지/투표 3개 렌더링
   function renderKidsBoardPreview() {
     const wrap = document.getElementById('kids-board-preview');
     if (!wrap) return;
@@ -2436,7 +2564,7 @@
     wrap.innerHTML = recentList.map(post => `
       <div class="kids-board-item" onclick="openBoardDetailScreen('${post.id}', 'screen-menu')">
         <div class="kids-item-left">
-          <span class="badge-notice">공지</span>
+          ${getPostBadgeHtml(post)}
           <div class="kids-item-info">
             <div class="kids-item-subject">${escapeHtmlText(post.title)}</div>
             <div class="kids-item-date">${escapeHtmlText(post.createdAt || '')}</div>
@@ -2468,7 +2596,7 @@
     wrap.innerHTML = allList.map(post => `
       <div class="kids-board-item" onclick="openBoardDetailScreen('${post.id}', 'screen-board-list')">
         <div class="kids-item-left">
-          <span class="badge-notice">공지</span>
+          ${getPostBadgeHtml(post)}
           <div class="kids-item-info">
             <div class="kids-item-subject">${escapeHtmlText(post.title)}</div>
             <div class="kids-item-date">${escapeHtmlText(post.createdAt || '')}</div>
@@ -2490,7 +2618,6 @@
       backBtn.innerText = (fromScreen === 'screen-menu') ? '목록' : '뒤로';
     }
 
-    // 화면 전환 전 선택한 게시글 데이터로 먼저 즉시 렌더링하여 이전 글 노출 방지
     renderBoardDetail();
     goToScreen('screen-board-detail');
 
@@ -2514,6 +2641,18 @@
       return;
     }
 
+    const hasPoll = Boolean(post.poll && post.poll.title && Array.isArray(post.poll.options) && post.poll.options.length >= 2);
+    const badgeEl = document.getElementById('detail-post-badge');
+    if (badgeEl) {
+      if (hasPoll) {
+        badgeEl.className = 'badge-poll';
+        badgeEl.innerText = '투표';
+      } else {
+        badgeEl.className = 'badge-notice';
+        badgeEl.innerText = '공지';
+      }
+    }
+
     document.getElementById('detail-post-title').innerText = post.title || '';
     document.getElementById('detail-post-date').innerText = post.createdAt || '';
     document.getElementById('detail-post-content').innerText = post.content || '';
@@ -2528,12 +2667,14 @@
       imgWrap.style.display = 'none';
     }
 
-    // 카카오톡 스타일 투표 렌더링
+    // 카카오톡 스타일 투표 렌더링 (마감 일시 및 자동 마감 반영)
     const pollWrap = document.getElementById('detail-post-poll-wrap');
-    if (post.poll && post.poll.title && Array.isArray(post.poll.options) && post.poll.options.length >= 2) {
+    if (hasPoll) {
       const myVotedIdx = getMyVotedOptionIdx(post.id);
       const hasVoted = (myVotedIdx !== null);
+      const closed = isPollClosed(post.poll);
       const totalVotes = post.poll.options.reduce((acc, cur) => acc + (cur.votes || 0), 0);
+      const deadlineText = post.poll.deadline ? `마감: ${formatPollDeadline(post.poll.deadline)}` : '';
 
       const optionsHtml = post.poll.options.map((opt, idx) => {
         const votes = opt.votes || 0;
@@ -2554,15 +2695,23 @@
         `;
       }).join('');
 
+      let btnLabel = '투표하기';
+      if (closed) {
+        btnLabel = '투표 마감';
+      } else if (hasVoted) {
+        btnLabel = '투표 완료';
+      }
+
       pollWrap.innerHTML = `
         <div class="kakao-poll-header">
-          <span class="kakao-poll-badge">📊 투표</span>
+          <span class="kakao-poll-badge ${closed ? 'closed' : ''}">${closed ? '📊 투표 마감' : '📊 투표 진행중'}</span>
           <span class="kakao-poll-total">${totalVotes}명 참여</span>
         </div>
         <div class="kakao-poll-title">${escapeHtmlText(post.poll.title)}</div>
+        ${deadlineText ? `<div class="kakao-poll-deadline ${closed ? 'closed' : ''}">${escapeHtmlText(deadlineText)} ${closed ? '(마감됨)' : ''}</div>` : ''}
         <div class="kakao-poll-options">${optionsHtml}</div>
-        <button type="button" class="btn-kakao-vote" ${hasVoted ? 'disabled' : ''} onclick="submitPollVote()">
-          ${hasVoted ? '투표 완료' : '투표하기'}
+        <button type="button" class="btn-kakao-vote" ${(hasVoted || closed) ? 'disabled' : ''} onclick="submitPollVote()">
+          ${btnLabel}
         </button>
       `;
       pollWrap.style.display = 'block';
@@ -2593,16 +2742,22 @@
     }
   }
 
-  // 투표 항목 선택 및 1인 1회 투표 제출
+  // 투표 항목 선택 및 1인 1회 투표 제출 (마감 시간 경과 시 차단)
   function selectPollOption(idx) {
-    if (!currentNoticeId) return;
-    if (getMyVotedOptionIdx(currentNoticeId) !== null) return; // 이미 투표한 경우 변경 불가
+    if (!currentNoticeId || !notices[currentNoticeId] || !notices[currentNoticeId].poll) return;
+    if (isPollClosed(notices[currentNoticeId].poll)) return;
+    if (getMyVotedOptionIdx(currentNoticeId) !== null) return;
     selectedPollOptionIdx = idx;
     renderBoardDetail();
   }
 
   async function submitPollVote() {
     if (!currentNoticeId || !notices[currentNoticeId] || !notices[currentNoticeId].poll) return;
+    if (isPollClosed(notices[currentNoticeId].poll)) {
+      alert('마감 시간이 지나 투표가 종료되었습니다.');
+      renderBoardDetail();
+      return;
+    }
     if (getMyVotedOptionIdx(currentNoticeId) !== null) {
       alert('이미 투표에 참여하셨습니다.');
       return;
@@ -2615,6 +2770,12 @@
     await syncFromFirebase();
     const post = notices[currentNoticeId];
     if (!post || !post.poll || !post.poll.options || !post.poll.options[selectedPollOptionIdx]) return;
+
+    if (isPollClosed(post.poll)) {
+      alert('마감 시간이 지나 투표가 종료되었습니다.');
+      renderBoardDetail();
+      return;
+    }
 
     post.poll.options[selectedPollOptionIdx].votes = (post.poll.options[selectedPollOptionIdx].votes || 0) + 1;
     setMyVotedOptionIdx(currentNoticeId, selectedPollOptionIdx);
@@ -2789,6 +2950,7 @@
 
     if (!notices) notices = {};
     notices[postId] = postObj;
+    localStorage.setItem('tabogga_last_seen_notice_id', postId);
 
     try {
       await fetch(`${FIREBASE_DB_URL}/clubData/notices/${postId}.json`, {
@@ -2832,6 +2994,9 @@
 
       localStorage.setItem('tabogga_saved_auth', 'tabogga2025');
       document.getElementById('pw-input').value = '';
+      if ('Notification' in window && Notification.permission === 'default') {
+        try { Notification.requestPermission(); } catch (e) {}
+      }
       await Promise.all([
         syncFromFirebase(),
         preloadMainImage(),
