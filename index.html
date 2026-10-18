@@ -409,17 +409,19 @@
       vertical-align: middle;
     }
 
-    /* 출석 체크 표 열 폭 및 여백 최적화 (이름 5글자 폭 확보 및 타 열 여백 축소) */
+    /* 출석 체크 표 가로 잘림 방지 및 등급 열 간격 축소 */
+    #screen-checkin table {
+      font-size: 0.88rem;
+    }
+
     #screen-checkin table th,
     #screen-checkin table td {
-      padding-left: 3px;
-      padding-right: 3px;
+      padding-left: 2px;
+      padding-right: 2px;
     }
 
     #screen-checkin table th:nth-child(1),
     #screen-checkin table td:nth-child(1),
-    #screen-checkin table th:nth-child(3),
-    #screen-checkin table td:nth-child(3),
     #screen-checkin table th:nth-child(4),
     #screen-checkin table td:nth-child(4),
     #screen-checkin table th:nth-child(5),
@@ -434,6 +436,15 @@
       word-break: keep-all;
     }
 
+    #screen-checkin table th:nth-child(3),
+    #screen-checkin table td:nth-child(3) {
+      padding-left: 1px;
+      padding-right: 1px;
+      line-height: 1.25;
+      white-space: nowrap;
+      width: 1%;
+    }
+
     .grade-badge {
       display: inline-block;
       font-size: 0.82rem;
@@ -445,8 +456,8 @@
     }
 
     .btn-attend {
-      padding: 7px 10px;
-      font-size: 0.85rem;
+      padding: 7px 9px;
+      font-size: 0.83rem;
       font-weight: 700;
       color: #fff;
       background-color: #10b981;
@@ -979,9 +990,10 @@
 
 <script>
   /********************************************************************
-   * 0. 파이어베이스 실시간 데이터베이스 주소 설정
+   * 0. 파이어베이스 실시간 데이터베이스 주소 및 정상 운영 초기화 토큰 설정
    ********************************************************************/
   const FIREBASE_DB_URL = "https://tabogga-ff473-default-rtdb.asia-southeast1.firebasedatabase.app";
+  const OFFICIAL_RESET_TOKEN = "official_start_20261018_v1";
 
   /********************************************************************
    * 1. 롤러장 위치 설정 (대구 달서구 와룡로 143 놀고롤러스케이트장 좌표)
@@ -991,7 +1003,7 @@
   const ALLOWED_RADIUS_M = 500;   // 허용 반경 (500m 이내 접속 허용)
 
   /********************************************************************
-   * 2. 회원 등급 기준 및 신규 멤버 19명 명단 설정 (등록일: 2026-10-16)
+   * 2. 회원 등급 기준 및 멤버 21명 명단 설정 (채언 가족, 은희 추가 반영)
    ********************************************************************/
   const GRADE_NAMES = {
     1: 'Guest',
@@ -1032,17 +1044,17 @@
     `;
   }
 
-  // 1, 2, 3위 금·은·동메달 표시 함수 (불필요한 여백 축소 및 숫자 세로 정렬 유지)
-  function getRankBadgeHtml(rank) {
-    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
-    return `<span style="position:relative; display:inline-block; width:18px; text-align:center; margin:0 0 0 13px;">${medal ? `<span style="position:absolute; right:100%; top:50%; transform:translateY(-50%); margin-right:0px; font-size:0.82rem; line-height:1;">${medal}</span>` : ''}<strong>${rank}</strong></span>`;
+  // 1, 2, 3위 금·은·동메달 표시 함수 (명확히 순위가 결정된 경우에만 메달 표시, 숫자 세로 정렬 유지)
+  function getRankBadgeHtml(rank, showMedal = false) {
+    const medal = (showMedal && rank === 1) ? '🥇' : (showMedal && rank === 2) ? '🥈' : (showMedal && rank === 3) ? '🥉' : '';
+    return `<span style="position:relative; display:inline-block; width:18px; text-align:center; margin:0 0 0 12px;">${medal ? `<span style="position:absolute; right:100%; top:50%; transform:translateY(-50%); margin-right:0px; font-size:0.82rem; line-height:1;">${medal}</span>` : ''}<strong>${rank}</strong></span>`;
   }
 
   const MEMBER_NAMES = [
     '아인 가족', '채빈채환 가족', '리더', '가영 가족', '다온 가족',
     '다은 가족', '라경 가족', '리원 가족', '멋찌', '배지혜',
     '민선태양 가족', '선우 가족', '세영주원 가족', '소율 가족', '수민 가족',
-    '수빈 가족', '수아맘', '은성 가족', '현규 삼촌'
+    '수빈 가족', '수아맘', '은성 가족', '현규 삼촌', '채언 가족', '은희'
   ];
 
   const DEFAULT_MEMBERS = MEMBER_NAMES.map((name, idx) => ({
@@ -1148,7 +1160,7 @@
   }
 
   /********************************************************************
-   * 3. 파이어베이스 실시간 데이터 불러오기 및 동기화
+   * 3. 파이어베이스 실시간 데이터 불러오기 및 동기화 (정상 운영 0회 초기화 반영)
    ********************************************************************/
   async function syncFromFirebase() {
     const syncEl = document.getElementById('sync-indicator');
@@ -1165,29 +1177,46 @@
       const currentMonth = getCurrentMonthKey();
       const prevMonth = getPrevMonthKey();
 
-      if (!data) {
+      // 데이터가 없거나 정상 운영 초기화 토큰이 아직 반영되지 않은 경우 전체 출석 횟수를 0으로 초기화
+      if (!data || data.resetToken !== OFFICIAL_RESET_TOKEN) {
+        if (data && data.boardConfig) {
+          boardConfig = {
+            text: data.boardConfig.text ?? boardConfig.text,
+            color: data.boardConfig.color || boardConfig.color,
+            size: data.boardConfig.size || boardConfig.size
+          };
+        }
+
         const initialObj = {
+          resetToken: OFFICIAL_RESET_TOKEN,
           currentMonth: currentMonth,
           members: {},
           attendanceLog: {},
           boardConfig: boardConfig
         };
-        DEFAULT_MEMBERS.forEach(m => {
-          m.monthlyCounts = {
-            [prevMonth]: m.lastCount,
-            [currentMonth]: m.thisCount
+
+        members = DEFAULT_MEMBERS.map(m => {
+          const resetMember = {
+            ...m,
+            lastGrade: 1,
+            lastCount: 0,
+            thisCount: 0,
+            monthlyCounts: {
+              [prevMonth]: 0,
+              [currentMonth]: 0
+            }
           };
-          initialObj.members[m.id] = m;
+          initialObj.members[m.id] = resetMember;
+          return resetMember;
         });
+
+        attendanceLog = {};
 
         await fetch(`${FIREBASE_DB_URL}/clubData.json`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(initialObj)
         });
-
-        members = [...DEFAULT_MEMBERS];
-        attendanceLog = {};
       } else {
         const dbMembers = data.members || {};
         attendanceLog = data.attendanceLog || {};
@@ -1208,7 +1237,7 @@
               [currentMonth]: saved.thisCount ?? defMember.thisCount
             };
             mCounts[currentMonth] = saved.thisCount ?? defMember.thisCount;
-            if (!saved.monthlyCounts) needUpdateDB = true;
+            if (!saved.monthlyCounts || saved.name !== defMember.name) needUpdateDB = true;
 
             return {
               ...defMember,
@@ -1271,6 +1300,33 @@
     if (!attendanceLog[today]) return false;
     return Boolean(attendanceLog[today][memberId]);
   }
+
+  // 자정(밤 12시) 경과 감지 및 출석 체크 버튼·실시간 롤딩 현황 자동 초기화 연동
+  let lastObservedDateKey = getTodayKey();
+
+  async function checkMidnightRollover() {
+    const currentKey = getTodayKey();
+    if (currentKey !== lastObservedDateKey) {
+      lastObservedDateKey = currentKey;
+      await syncFromFirebase();
+      renderCheckinTable();
+      const todayScreen = document.getElementById('screen-today');
+      if (todayScreen && todayScreen.classList.contains('active')) {
+        initRinkSkaters();
+      }
+      const monthScreen = document.getElementById('screen-month');
+      if (monthScreen && monthScreen.classList.contains('active')) {
+        renderMonthTable();
+      }
+    }
+  }
+
+  setInterval(checkMidnightRollover, 10000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      checkMidnightRollover();
+    }
+  });
 
   /********************************************************************
    * 4. 화면 전환 및 스마트폰 뒤로가기(History API) 제어
@@ -1487,10 +1543,15 @@
   }
 
   /********************************************************************
-   * 6. 출석 체크 화면 및 출석/복구 토글 (1~3위 금은동 메달 및 숫자 정렬 반영)
+   * 6. 출석 체크 화면 및 출석/복구 토글 (등급 줄바꿈 및 단독 순위 시에만 메달 표시)
    ********************************************************************/
   function openCheckinScreen() {
     checkLocation();
+  }
+
+  // 출석 체크 순위 비교용 키 (등급_이번달출석_누적합계)
+  function getCheckinScoreKey(member) {
+    return `${member.lastGrade}_${member.thisCount}_${getMemberTotalCount(member)}`;
   }
 
   function renderCheckinTable() {
@@ -1512,16 +1573,29 @@
       return a.name.localeCompare(b.name, 'ko');
     });
 
+    // 동점자(가나다순 정렬 대상) 여부 확인용 카운트 맵
+    const scoreCounts = {};
+    sorted.forEach(m => {
+      const key = getCheckinScoreKey(m);
+      scoreCounts[key] = (scoreCounts[key] || 0) + 1;
+    });
+
     sorted.forEach((member, index) => {
       const attended = isAttendedToday(member.id);
       const gradeNo = index + 1;
       const gradeName = GRADE_NAMES[member.lastGrade] || 'Guest';
+      const totalCnt = getMemberTotalCount(member);
+      const key = getCheckinScoreKey(member);
+
+      // 가나다순(동점)이 아닌 단독 순위이면서, 초반 0~1회가 아닌(누적 2회 이상 또는 승급 등급) 경우에만 1~3위 메달 표시
+      const isClearlyDecided = (gradeNo <= 3) && (scoreCounts[key] === 1) && (member.lastGrade > 1 || totalCnt >= 2);
+
       const tr = document.createElement('tr');
 
       tr.innerHTML = `
-        <td style="white-space: nowrap;">${getRankBadgeHtml(gradeNo)}</td>
+        <td style="white-space: nowrap;">${getRankBadgeHtml(gradeNo, isClearlyDecided)}</td>
         <td>${member.name}</td>
-        <td>${gradeName} (${member.lastCount}회)</td>
+        <td>${gradeName}<br>(${member.lastCount}회)</td>
         <td><strong>${member.thisCount}</strong>회</td>
         <td>
           <button class="btn-attend ${attended ? 'completed' : ''}" id="btn-attend-${member.id}" onclick="handleAttend(${member.id})">
@@ -1794,7 +1868,7 @@
   }
 
   /********************************************************************
-   * 8. 누적 현황 화면 (1~3위 금은동 메달 및 합계 많은 순 정렬 반영)
+   * 8. 누적 현황 화면 (단독 순위 시에만 1~3위 금은동 메달 및 합계 많은 순 정렬)
    ********************************************************************/
   async function openMonthScreen() {
     goToScreen('screen-month');
@@ -1832,8 +1906,18 @@
       return a.name.localeCompare(b.name, 'ko');
     });
 
+    // 누적 합계 동점자(가나다순 정렬 대상) 여부 확인용 카운트 맵
+    const totalCountsMap = {};
+    sorted.forEach(m => {
+      const t = getMemberTotalCount(m);
+      totalCountsMap[t] = (totalCountsMap[t] || 0) + 1;
+    });
+
     sorted.forEach((member, index) => {
       const rank = index + 1;
+      const totalCnt = getMemberTotalCount(member);
+      const isClearlyDecided = (rank <= 3) && (totalCountsMap[totalCnt] === 1) && (totalCnt >= 2);
+
       const countsObj = member.monthlyCounts || {};
       const monthCells = months.map(m => {
         const mm = String(m).padStart(2, '0');
@@ -1844,7 +1928,7 @@
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td style="padding: 12px 10px; white-space: nowrap;">${getRankBadgeHtml(rank)}</td>
+        <td style="padding: 12px 10px; white-space: nowrap;">${getRankBadgeHtml(rank, isClearlyDecided)}</td>
         <td style="padding: 12px 10px; white-space: nowrap;">${member.name}</td>
         ${monthCells}
       `;
