@@ -307,12 +307,91 @@
       display: inline-block;
       padding: 4px 10px;
       border-radius: 999px;
+      background-color: #f3f4f6;
+      color: #111827;
+      font-size: 0.78rem;
+      font-weight: 800;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* 상단 고정 게시글 전용 빨간색 '고정' 배지 */
+    .badge-pin {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
       background-color: #fee2e2;
       color: #ef4444;
       font-size: 0.78rem;
       font-weight: 800;
       white-space: nowrap;
       flex-shrink: 0;
+    }
+
+    /* 공지 작성/수정 헤더 상단 고정 버튼 */
+    .btn-pin-attach {
+      background-color: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-pin-attach.attached {
+      background-color: #fee2e2;
+      border-color: #f87171;
+      color: #dc2626;
+    }
+
+    /* 키즈 게시판 상단 검색창 및 검색 버튼 */
+    .board-search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+      justify-content: flex-end;
+    }
+
+    .board-search-input {
+      width: 100%;
+      max-width: 145px;
+      min-width: 70px;
+      padding: 7px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      outline: none;
+      background-color: #f9fafb;
+      color: #222;
+    }
+
+    .board-search-input:focus {
+      border-color: #2563eb;
+      background-color: #ffffff;
+    }
+
+    .btn-board-search {
+      background: #2563eb;
+      border: none;
+      padding: 8px 11px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .btn-board-search:active {
+      background: #1d4ed8;
     }
 
     /* 투표가 있는 공지글 전용 '투표' 배지 */
@@ -1454,9 +1533,13 @@
 
   <!-- [화면 8] 키즈 게시판 전체보기 리스트 화면 (상단 우측 '메인' 버튼 반영) -->
   <div id="screen-board-list" class="screen">
-    <div class="header-bar">
-      <span class="header-title">키즈 게시판</span>
-      <button class="btn-back" onclick="goToScreen('screen-menu')">메인</button>
+    <div class="header-bar" style="gap: 8px;">
+      <span class="header-title" style="white-space: nowrap; flex-shrink: 0;">키즈 게시판</span>
+      <div class="board-search-wrap">
+        <input type="text" id="board-search-input" class="board-search-input" placeholder="제목+내용 검색" onkeyup="if(event.key==='Enter') searchKidsBoard()">
+        <button type="button" class="btn-board-search" onclick="searchKidsBoard()">검색</button>
+      </div>
+      <button class="btn-back" style="white-space: nowrap; flex-shrink: 0;" onclick="goToScreen('screen-menu')">메인</button>
     </div>
     <button class="btn-primary" style="margin-bottom: 14px; padding: 13px; font-size: 1rem;" onclick="openNoticePwModal('create')">공지 작성하기</button>
     <div id="kids-board-full-list" class="kids-board-card">
@@ -1505,7 +1588,10 @@
   <!-- [화면 10] 키즈 게시판 공지 작성 / 수정 화면 (내용 옆 투표 버튼, 한 화면 고정) -->
   <div id="screen-board-write" class="screen">
     <div class="header-bar">
-      <span id="board-write-header-title" class="header-title">공지 작성하기</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span id="board-write-header-title" class="header-title">공지 작성하기</span>
+        <button type="button" id="btn-open-pin-modal" class="btn-pin-attach" onclick="openPinSetupModal()">📌 상단 고정</button>
+      </div>
       <button class="btn-back" onclick="goBack('screen-board-list')">뒤로</button>
     </div>
     <div class="form-group" style="margin-bottom: 8px; flex-shrink: 0;">
@@ -1520,7 +1606,7 @@
       <textarea id="notice-content-input" class="form-input" style="flex:1; min-height:0; overflow-y:auto; resize:none; line-height:1.5;" placeholder="공지 내용을 입력하세요"></textarea>
     </div>
     <div class="form-group" style="margin-bottom: 10px; flex-shrink: 0;">
-      <input type="file" id="notice-image-input" class="form-input" accept="image/*" style="padding: 7px 10px; font-size: 0.84rem;" onchange="handleNoticeImageChange(event)">
+      <input type="file" id="notice-image-input" class="form-input" accept="image/*" multiple style="padding: 7px 10px; font-size: 0.84rem;" onchange="handleNoticeImageChange(event)">
     </div>
     <button class="btn-primary" style="flex-shrink:0; padding: 13px;" onclick="saveNoticePost()">등록</button>
   </div>
@@ -1592,6 +1678,35 @@
       <button type="button" id="btn-poll-remove" class="btn-modal-cancel" style="display:none; background:#fee2e2; color:#dc2626;" onclick="removeAttachedPoll()">투표 삭제</button>
       <button type="button" class="btn-modal-cancel" onclick="closePollSetupModal()">취소</button>
       <button type="button" class="btn-modal-ok" onclick="confirmPollSetup()">완료</button>
+    </div>
+  </div>
+</div>
+
+<!-- [팝업] 상단 고정 설정 모달 (상시 / 기간 설정) -->
+<div id="modal-pin-setup" class="modal-overlay">
+  <div class="modal-content" style="max-width:340px;">
+    <div class="modal-text" style="font-size:1.1rem; margin-bottom:14px;">📌 상단 고정 설정</div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">고정 분류</label>
+      <div style="display:flex; gap:8px;">
+        <button type="button" id="btn-pin-type-always" class="btn-tab active" style="padding:10px; font-size:0.9rem;" onclick="selectPinType('always')">상시</button>
+        <button type="button" id="btn-pin-type-period" class="btn-tab" style="padding:10px; font-size:0.9rem;" onclick="selectPinType('period')">기간 설정</button>
+      </div>
+    </div>
+    <div id="pin-period-group" style="display:none; margin-bottom:14px;">
+      <div class="form-group" style="margin-bottom:10px;">
+        <label class="form-label">시작일</label>
+        <input type="date" id="pin-start-input" class="form-input" style="padding:8px 10px; font-size:0.88rem;">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">종료일</label>
+        <input type="date" id="pin-end-input" class="form-input" style="padding:8px 10px; font-size:0.88rem;">
+      </div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button type="button" id="btn-pin-remove" class="btn-modal-cancel" style="display:none; background:#fee2e2; color:#dc2626;" onclick="removeAttachedPin()">고정 해제</button>
+      <button type="button" class="btn-modal-cancel" onclick="closePinSetupModal()">취소</button>
+      <button type="button" class="btn-modal-ok" onclick="confirmPinSetup()">완료</button>
     </div>
   </div>
 </div>
@@ -2496,40 +2611,173 @@
     closePollSetupModal();
   }
 
-  // 이미지 첨부 시 용량 최적화 변환 (DataURL)
+  let currentNoticeImageList = [];
+  let currentNoticePinData = null;
+  let selectedPinType = 'always';
+  let boardSearchKeyword = '';
+
+  // 게시글 상단 고정 유효 여부 확인 (상시 또는 기간 내)
+  function isPostPinned(post) {
+    if (!post || !post.pin || !post.pin.active) return false;
+    if (post.pin.type === 'always') return true;
+    if (post.pin.type === 'period') {
+      const today = getTodayKey();
+      if (post.pin.startDate && today < post.pin.startDate) return false;
+      if (post.pin.endDate && today > post.pin.endDate) return false;
+      return true;
+    }
+    return false;
+  }
+
+  // 공지 작성/수정 시 상단 고정 버튼 상태 업데이트
+  function updatePinAttachButtonUI() {
+    const btn = document.getElementById('btn-open-pin-modal');
+    if (!btn) return;
+    if (currentNoticePinData && currentNoticePinData.active) {
+      btn.classList.add('attached');
+      btn.innerText = currentNoticePinData.type === 'period' ? '📌 상단 고정 (기간)' : '📌 상단 고정 (상시)';
+    } else {
+      btn.classList.remove('attached');
+      btn.innerText = '📌 상단 고정';
+    }
+  }
+
+  function selectPinType(type) {
+    selectedPinType = type;
+    const btnAlways = document.getElementById('btn-pin-type-always');
+    const btnPeriod = document.getElementById('btn-pin-type-period');
+    const periodGroup = document.getElementById('pin-period-group');
+    if (type === 'period') {
+      if (btnAlways) btnAlways.classList.remove('active');
+      if (btnPeriod) btnPeriod.classList.add('active');
+      if (periodGroup) periodGroup.style.display = 'block';
+    } else {
+      if (btnAlways) btnAlways.classList.add('active');
+      if (btnPeriod) btnPeriod.classList.remove('active');
+      if (periodGroup) periodGroup.style.display = 'none';
+    }
+  }
+
+  function openPinSetupModal() {
+    const startInput = document.getElementById('pin-start-input');
+    const endInput = document.getElementById('pin-end-input');
+    const removeBtn = document.getElementById('btn-pin-remove');
+    const today = getTodayKey();
+    const nextWeekDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const nwY = nextWeekDate.getFullYear();
+    const nwM = String(nextWeekDate.getMonth() + 1).padStart(2, '0');
+    const nwD = String(nextWeekDate.getDate()).padStart(2, '0');
+    const nextWeekStr = `${nwY}-${nwM}-${nwD}`;
+
+    if (currentNoticePinData && currentNoticePinData.active) {
+      selectPinType(currentNoticePinData.type || 'always');
+      if (startInput) startInput.value = currentNoticePinData.startDate || today;
+      if (endInput) endInput.value = currentNoticePinData.endDate || nextWeekStr;
+      if (removeBtn) removeBtn.style.display = 'block';
+    } else {
+      selectPinType('always');
+      if (startInput) startInput.value = today;
+      if (endInput) endInput.value = nextWeekStr;
+      if (removeBtn) removeBtn.style.display = 'none';
+    }
+
+    document.getElementById('modal-pin-setup').classList.add('show');
+  }
+
+  function closePinSetupModal() {
+    document.getElementById('modal-pin-setup').classList.remove('show');
+  }
+
+  function removeAttachedPin() {
+    currentNoticePinData = null;
+    updatePinAttachButtonUI();
+    closePinSetupModal();
+  }
+
+  function confirmPinSetup() {
+    if (selectedPinType === 'period') {
+      const startDate = document.getElementById('pin-start-input').value.trim();
+      const endDate = document.getElementById('pin-end-input').value.trim();
+      if (!startDate || !endDate) {
+        alert('고정 시작일과 종료일을 모두 설정해 주세요.');
+        return;
+      }
+      if (startDate > endDate) {
+        alert('종료일은 시작일보다 빠를 수 없습니다.');
+        return;
+      }
+      currentNoticePinData = {
+        active: true,
+        type: 'period',
+        startDate: startDate,
+        endDate: endDate
+      };
+    } else {
+      currentNoticePinData = {
+        active: true,
+        type: 'always',
+        startDate: '',
+        endDate: ''
+      };
+    }
+    updatePinAttachButtonUI();
+    closePinSetupModal();
+  }
+
+  // 다중 이미지 첨부 시 용량 최적화 변환 (DataURL 배열)
   function handleNoticeImageChange(event) {
-    const file = event.target.files && event.target.files[0];
-    if (!file) {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    if (files.length === 0) {
       currentNoticeImageData = '';
+      currentNoticeImageList = [];
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const img = new Image();
-      img.onload = function() {
-        const maxWidth = 800;
-        let width = img.width;
-        let height = img.height;
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        currentNoticeImageData = canvas.toDataURL('image/jpeg', 0.82);
+    const resizePromises = files.map(file => new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const maxWidth = 800;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = () => resolve('');
+        img.src = e.target.result;
       };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    }));
+
+    Promise.all(resizePromises).then(results => {
+      currentNoticeImageList = results.filter(Boolean);
+      currentNoticeImageData = currentNoticeImageList[0] || '';
+    });
   }
 
   function getSortedNotices() {
     const list = Object.values(notices || {}).filter(item => item && item.id);
-    return list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    list.sort((a, b) => {
+      const pinA = isPostPinned(a) ? 1 : 0;
+      const pinB = isPostPinned(b) ? 1 : 0;
+      if (pinB !== pinA) return pinB - pinA;
+      return (b.timestamp || 0) - (a.timestamp || 0);
+    });
+    const total = list.length;
+    list.forEach((item, idx) => {
+      item.seqNum = total - idx;
+    });
+    return list;
   }
 
   function escapeHtmlText(str) {
@@ -2541,8 +2789,11 @@
       .replace(/"/g, '&quot;');
   }
 
-  // 투표 유무에 따라 '투표' 또는 '공지' 배지 반환
+  // 상단 고정 유무 및 투표 유무에 따라 '고정(빨강)', '투표(파랑)', '공지(검정)' 배지 반환
   function getPostBadgeHtml(post) {
+    if (isPostPinned(post)) {
+      return `<span class="badge-pin">고정</span>`;
+    }
     const hasPoll = Boolean(post && post.poll && post.poll.title && Array.isArray(post.poll.options) && post.poll.options.length >= 2);
     if (hasPoll) {
       return `<span class="badge-poll">투표</span>`;
@@ -2550,12 +2801,12 @@
     return `<span class="badge-notice">공지</span>`;
   }
 
-  // 메인 화면 최근 공지/투표 3개 렌더링
+  // 메인 화면 최근 공지/투표 4개 렌더링 (순번 자동 표시)
   function renderKidsBoardPreview() {
     const wrap = document.getElementById('kids-board-preview');
     if (!wrap) return;
 
-    const recentList = getSortedNotices().slice(0, 3);
+    const recentList = getSortedNotices().slice(0, 4);
     if (recentList.length === 0) {
       wrap.innerHTML = `<div class="kids-empty-msg">등록된 공지사항이 없습니다.</div>`;
       return;
@@ -2566,7 +2817,7 @@
         <div class="kids-item-left">
           ${getPostBadgeHtml(post)}
           <div class="kids-item-info">
-            <div class="kids-item-subject">${escapeHtmlText(post.title)}</div>
+            <div class="kids-item-subject">${post.seqNum}. ${escapeHtmlText(post.title)}</div>
             <div class="kids-item-date">${escapeHtmlText(post.createdAt || '')}</div>
           </div>
         </div>
@@ -2575,8 +2826,18 @@
     `).join('');
   }
 
+  // 키즈 게시판 제목+내용 검색 실행
+  function searchKidsBoard() {
+    const input = document.getElementById('board-search-input');
+    boardSearchKeyword = input ? input.value.trim() : '';
+    renderKidsBoardFullList();
+  }
+
   // 전체보기 리스트 화면 열기 및 렌더링
   async function openBoardListScreen() {
+    boardSearchKeyword = '';
+    const searchInput = document.getElementById('board-search-input');
+    if (searchInput) searchInput.value = '';
     renderKidsBoardFullList();
     goToScreen('screen-board-list');
     await syncFromFirebase();
@@ -2593,12 +2854,22 @@
       return;
     }
 
-    wrap.innerHTML = allList.map(post => `
+    const kw = boardSearchKeyword.toLowerCase();
+    const filteredList = kw
+      ? allList.filter(post => (post.title || '').toLowerCase().includes(kw) || (post.content || '').toLowerCase().includes(kw))
+      : allList;
+
+    if (filteredList.length === 0) {
+      wrap.innerHTML = `<div class="kids-empty-msg">검색 결과가 없습니다.</div>`;
+      return;
+    }
+
+    wrap.innerHTML = filteredList.map(post => `
       <div class="kids-board-item" onclick="openBoardDetailScreen('${post.id}', 'screen-board-list')">
         <div class="kids-item-left">
           ${getPostBadgeHtml(post)}
           <div class="kids-item-info">
-            <div class="kids-item-subject">${escapeHtmlText(post.title)}</div>
+            <div class="kids-item-subject">${post.seqNum}. ${escapeHtmlText(post.title)}</div>
             <div class="kids-item-date">${escapeHtmlText(post.createdAt || '')}</div>
           </div>
         </div>
@@ -2641,10 +2912,14 @@
       return;
     }
 
+    getSortedNotices();
     const hasPoll = Boolean(post.poll && post.poll.title && Array.isArray(post.poll.options) && post.poll.options.length >= 2);
     const badgeEl = document.getElementById('detail-post-badge');
     if (badgeEl) {
-      if (hasPoll) {
+      if (isPostPinned(post)) {
+        badgeEl.className = 'badge-pin';
+        badgeEl.innerText = '고정';
+      } else if (hasPoll) {
         badgeEl.className = 'badge-poll';
         badgeEl.innerText = '투표';
       } else {
@@ -2653,17 +2928,20 @@
       }
     }
 
-    document.getElementById('detail-post-title').innerText = post.title || '';
+    const seqPrefix = post.seqNum ? `${post.seqNum}. ` : '';
+    document.getElementById('detail-post-title').innerText = seqPrefix + (post.title || '');
     document.getElementById('detail-post-date').innerText = post.createdAt || '';
     document.getElementById('detail-post-content').innerText = post.content || '';
 
     const imgWrap = document.getElementById('detail-post-image-wrap');
-    const imgEl = document.getElementById('detail-post-image');
-    if (post.imageData) {
-      imgEl.src = post.imageData;
+    const images = (Array.isArray(post.imageList) && post.imageList.length > 0)
+      ? post.imageList
+      : (post.imageData ? [post.imageData] : []);
+    if (images.length > 0) {
+      imgWrap.innerHTML = images.map(src => `<img src="${src}" alt="첨부 이미지" style="margin-bottom:8px;">`).join('');
       imgWrap.style.display = 'block';
     } else {
-      imgEl.src = '';
+      imgWrap.innerHTML = '';
       imgWrap.style.display = 'none';
     }
 
@@ -2888,8 +3166,11 @@
       const fileInput = document.getElementById('notice-image-input');
       if (fileInput) fileInput.value = '';
       currentNoticeImageData = '';
+      currentNoticeImageList = [];
       currentNoticePollData = null;
+      currentNoticePinData = null;
       updatePollAttachButtonUI();
+      updatePinAttachButtonUI();
       goToScreen('screen-board-write');
     } else if (noticeActionMode === 'edit') {
       const post = notices[currentNoticeId];
@@ -2899,9 +3180,14 @@
       document.getElementById('notice-content-input').value = post.content || '';
       const fileInput = document.getElementById('notice-image-input');
       if (fileInput) fileInput.value = '';
-      currentNoticeImageData = post.imageData || '';
+      currentNoticeImageList = (Array.isArray(post.imageList) && post.imageList.length > 0)
+        ? [...post.imageList]
+        : (post.imageData ? [post.imageData] : []);
+      currentNoticeImageData = currentNoticeImageList[0] || '';
       currentNoticePollData = post.poll ? JSON.parse(JSON.stringify(post.poll)) : null;
+      currentNoticePinData = post.pin ? JSON.parse(JSON.stringify(post.pin)) : null;
       updatePollAttachButtonUI();
+      updatePinAttachButtonUI();
       goToScreen('screen-board-write');
     } else if (noticeActionMode === 'delete') {
       if (!currentNoticeId || !notices[currentNoticeId]) return;
@@ -2919,7 +3205,7 @@
     }
   }
 
-  // 공지 등록 및 수정 저장 (이미지 및 투표 포함)
+  // 공지 등록 및 수정 저장 (다중 이미지, 상단 고정 및 투표 포함)
   async function saveNoticePost() {
     const title = document.getElementById('notice-title-input').value.trim();
     const content = document.getElementById('notice-content-input').value.trim();
@@ -2941,8 +3227,10 @@
       id: postId,
       title: title,
       content: content,
-      imageData: currentNoticeImageData || '',
+      imageData: currentNoticeImageList[0] || currentNoticeImageData || '',
+      imageList: currentNoticeImageList || [],
       poll: currentNoticePollData || null,
+      pin: currentNoticePinData || null,
       createdAt: isEdit ? existingPost.createdAt : getCurrentDateTimeStr(),
       timestamp: isEdit ? existingPost.timestamp : Date.now(),
       comments: (existingPost && existingPost.comments) ? existingPost.comments : {}
