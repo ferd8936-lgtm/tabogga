@@ -378,20 +378,20 @@
     }
 
     .btn-board-search {
-      background: #2563eb;
+      background: #f0f2f5;
       border: none;
       padding: 8px 11px;
       border-radius: 8px;
       font-size: 0.84rem;
-      font-weight: 700;
-      color: #fff;
+      font-weight: 600;
+      color: #444;
       cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
     }
 
     .btn-board-search:active {
-      background: #1d4ed8;
+      background: #e2e5e9;
     }
 
     /* 투표가 있는 공지글 전용 '투표' 배지 */
@@ -1202,9 +1202,9 @@
     }
 
     .btn-tab.active {
-      background-color: #2563eb;
-      border-color: #2563eb;
-      color: #ffffff;
+      background-color: #eff6ff;
+      border-color: #3b82f6;
+      color: #1d4ed8;
     }
 
     /* 팝업 모달 공통 */
@@ -2396,7 +2396,7 @@
     const isAuth = (localStorage.getItem('tabogga_saved_auth') === 'tabogga2025');
     if (!isAuth) return;
 
-    const sorted = getSortedNotices();
+    const sorted = Object.values(notices || {}).filter(item => item && item.id).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
     if (sorted.length === 0) return;
 
     const latest = sorted[0];
@@ -2635,7 +2635,7 @@
     if (!btn) return;
     if (currentNoticePinData && currentNoticePinData.active) {
       btn.classList.add('attached');
-      btn.innerText = currentNoticePinData.type === 'period' ? '📌 상단 고정 (기간)' : '📌 상단 고정 (상시)';
+      btn.innerText = currentNoticePinData.type === 'period' ? '📌 상단 고정 (기간)' : '📌 상단 고정';
     } else {
       btn.classList.remove('attached');
       btn.innerText = '📌 상단 고정';
