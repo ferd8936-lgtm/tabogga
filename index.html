@@ -313,7 +313,7 @@
 
     .badge-new-post {
       position: absolute;
-      top: -8px;
+      top: -12px;
       left: 50%;
       transform: translateX(-50%);
       width: 16px;
@@ -357,11 +357,11 @@
       flex-shrink: 0;
     }
 
-    /* 공지 작성/수정 헤더 상단 고정 버튼 */
+    /* 공지 작성/수정 헤더 상단 고정 버튼 (투표 버튼과 동일한 노란색 반영) */
     .btn-pin-attach {
-      background-color: #f3f4f6;
-      color: #374151;
-      border: 1px solid #d1d5db;
+      background-color: #fef08a;
+      color: #1f2937;
+      border: 1px solid #facc15;
       padding: 5px 10px;
       border-radius: 8px;
       font-size: 0.82rem;
@@ -373,9 +373,9 @@
     }
 
     .btn-pin-attach.attached {
-      background-color: #fee2e2;
-      border-color: #f87171;
-      color: #dc2626;
+      background-color: #fde047;
+      border-color: #eab308;
+      color: #111827;
     }
 
     /* 키즈 게시판 검색창 (공지 작성하기 버튼 위, 동일 사이즈 및 우측 돋보기 아이콘) */
@@ -2545,6 +2545,32 @@
     localStorage.setItem('tabogga_board_seen_state', JSON.stringify(map));
   }
 
+  function getAlertedNoticeIds() {
+    try {
+      return JSON.parse(localStorage.getItem('tabogga_alerted_notice_ids') || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function addAlertedNoticeIds(ids, maxTimestamp = 0) {
+    const list = getAlertedNoticeIds();
+    let changed = false;
+    ids.forEach(id => {
+      if (id && !list.includes(id)) {
+        list.push(id);
+        changed = true;
+      }
+    });
+    if (changed) {
+      localStorage.setItem('tabogga_alerted_notice_ids', JSON.stringify(list));
+    }
+    const prevTs = Number(localStorage.getItem('tabogga_last_alerted_notice_ts') || '0');
+    if (maxTimestamp > prevTs) {
+      localStorage.setItem('tabogga_last_alerted_notice_ts', String(maxTimestamp));
+    }
+  }
+
   function getPostCommentStats(post) {
     const commentsObj = (post && post.comments) ? post.comments : {};
     const arr = Object.values(commentsObj);
@@ -2565,6 +2591,7 @@
       seenLatestCommentTs: stats.latestTs
     };
     saveBoardSeenStateMap(map);
+    addAlertedNoticeIds([post.id], post.timestamp || 0);
   }
 
   function isNewPostForUser(post) {
@@ -2704,7 +2731,7 @@
     }, 300);
   }
 
-  // 새 게시글 등록 시 스마트폰 팝업 및 브라우저 알림 표시
+  // 새 게시글 등록 시 스마트폰 팝업 및 브라우저 알림 표시 (읽은 글 및 상단 글 삭제 시 중복 팝업 방지)
   function checkNewNoticePopupAlert() {
     const isAuth = (localStorage.getItem('tabogga_saved_auth') === 'tabogga2025');
     if (!isAuth) return;
@@ -2714,9 +2741,21 @@
 
     const latest = sorted[0];
     const lastSeenId = localStorage.getItem('tabogga_last_seen_notice_id');
+    const alertedIds = getAlertedNoticeIds();
+    const lastAlertedTs = Number(localStorage.getItem('tabogga_last_alerted_notice_ts') || '0');
+    const latestTs = latest.timestamp || 0;
 
-    if (lastSeenId !== latest.id) {
-      localStorage.setItem('tabogga_last_seen_notice_id', latest.id);
+    const alreadyAlertedOrSeen =
+      !isNewPostForUser(latest) ||
+      alertedIds.includes(latest.id) ||
+      lastSeenId === latest.id ||
+      (lastAlertedTs > 0 && latestTs <= lastAlertedTs);
+
+    // 현재 존재하는 모든 게시글 ID와 최신 타임스탬프를 기록하여 상단 글 삭제 시 차순위 글이 팝업으로 뜨지 않도록 처리
+    addAlertedNoticeIds(sorted.map(item => item.id), latestTs);
+    localStorage.setItem('tabogga_last_seen_notice_id', latest.id);
+
+    if (!alreadyAlertedOrSeen) {
       pendingAlertNoticeId = latest.id;
 
       const titleEl = document.getElementById('new-notice-alert-title');
@@ -3037,12 +3076,10 @@
     closePinSetupModal();
   }
 
-  // 다중 이미지 첨부 시 용량 최적화 변환 (DataURL 배열)
+  // 다중 이미지 첨부 시 용량 최적화 변환 및 기존 이미지 유지 후 하단 추가 (DataURL 배열)
   function handleNoticeImageChange(event) {
     const files = event.target.files ? Array.from(event.target.files) : [];
     if (files.length === 0) {
-      currentNoticeImageData = '';
-      currentNoticeImageList = [];
       return;
     }
 
@@ -3073,7 +3110,8 @@
     }));
 
     Promise.all(resizePromises).then(results => {
-      currentNoticeImageList = results.filter(Boolean);
+      const newImages = results.filter(Boolean);
+      currentNoticeImageList = [...(Array.isArray(currentNoticeImageList) ? currentNoticeImageList : []), ...newImages];
       currentNoticeImageData = currentNoticeImageList[0] || '';
     });
   }
@@ -3539,6 +3577,11 @@
     } else if (noticeActionMode === 'delete') {
       if (!currentNoticeId || !notices[currentNoticeId]) return;
       delete notices[currentNoticeId];
+      const remaining = Object.values(notices || {}).filter(item => item && item.id).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      if (remaining.length > 0) {
+        addAlertedNoticeIds(remaining.map(item => item.id), remaining[0].timestamp || 0);
+        localStorage.setItem('tabogga_last_seen_notice_id', remaining[0].id);
+      }
       try {
         await fetch(`${FIREBASE_DB_URL}/clubData/notices/${currentNoticeId}.json`, {
           method: 'DELETE'
