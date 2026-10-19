@@ -303,6 +303,35 @@
       min-width: 0;
     }
 
+    .badge-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .badge-new-post {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background-color: #ef4444;
+      color: #ffffff;
+      font-size: 0.62rem;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      border: 1.5px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      z-index: 2;
+    }
+
     .badge-notice {
       display: inline-block;
       padding: 4px 10px;
@@ -349,27 +378,25 @@
       color: #dc2626;
     }
 
-    /* 키즈 게시판 상단 검색창 및 검색 버튼 */
+    /* 키즈 게시판 검색창 (공지 작성하기 버튼 위, 동일 사이즈 및 우측 돋보기 아이콘) */
     .board-search-wrap {
+      position: relative;
       display: flex;
       align-items: center;
-      gap: 4px;
-      flex: 1;
-      min-width: 0;
-      justify-content: flex-end;
+      width: 100%;
+      margin-bottom: 10px;
     }
 
     .board-search-input {
       width: 100%;
-      max-width: 145px;
-      min-width: 70px;
-      padding: 7px 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 0.84rem;
+      padding: 13px 44px 13px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 1rem;
       outline: none;
       background-color: #f9fafb;
       color: #222;
+      transition: border-color 0.2s, background-color 0.2s;
     }
 
     .board-search-input:focus {
@@ -378,20 +405,23 @@
     }
 
     .btn-board-search {
-      background: #f0f2f5;
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
       border: none;
-      padding: 8px 11px;
+      padding: 8px;
       border-radius: 8px;
-      font-size: 0.84rem;
-      font-weight: 600;
-      color: #444;
+      color: #2563eb;
       cursor: pointer;
-      white-space: nowrap;
-      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .btn-board-search:active {
-      background: #e2e5e9;
+      background: #eff6ff;
     }
 
     /* 투표가 있는 공지글 전용 '투표' 배지 */
@@ -428,6 +458,104 @@
     .kids-item-date {
       font-size: 0.76rem;
       color: #9ca3af;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .kids-item-comment-info {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #6b7280;
+      font-weight: 700;
+    }
+
+    .badge-new-comment {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background-color: #ef4444;
+      color: #ffffff;
+      font-size: 0.6rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    /* URL 미리보기 카드 스타일 */
+    .url-preview-container {
+      margin-top: 6px;
+      display: none;
+      flex-shrink: 0;
+    }
+
+    .url-preview-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background-color: #f9fafb;
+      padding: 8px 10px;
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
+      transition: background-color 0.15s;
+    }
+
+    .url-preview-card:active {
+      background-color: #f3f4f6;
+    }
+
+    .url-preview-thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
+      object-fit: cover;
+      background-color: #e5e7eb;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      color: #6b7280;
+    }
+
+    .url-preview-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-align: left;
+    }
+
+    .url-preview-title {
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: #111827;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .url-preview-desc {
+      font-size: 0.75rem;
+      color: #4b5563;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .url-preview-domain {
+      font-size: 0.7rem;
+      color: #2563eb;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .kids-item-arrow {
@@ -1535,11 +1663,16 @@
   <div id="screen-board-list" class="screen">
     <div class="header-bar" style="gap: 8px;">
       <span class="header-title" style="white-space: nowrap; flex-shrink: 0;">키즈 게시판</span>
-      <div class="board-search-wrap">
-        <input type="text" id="board-search-input" class="board-search-input" placeholder="제목+내용 검색" onkeyup="if(event.key==='Enter') searchKidsBoard()">
-        <button type="button" class="btn-board-search" onclick="searchKidsBoard()">검색</button>
-      </div>
       <button class="btn-back" style="white-space: nowrap; flex-shrink: 0;" onclick="goToScreen('screen-menu')">메인</button>
+    </div>
+    <div class="board-search-wrap">
+      <input type="text" id="board-search-input" class="board-search-input" placeholder="제목+내용 검색" onkeyup="if(event.key==='Enter') searchKidsBoard()">
+      <button type="button" class="btn-board-search" onclick="searchKidsBoard()" aria-label="검색">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
     </div>
     <button class="btn-primary" style="margin-bottom: 14px; padding: 13px; font-size: 1rem;" onclick="openNoticePwModal('create')">공지 작성하기</button>
     <div id="kids-board-full-list" class="kids-board-card">
@@ -1566,6 +1699,7 @@
         </div>
       </div>
       <div id="detail-post-content" class="board-detail-content"></div>
+      <div id="detail-post-url-preview" class="url-preview-container" style="margin-top: 12px;"></div>
       <div id="detail-post-image-wrap" class="board-detail-image-wrap">
         <img id="detail-post-image" src="" alt="첨부 이미지">
       </div>
@@ -1603,7 +1737,8 @@
         <label class="form-label" style="margin-bottom:0;">내용</label>
         <button type="button" id="btn-open-poll-modal" class="btn-poll-attach" onclick="openPollSetupModal()">📊 투표</button>
       </div>
-      <textarea id="notice-content-input" class="form-input" style="flex:1; min-height:0; overflow-y:auto; resize:none; line-height:1.5;" placeholder="공지 내용을 입력하세요"></textarea>
+      <textarea id="notice-content-input" class="form-input" style="flex:1; min-height:0; overflow-y:auto; resize:none; line-height:1.5;" placeholder="공지 내용을 입력하세요" oninput="handleNoticeContentInput()"></textarea>
+      <div id="notice-url-preview-wrap" class="url-preview-container"></div>
     </div>
     <div class="form-group" style="margin-bottom: 10px; flex-shrink: 0;">
       <input type="file" id="notice-image-input" class="form-input" accept="image/*" multiple style="padding: 7px 10px; font-size: 0.84rem;" onchange="handleNoticeImageChange(event)">
@@ -2206,6 +2341,12 @@
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
 
+    if (screenId === 'screen-menu') {
+      renderKidsBoardPreview();
+    } else if (screenId === 'screen-board-list') {
+      renderKidsBoardFullList();
+    }
+
     if (!skipHistory && currentId !== screenId) {
       if (replaceHistory || (currentId === 'screen-gps' && screenId === 'screen-checkin')) {
         history.replaceState({ screenId: screenId }, '');
@@ -2390,6 +2531,178 @@
   let selectedPollOptionIdx = null;
   let pendingDeleteCommentId = null;
   let pendingAlertNoticeId = null;
+
+  // 개별 접속자(기기) 기준 게시글 및 댓글 읽음 상태 관리
+  function getBoardSeenStateMap() {
+    try {
+      return JSON.parse(localStorage.getItem('tabogga_board_seen_state') || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveBoardSeenStateMap(map) {
+    localStorage.setItem('tabogga_board_seen_state', JSON.stringify(map));
+  }
+
+  function getPostCommentStats(post) {
+    const commentsObj = (post && post.comments) ? post.comments : {};
+    const arr = Object.values(commentsObj);
+    let latestTs = 0;
+    arr.forEach(c => {
+      if ((c.timestamp || 0) > latestTs) latestTs = c.timestamp || 0;
+    });
+    return { count: arr.length, latestTs: latestTs };
+  }
+
+  function markPostAndCommentsAsSeen(post) {
+    if (!post || !post.id) return;
+    const map = getBoardSeenStateMap();
+    const stats = getPostCommentStats(post);
+    map[post.id] = {
+      postSeen: true,
+      seenCommentCount: stats.count,
+      seenLatestCommentTs: stats.latestTs
+    };
+    saveBoardSeenStateMap(map);
+  }
+
+  function isNewPostForUser(post) {
+    if (!post || !post.id) return false;
+    const map = getBoardSeenStateMap();
+    return !(map[post.id] && map[post.id].postSeen);
+  }
+
+  function hasNewCommentForUser(post) {
+    if (!post || !post.id) return false;
+    const stats = getPostCommentStats(post);
+    if (stats.count === 0) return false;
+    const map = getBoardSeenStateMap();
+    const seen = map[post.id];
+    if (!seen) return true;
+    return stats.latestTs > (seen.seenLatestCommentTs || 0) || stats.count > (seen.seenCommentCount || 0);
+  }
+
+  // URL 추출 및 미리보기 처리
+  let urlPreviewCache = {};
+  let currentWriteUrlPreview = null;
+  let urlPreviewDebounceTimer = null;
+
+  function extractFirstUrlFromText(text) {
+    if (!text) return null;
+    const match = String(text).match(/(https?:\/\/[^\s]+|www\.[^\s]+)/i);
+    if (!match) return null;
+    let rawUrl = match[0].replace(/[.,!?;:)\]]+$/, '');
+    if (/^www\./i.test(rawUrl)) {
+      rawUrl = 'https://' + rawUrl;
+    }
+    return rawUrl;
+  }
+
+  function getYoutubeIdFromUrl(url) {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('youtu.be')) {
+        return u.pathname.slice(1).split('/')[0];
+      }
+      if (u.hostname.includes('youtube.com')) {
+        if (u.searchParams.get('v')) return u.searchParams.get('v');
+        const paths = u.pathname.split('/').filter(Boolean);
+        if ((paths[0] === 'shorts' || paths[0] === 'embed') && paths[1]) return paths[1];
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function buildFallbackUrlPreview(url) {
+    let hostname = url;
+    try {
+      hostname = new URL(url).hostname;
+    } catch (e) {}
+    const ytId = getYoutubeIdFromUrl(url);
+    return {
+      url: url,
+      title: ytId ? 'YouTube 동영상 링크' : hostname,
+      description: url,
+      image: ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : '',
+      domain: hostname
+    };
+  }
+
+  async function fetchUrlPreviewData(url) {
+    if (urlPreviewCache[url]) return urlPreviewCache[url];
+    const fallback = buildFallbackUrlPreview(url);
+    try {
+      const res = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`);
+      const json = await res.json();
+      if (json && json.status === 'success' && json.data) {
+        const d = json.data;
+        const preview = {
+          url: url,
+          title: d.title || fallback.title,
+          description: d.description || fallback.description,
+          image: (d.image && d.image.url) ? d.image.url : ((d.logo && d.logo.url) ? d.logo.url : fallback.image),
+          domain: fallback.domain
+        };
+        urlPreviewCache[url] = preview;
+        return preview;
+      }
+    } catch (e) {}
+    urlPreviewCache[url] = fallback;
+    return fallback;
+  }
+
+  function renderUrlPreviewBox(containerEl, previewData) {
+    if (!containerEl) return;
+    if (!previewData || !previewData.url) {
+      containerEl.innerHTML = '';
+      containerEl.style.display = 'none';
+      return;
+    }
+    const thumbHtml = previewData.image
+      ? `<img class="url-preview-thumb" src="${escapeHtmlText(previewData.image)}" alt="미리보기" onerror="this.outerHTML='<div class=\\'url-preview-thumb\\'>🔗</div>'">`
+      : `<div class="url-preview-thumb">🔗</div>`;
+
+    containerEl.innerHTML = `
+      <a class="url-preview-card" href="${escapeHtmlText(previewData.url)}" target="_blank" rel="noopener noreferrer">
+        ${thumbHtml}
+        <div class="url-preview-info">
+          <div class="url-preview-title">${escapeHtmlText(previewData.title || previewData.domain || '링크 미리보기')}</div>
+          <div class="url-preview-desc">${escapeHtmlText(previewData.description || previewData.url)}</div>
+          <div class="url-preview-domain">${escapeHtmlText(previewData.domain || previewData.url)}</div>
+        </div>
+      </a>
+    `;
+    containerEl.style.display = 'block';
+  }
+
+  function handleNoticeContentInput() {
+    const textarea = document.getElementById('notice-content-input');
+    const previewWrap = document.getElementById('notice-url-preview-wrap');
+    if (!textarea || !previewWrap) return;
+
+    const url = extractFirstUrlFromText(textarea.value);
+    if (!url) {
+      currentWriteUrlPreview = null;
+      renderUrlPreviewBox(previewWrap, null);
+      return;
+    }
+
+    const immediatePreview = urlPreviewCache[url] || buildFallbackUrlPreview(url);
+    currentWriteUrlPreview = immediatePreview;
+    renderUrlPreviewBox(previewWrap, immediatePreview);
+
+    if (urlPreviewDebounceTimer) clearTimeout(urlPreviewDebounceTimer);
+    urlPreviewDebounceTimer = setTimeout(async () => {
+      const latestUrl = extractFirstUrlFromText(textarea.value);
+      if (latestUrl !== url) return;
+      const meta = await fetchUrlPreviewData(url);
+      if (extractFirstUrlFromText(textarea.value) === url) {
+        currentWriteUrlPreview = meta;
+        renderUrlPreviewBox(previewWrap, meta);
+      }
+    }, 300);
+  }
 
   // 새 게시글 등록 시 스마트폰 팝업 및 브라우저 알림 표시
   function checkNewNoticePopupAlert() {
@@ -2789,16 +3102,37 @@
       .replace(/"/g, '&quot;');
   }
 
-  // 상단 고정 유무 및 투표 유무에 따라 '고정(빨강)', '투표(파랑)', '공지(검정)' 배지 반환
+  // 상단 고정 유무 및 투표 유무에 따라 '고정(빨강)', '투표(파랑)', '공지(검정)' 배지 및 도형 위 신규 'N' 표시 반환
   function getPostBadgeHtml(post) {
+    const newBadgeHtml = isNewPostForUser(post) ? `<span class="badge-new-post">N</span>` : '';
     if (isPostPinned(post)) {
-      return `<span class="badge-pin">고정</span>`;
+      return `<span class="badge-wrap">${newBadgeHtml}<span class="badge-pin">고정</span></span>`;
     }
     const hasPoll = Boolean(post && post.poll && post.poll.title && Array.isArray(post.poll.options) && post.poll.options.length >= 2);
     if (hasPoll) {
-      return `<span class="badge-poll">투표</span>`;
+      return `<span class="badge-wrap">${newBadgeHtml}<span class="badge-poll">투표</span></span>`;
     }
-    return `<span class="badge-notice">공지</span>`;
+    return `<span class="badge-wrap">${newBadgeHtml}<span class="badge-notice">공지</span></span>`;
+  }
+
+  function renderKidsBoardItemHtml(post, fromScreen) {
+    const commentStats = getPostCommentStats(post);
+    const hasNewComment = hasNewCommentForUser(post);
+    return `
+      <div class="kids-board-item" onclick="openBoardDetailScreen('${post.id}', '${fromScreen}')">
+        <div class="kids-item-left">
+          ${getPostBadgeHtml(post)}
+          <div class="kids-item-info">
+            <div class="kids-item-subject">${post.seqNum}. ${escapeHtmlText(post.title)}</div>
+            <div class="kids-item-date">
+              <span>${escapeHtmlText(post.createdAt || '')}</span>
+              <span class="kids-item-comment-info">댓글 ${commentStats.count}${hasNewComment ? '<span class="badge-new-comment">N</span>' : ''}</span>
+            </div>
+          </div>
+        </div>
+        <span class="kids-item-arrow">&gt;</span>
+      </div>
+    `;
   }
 
   // 메인 화면 최근 공지/투표 4개 렌더링 (순번 자동 표시)
@@ -2812,18 +3146,7 @@
       return;
     }
 
-    wrap.innerHTML = recentList.map(post => `
-      <div class="kids-board-item" onclick="openBoardDetailScreen('${post.id}', 'screen-menu')">
-        <div class="kids-item-left">
-          ${getPostBadgeHtml(post)}
-          <div class="kids-item-info">
-            <div class="kids-item-subject">${post.seqNum}. ${escapeHtmlText(post.title)}</div>
-            <div class="kids-item-date">${escapeHtmlText(post.createdAt || '')}</div>
-          </div>
-        </div>
-        <span class="kids-item-arrow">&gt;</span>
-      </div>
-    `).join('');
+    wrap.innerHTML = recentList.map(post => renderKidsBoardItemHtml(post, 'screen-menu')).join('');
   }
 
   // 키즈 게시판 제목+내용 검색 실행
@@ -2864,18 +3187,7 @@
       return;
     }
 
-    wrap.innerHTML = filteredList.map(post => `
-      <div class="kids-board-item" onclick="openBoardDetailScreen('${post.id}', 'screen-board-list')">
-        <div class="kids-item-left">
-          ${getPostBadgeHtml(post)}
-          <div class="kids-item-info">
-            <div class="kids-item-subject">${post.seqNum}. ${escapeHtmlText(post.title)}</div>
-            <div class="kids-item-date">${escapeHtmlText(post.createdAt || '')}</div>
-          </div>
-        </div>
-        <span class="kids-item-arrow">&gt;</span>
-      </div>
-    `).join('');
+    wrap.innerHTML = filteredList.map(post => renderKidsBoardItemHtml(post, 'screen-board-list')).join('');
   }
 
   // 공지 상세 보기 열기 (이전 게시글 잔상이 보이지 않도록 즉시 렌더링 후 화면 전환)
@@ -2889,16 +3201,25 @@
       backBtn.innerText = (fromScreen === 'screen-menu') ? '목록' : '뒤로';
     }
 
+    if (notices && notices[postId]) {
+      markPostAndCommentsAsSeen(notices[postId]);
+    }
+
     renderBoardDetail();
     goToScreen('screen-board-detail');
 
     await syncFromFirebase();
     if (currentNoticeId === postId) {
+      if (notices && notices[postId]) {
+        markPostAndCommentsAsSeen(notices[postId]);
+      }
       renderBoardDetail();
     }
   }
 
   function handleBoardDetailBack() {
+    renderKidsBoardPreview();
+    renderKidsBoardFullList();
     if (boardDetailBackScreen === 'screen-menu') {
       openBoardListScreen();
     } else {
@@ -2912,6 +3233,7 @@
       return;
     }
 
+    markPostAndCommentsAsSeen(post);
     getSortedNotices();
     const hasPoll = Boolean(post.poll && post.poll.title && Array.isArray(post.poll.options) && post.poll.options.length >= 2);
     const badgeEl = document.getElementById('detail-post-badge');
@@ -2932,6 +3254,21 @@
     document.getElementById('detail-post-title').innerText = seqPrefix + (post.title || '');
     document.getElementById('detail-post-date').innerText = post.createdAt || '';
     document.getElementById('detail-post-content').innerText = post.content || '';
+
+    const detailPreviewWrap = document.getElementById('detail-post-url-preview');
+    const detectedUrl = extractFirstUrlFromText(post.content || '');
+    if (post.urlPreview && post.urlPreview.url) {
+      renderUrlPreviewBox(detailPreviewWrap, post.urlPreview);
+    } else if (detectedUrl) {
+      renderUrlPreviewBox(detailPreviewWrap, urlPreviewCache[detectedUrl] || buildFallbackUrlPreview(detectedUrl));
+      fetchUrlPreviewData(detectedUrl).then(meta => {
+        if (currentNoticeId === post.id) {
+          renderUrlPreviewBox(detailPreviewWrap, meta);
+        }
+      });
+    } else {
+      renderUrlPreviewBox(detailPreviewWrap, null);
+    }
 
     const imgWrap = document.getElementById('detail-post-image-wrap');
     const images = (Array.isArray(post.imageList) && post.imageList.length > 0)
@@ -3093,8 +3430,11 @@
     }
     notices[currentNoticeId].comments[commentId] = commentObj;
     addMyCommentId(commentId);
+    markPostAndCommentsAsSeen(notices[currentNoticeId]);
     input.value = '';
     renderBoardDetail();
+    renderKidsBoardPreview();
+    renderKidsBoardFullList();
 
     try {
       await fetch(`${FIREBASE_DB_URL}/clubData/notices/${currentNoticeId}/comments/${commentId}.json`, {
@@ -3126,7 +3466,10 @@
     if (!currentNoticeId || !notices[currentNoticeId] || !notices[currentNoticeId].comments) return;
 
     delete notices[currentNoticeId].comments[commentId];
+    markPostAndCommentsAsSeen(notices[currentNoticeId]);
     renderBoardDetail();
+    renderKidsBoardPreview();
+    renderKidsBoardFullList();
 
     try {
       await fetch(`${FIREBASE_DB_URL}/clubData/notices/${currentNoticeId}/comments/${commentId}.json`, {
@@ -3169,6 +3512,8 @@
       currentNoticeImageList = [];
       currentNoticePollData = null;
       currentNoticePinData = null;
+      currentWriteUrlPreview = null;
+      renderUrlPreviewBox(document.getElementById('notice-url-preview-wrap'), null);
       updatePollAttachButtonUI();
       updatePinAttachButtonUI();
       goToScreen('screen-board-write');
@@ -3186,6 +3531,8 @@
       currentNoticeImageData = currentNoticeImageList[0] || '';
       currentNoticePollData = post.poll ? JSON.parse(JSON.stringify(post.poll)) : null;
       currentNoticePinData = post.pin ? JSON.parse(JSON.stringify(post.pin)) : null;
+      currentWriteUrlPreview = post.urlPreview ? JSON.parse(JSON.stringify(post.urlPreview)) : null;
+      handleNoticeContentInput();
       updatePollAttachButtonUI();
       updatePinAttachButtonUI();
       goToScreen('screen-board-write');
@@ -3205,7 +3552,7 @@
     }
   }
 
-  // 공지 등록 및 수정 저장 (다중 이미지, 상단 고정 및 투표 포함)
+  // 공지 등록 및 수정 저장 (다중 이미지, 상단 고정, 투표 및 URL 미리보기 포함)
   async function saveNoticePost() {
     const title = document.getElementById('notice-title-input').value.trim();
     const content = document.getElementById('notice-content-input').value.trim();
@@ -3222,6 +3569,13 @@
     const isEdit = (noticeActionMode === 'edit' && currentNoticeId && notices[currentNoticeId]);
     const postId = isEdit ? currentNoticeId : ('n_' + Date.now());
     const existingPost = isEdit ? notices[currentNoticeId] : null;
+    const detectedUrl = extractFirstUrlFromText(content);
+    let urlPreviewToSave = null;
+    if (detectedUrl) {
+      urlPreviewToSave = (currentWriteUrlPreview && currentWriteUrlPreview.url === detectedUrl)
+        ? currentWriteUrlPreview
+        : (urlPreviewCache[detectedUrl] || buildFallbackUrlPreview(detectedUrl));
+    }
 
     const postObj = {
       id: postId,
@@ -3231,6 +3585,7 @@
       imageList: currentNoticeImageList || [],
       poll: currentNoticePollData || null,
       pin: currentNoticePinData || null,
+      urlPreview: urlPreviewToSave,
       createdAt: isEdit ? existingPost.createdAt : getCurrentDateTimeStr(),
       timestamp: isEdit ? existingPost.timestamp : Date.now(),
       comments: (existingPost && existingPost.comments) ? existingPost.comments : {}
@@ -3239,6 +3594,7 @@
     if (!notices) notices = {};
     notices[postId] = postObj;
     localStorage.setItem('tabogga_last_seen_notice_id', postId);
+    markPostAndCommentsAsSeen(postObj);
 
     try {
       await fetch(`${FIREBASE_DB_URL}/clubData/notices/${postId}.json`, {
