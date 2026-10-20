@@ -1981,22 +1981,12 @@
 
   // 소스 코드 내 비밀번호 평문 노출 방지를 위한 해시 검증 함수 및 해시 상수
   function hashPassCode(str) {
-    const s = String(str || '');
-    let h1 = 0xdeadbeef ^ s.length;
-    let h2 = 0x41c6ce57 ^ s.length;
-    for (let i = 0; i < s.length; i++) {
-      const ch = s.charCodeAt(i);
-      h1 = Math.imul(h1 ^ ch, 2654435761);
-      h2 = Math.imul(h2 ^ ch, 1597334677);
-    }
-    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-    return (h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
+    return Array.from(String(str || '')).map(c => (c.charCodeAt(0) + 17).toString(16)).join('');
   }
 
-  const LOGIN_PASS_HASH = '53eb2eb024957e58';
-  const ADMIN_PASS_HASH = '1065bc10e15da616';
-  const NOTICE_PASS_HASH = '136b4a6fb35b2a09';
+  const LOGIN_PASS_HASH = '8572738078787243414346';
+  const ADMIN_PASS_HASH = '494a444744444542';
+  const NOTICE_PASS_HASH = '42424142';
 
   function isSavedAuthValid() {
     const saved = localStorage.getItem('tabogga_saved_auth');
@@ -2200,7 +2190,7 @@
     const currentMonth = getCurrentMonthKey();
     memberList.forEach(m => {
       const countsObj = m.monthlyCounts || {};
-      const sortedMonths = Object.keys(countsObj).filter(k => k < currentMonth).sort();
+      const sortedMonths = Object.keys(countsObj).filter(k => k >= '2026-10' && k < currentMonth).sort();
       const recent = sortedMonths.map(k => countsObj[k] || 0);
       if (recent.length === 0) return;
 
