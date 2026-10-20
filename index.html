@@ -3173,13 +3173,26 @@
       }
     });
 
-    if (cleanUrls.length === 0) return;
+        if (cleanUrls.length === 0) return;
+
+    // 이미 표시된 미리보기는 유지하고 새 URL만 추가
+    const existingPreviewUrls = new Set(
+      Array.from(editorEl.querySelectorAll('.inline-url-preview-box'))
+        .map(box => box.dataset.url)
+    );
+
+    const urlsToAttach = cleanUrls.filter(
+      url => !existingPreviewUrls.has(url)
+    );
+
+    // 새로 추가할 URL이 없으면 기존 화면을 변경하지 않음
+    if (urlsToAttach.length === 0) return;
 
     function findAndAttachPreview(node) {
       if (node.nodeType === Node.TEXT_NODE) {
         const val = node.nodeValue || '';
-        for (let i = 0; i < cleanUrls.length; i++) {
-          const u = cleanUrls[i];
+        for (let i = 0; i < urlsToAttach.length; i++) {
+          const u = urlsToAttach[i];
           const idx = val.indexOf(u);
           if (idx !== -1) {
             const endIdx = idx + u.length;
@@ -3248,11 +3261,11 @@
     Array.from(editorEl.childNodes).forEach(child => findAndAttachPreview(child));
   }
 
-  function handleNoticeEditorInput() {
+    function handleNoticeEditorInput() {
     if (editorDebounceTimer) clearTimeout(editorDebounceTimer);
     editorDebounceTimer = setTimeout(() => {
       const editor = document.getElementById('notice-editor-container');
-      if (editor) updateEditorInlinePreviews(editor, false);
+      if (editor) updateEditorInlinePreviews(editor, true);
     }, 350);
   }
 
