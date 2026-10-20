@@ -3155,44 +3155,55 @@
     `;
   }
 
-  // 공지 작성 편집기 내에서 텍스트와 각 URL 바로 아래 인라인 미리보기를 실시간 렌더링
+  // 공지 작성 편집기 내에서 텍스트와 각 URL 바로 아래 인라인 미리보기를 실시간 렌더링 (커서 및 한글 입력 유지)
   let editorDebounceTimer = null;
 
-  async function updateEditorInlinePreviews(editorEl, preserveCursor = true) {
+  async function updateEditorInlinePreviews(editorEl, moveCursorToNewLine = false) {
     if (!editorEl) return;
-    const rawText = editorEl.innerText || '';
-    const urls = extractAllUrlsFromText(rawText);
 
-    // 기존에 에디터 내부에 삽입된 인라인 미리보기 컨테이너들을 임시 제거하고 순수 텍스트 추출
-    editorEl.querySelectorAll('.inline-url-preview-box').forEach(el => el.remove());
-    const cleanText = editorEl.innerText || '';
+    const clone = editorEl.cloneNode(true);
+    clone.querySelectorAll('.inline-url-preview-box').forEach(el => el.remove());
+    const cleanText = clone.innerText || '';
     const cleanUrls = extractAllUrlsFromText(cleanText);
+
+    // 본문에서 지워진 URL의 미리보기 박스는 제거
+    editorEl.querySelectorAll('.inline-url-preview-box').forEach(box => {
+      if (!cleanUrls.includes(box.dataset.url)) {
+        box.remove();
+      }
+    });
 
     if (cleanUrls.length === 0) return;
 
-    // 각 URL별로 미리보기 데이터를 동기/비동기로 확보
-    const previewMap = {};
-    await Promise.all(cleanUrls.map(async u => {
-      previewMap[u] = urlPreviewCache[u] || await fetchUrlPreviewData(u);
-    }));
-
-    // 에디터 내부의 텍스트 노드들을 순회하며 URL 텍스트 바로 아래에 카드 삽입
-    function walkAndInsert(node) {
+    function findAndAttachPreview(node) {
       if (node.nodeType === Node.TEXT_NODE) {
-        const val = node.nodeValue;
+        const val = node.nodeValue || '';
         for (let i = 0; i < cleanUrls.length; i++) {
           const u = cleanUrls[i];
           const idx = val.indexOf(u);
           if (idx !== -1) {
-            const beforeStr = val.substring(0, idx + u.length);
-            const afterStr = val.substring(idx + u.length);
+            const endIdx = idx + u.length;
+            // 이미 바로 뒤에 해당 URL의 미리보기 박스가 붙어있다면 건드리지 않음
+            if (
+              endIdx === val.length &&
+              node.nextSibling &&
+              node.nextSibling.nodeType === Node.ELEMENT_NODE &&
+              node.nextSibling.classList.contains('inline-url-preview-box') &&
+              node.nextSibling.dataset.url === u
+            ) {
+              continue;
+            }
+
+            const beforeStr = val.substring(0, endIdx);
+            const afterStr = val.substring(endIdx);
             node.nodeValue = beforeStr;
 
             const box = document.createElement('div');
             box.className = 'inline-url-preview-box';
             box.contentEditable = 'false';
             box.dataset.url = u;
-            box.innerHTML = renderSingleUrlPreviewCardHtml(previewMap[u] || buildFallbackUrlPreview(u));
+            const immediateData = urlPreviewCache[u] || buildFallbackUrlPreview(u);
+            box.innerHTML = renderSingleUrlPreviewCardHtml(immediateData);
 
             if (node.nextSibling) {
               node.parentNode.insertBefore(box, node.nextSibling);
@@ -3200,28 +3211,49 @@
               node.parentNode.appendChild(box);
             }
 
+            // 비동기로 실제 메타데이터(유튜브/틱톡/네이버박스 제목·썸네일)를 가져와 카드만 조용히 갱신
+            fetchUrlPreviewData(u).then(meta => {
+              if (box.isConnected) {
+                box.innerHTML = renderSingleUrlPreviewCardHtml(meta);
+              }
+            });
+
             if (afterStr) {
               const afterNode = document.createTextNode(afterStr);
               box.parentNode.insertBefore(afterNode, box.nextSibling);
-              walkAndInsert(afterNode);
+              findAndAttachPreview(afterNode);
+            } else if (!box.nextSibling) {
+              const nextLine = document.createElement('div');
+              nextLine.innerHTML = '<br>';
+              box.parentNode.appendChild(nextLine);
+              if (moveCursorToNewLine) {
+                const sel = window.getSelection();
+                if (sel) {
+                  const r = document.createRange();
+                  r.setStart(nextLine, 0);
+                  r.collapse(true);
+                  sel.removeAllRanges();
+                  sel.addRange(r);
+                }
+              }
             }
             break;
           }
         }
-      } else if (node.nodeType === Node.ELEMENT_NODE && node.className !== 'inline-url-preview-box') {
-        Array.from(node.childNodes).forEach(child => walkAndInsert(child));
+      } else if (node.nodeType === Node.ELEMENT_NODE && !node.classList.contains('inline-url-preview-box')) {
+        Array.from(node.childNodes).forEach(child => findAndAttachPreview(child));
       }
     }
 
-    Array.from(editorEl.childNodes).forEach(child => walkAndInsert(child));
+    Array.from(editorEl.childNodes).forEach(child => findAndAttachPreview(child));
   }
 
   function handleNoticeEditorInput() {
     if (editorDebounceTimer) clearTimeout(editorDebounceTimer);
     editorDebounceTimer = setTimeout(() => {
       const editor = document.getElementById('notice-editor-container');
-      if (editor) updateEditorInlinePreviews(editor, true);
-    }, 400);
+      if (editor) updateEditorInlinePreviews(editor, false);
+    }, 350);
   }
 
   function handleNoticeEditorPaste(e) {
@@ -3245,9 +3277,12 @@
   // 게시글 상세 보기 화면에서 본문 텍스트 내 각 URL 바로 아래에 미리보기 카드를 인라인으로 렌더링
   function renderDetailContentWithInlinePreviews(contentEl, contentText, previewList) {
     if (!contentEl) return;
-    const urls = extractAllUrlsFromText(contentText || '');
-    if (urls.length === 0) {
-      contentEl.innerText = contentText || '';
+    const text = String(contentText || '');
+    const urlRegex = /(https?:\/\/[^\s"'<>]+|www\.[^\s"'<>]+)/gi;
+    const matches = Array.from(text.matchAll(urlRegex));
+
+    if (matches.length === 0) {
+      contentEl.innerText = text;
       return;
     }
 
@@ -3259,31 +3294,454 @@
     contentEl.innerHTML = '';
     let lastIdx = 0;
 
-    // 텍스트를 URL 기준으로 쪼개어 URL 바로 아래에 카드 삽입
-    urls.forEach(u => {
-      const pos = contentText.indexOf(u, lastIdx);
-      if (pos !== -1) {
-        if (pos > lastIdx) {
-          const textChunk = contentText.substring(lastIdx, pos);
-          const span = document.createElement('span');
-          span.innerText = textChunk;
-          contentEl.appendChild(span);
-        }
-        const box = document.createElement('div');
-        box.className = 'inline-url-preview-box';
-        const pData = previewMap[u] || urlPreviewCache[u] || buildFallbackUrlPreview(u);
-        box.innerHTML = renderSingleUrlPreviewCardHtml(pData);
-        contentEl.appendChild(box);
-        lastIdx = pos + u.length;
+    matches.forEach(match => {
+      const rawMatch = match[0];
+      const startIdx = match.index;
+      let cleanUrl = rawMatch.replace(/[.,!?;:)\]]+$/, '');
+      const cleanLen = cleanUrl.length;
+      if (/^www\./i.test(cleanUrl)) {
+        cleanUrl = 'https://' + cleanUrl;
       }
+
+      // URL 텍스트까지 포함하여 출력한 뒤 그 바로 아래에 해당 URL 미리보기 박스 배치
+      const endOfUrlIdx = startIdx + cleanLen;
+      const chunkText = text.substring(lastIdx, endOfUrlIdx);
+      const span = document.createElement('span');
+      span.innerText = chunkText;
+      contentEl.appendChild(span);
+
+      const box = document.createElement('div');
+      box.className = 'inline-url-preview-box';
+      const initialData = previewMap[cleanUrl] || urlPreviewCache[cleanUrl] || buildFallbackUrlPreview(cleanUrl);
+      box.innerHTML = renderSingleUrlPreviewCardHtml(initialData);
+      contentEl.appendChild(box);
+
+      if (!previewMap[cleanUrl] && !urlPreviewCache[cleanUrl]) {
+        fetchUrlPreviewData(cleanUrl).then(meta => {
+          if (box.isConnected) {
+            box.innerHTML = renderSingleUrlPreviewCardHtml(meta);
+          }
+        });
+      }
+
+      lastIdx = endOfUrlIdx;
     });
 
-    if (lastIdx < contentText.length) {
-      const tailChunk = contentText.substring(lastIdx);
-      const span = document.createElement('span');
-      span.innerText = tailChunk;
-      contentEl.appendChild(span);
+    if (lastIdx < text.length) {
+      const tailSpan = document.createElement('span');
+      tailSpan.innerText = text.substring(lastIdx);
+      contentEl.appendChild(tailSpan);
     }
+  }
+
+  // 새 게시글 등록 시 스마트폰 팝업 및 브라우저 알림 표시
+  function checkNewNoticePopupAlert() {
+    if (!isSavedAuthValid()) return;
+
+    const sorted = Object.values(notices || {}).filter(item => item && item.id).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    if (sorted.length === 0) return;
+
+    const latest = sorted[0];
+    const lastSeenId = localStorage.getItem('tabogga_last_seen_notice_id');
+    const alertedIds = getAlertedNoticeIds();
+    const lastAlertedTs = Number(localStorage.getItem('tabogga_last_alerted_notice_ts') || '0');
+    const latestTs = latest.timestamp || 0;
+
+    const alreadyAlertedOrSeen =
+      !isNewPostForUser(latest) ||
+      alertedIds.includes(latest.id) ||
+      lastSeenId === latest.id ||
+      (lastAlertedTs > 0 && latestTs <= lastAlertedTs);
+
+    addAlertedNoticeIds(sorted.map(item => item.id), latestTs);
+    safeSetLocalStorage('tabogga_last_seen_notice_id', latest.id);
+
+    if (!alreadyAlertedOrSeen) {
+      pendingAlertNoticeId = latest.id;
+
+      const titleEl = document.getElementById('new-notice-alert-title');
+      if (titleEl) {
+        titleEl.innerText = latest.title || '새로운 공지사항이 등록되었습니다.';
+      }
+      document.getElementById('modal-new-notice-alert').classList.add('show');
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification('타보까 키즈 게시판 새 글 등록', { body: latest.title || '' });
+        } catch (e) {}
+      }
+    }
+  }
+
+  function closeNewNoticeAlertModal() {
+    document.getElementById('modal-new-notice-alert').classList.remove('show');
+  }
+
+  function goToNewNoticeFromAlert() {
+    const targetId = pendingAlertNoticeId;
+    closeNewNoticeAlertModal();
+    if (targetId && notices[targetId]) {
+      openBoardDetailScreen(targetId, 'screen-menu');
+    }
+  }
+
+  // 본인 작성 댓글 확인 및 저장 함수
+  function getMyCommentIds() {
+    try {
+      return JSON.parse(localStorage.getItem('tabogga_my_comments') || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function addMyCommentId(commentId) {
+    const list = getMyCommentIds();
+    if (!list.includes(commentId)) {
+      list.push(commentId);
+      safeSetLocalStorage('tabogga_my_comments', JSON.stringify(list.slice(-300)));
+    }
+  }
+
+  function isMyComment(commentId) {
+    return getMyCommentIds().includes(commentId);
+  }
+
+  // 접속자별 1회 투표 참여 기록 확인 및 저장 함수
+  function getVotedPollsMap() {
+    try {
+      return JSON.parse(localStorage.getItem('tabogga_voted_polls') || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function getMyVotedOptionIdx(postId) {
+    const map = getVotedPollsMap();
+    return (map[postId] !== undefined && map[postId] !== null) ? Number(map[postId]) : null;
+  }
+
+  function setMyVotedOptionIdx(postId, optIdx) {
+    const map = getVotedPollsMap();
+    map[postId] = optIdx;
+    safeSetLocalStorage('tabogga_voted_polls', JSON.stringify(map));
+  }
+
+  // 투표 마감 여부 확인 및 마감 일시 포맷팅 함수
+  function isPollClosed(poll) {
+    if (!poll || !poll.deadline) return false;
+    const deadlineTime = new Date(poll.deadline).getTime();
+    if (isNaN(deadlineTime)) return false;
+    return Date.now() >= deadlineTime;
+  }
+
+  function formatPollDeadline(deadlineStr) {
+    if (!deadlineStr) return '';
+    return String(deadlineStr).replace('T', ' ');
+  }
+
+  // 공지 작성 시 투표 버튼 상태 업데이트
+  function updatePollAttachButtonUI() {
+    const btn = document.getElementById('btn-open-poll-modal');
+    if (!btn) return;
+    if (currentNoticePollData && currentNoticePollData.title) {
+      btn.classList.add('attached');
+      btn.innerText = '📊 투표 (첨부됨)';
+    } else {
+      btn.classList.remove('attached');
+      btn.innerText = '📊 투표';
+    }
+  }
+
+  // 카카오톡 스타일 투표 만들기 모달 제어
+  function openPollSetupModal() {
+    const titleInput = document.getElementById('poll-title-input');
+    const deadlineInput = document.getElementById('poll-deadline-input');
+    const container = document.getElementById('poll-options-container');
+    const removeBtn = document.getElementById('btn-poll-remove');
+    container.innerHTML = '';
+
+    if (currentNoticePollData && currentNoticePollData.options && currentNoticePollData.options.length >= 2) {
+      titleInput.value = currentNoticePollData.title || '';
+      deadlineInput.value = currentNoticePollData.deadline || '';
+      currentNoticePollData.options.forEach((opt, idx) => {
+        appendPollOptionRow(opt.text || '', idx + 1);
+      });
+      removeBtn.style.display = 'block';
+    } else {
+      titleInput.value = '';
+      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const yyyy = tomorrow.getFullYear();
+      const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+      const dd = String(tomorrow.getDate()).padStart(2, '0');
+      deadlineInput.value = `${yyyy}-${mm}-${dd}T18:00`;
+
+      appendPollOptionRow('', 1);
+      appendPollOptionRow('', 2);
+      removeBtn.style.display = 'none';
+    }
+
+    document.getElementById('modal-poll-setup').classList.add('show');
+  }
+
+  function appendPollOptionRow(valueText = '', indexNum = 1) {
+    const container = document.getElementById('poll-options-container');
+    const row = document.createElement('div');
+    row.className = 'poll-setup-opt-row';
+    row.innerHTML = `
+      <input type="text" class="form-input poll-opt-input" style="padding:8px 10px; font-size:0.9rem;" placeholder="항목 입력" value="${escapeHtmlText(valueText)}">
+      <button type="button" class="btn-poll-opt-del" onclick="removePollOptionRow(this)">✕</button>
+    `;
+    container.appendChild(row);
+  }
+
+  function addPollOptionInput() {
+    const container = document.getElementById('poll-options-container');
+    const count = container.querySelectorAll('.poll-setup-opt-row').length;
+    if (count >= 10) {
+      alert('투표 항목은 최대 10개까지 추가할 수 있습니다.');
+      return;
+    }
+    appendPollOptionRow('', count + 1);
+  }
+
+  function removePollOptionRow(btnEl) {
+    const container = document.getElementById('poll-options-container');
+    const rows = container.querySelectorAll('.poll-setup-opt-row');
+    if (rows.length <= 2) {
+      alert('투표 항목은 최소 2개 이상이어야 합니다.');
+      return;
+    }
+    btnEl.parentElement.remove();
+  }
+
+  function closePollSetupModal() {
+    document.getElementById('modal-poll-setup').classList.remove('show');
+  }
+
+  function removeAttachedPoll() {
+    currentNoticePollData = null;
+    updatePollAttachButtonUI();
+    closePollSetupModal();
+  }
+
+  function confirmPollSetup() {
+    const title = document.getElementById('poll-title-input').value.trim();
+    const deadline = document.getElementById('poll-deadline-input').value.trim();
+    const optInputs = document.querySelectorAll('#poll-options-container .poll-opt-input');
+    const optTexts = [];
+    optInputs.forEach(input => {
+      const val = input.value.trim();
+      if (val) optTexts.push(val);
+    });
+
+    if (!title) {
+      alert('투표 제목을 입력해 주세요.');
+      return;
+    }
+    if (optTexts.length < 2) {
+      alert('투표 항목을 최소 2개 이상 입력해 주세요.');
+      return;
+    }
+    if (!deadline) {
+      alert('마감 일자와 시간을 설정해 주세요.');
+      return;
+    }
+
+    const prevOptions = (currentNoticePollData && currentNoticePollData.options) ? currentNoticePollData.options : [];
+    const newOptions = optTexts.map((txt, idx) => {
+      const exactMatch = prevOptions.find(o => o && o.text === txt);
+      const preservedVotes = exactMatch
+        ? (exactMatch.votes || 0)
+        : (prevOptions[idx] ? (prevOptions[idx].votes || 0) : 0);
+      return { text: txt, votes: preservedVotes };
+    });
+
+    currentNoticePollData = {
+      title: title,
+      deadline: deadline,
+      options: newOptions
+    };
+
+    updatePollAttachButtonUI();
+    closePollSetupModal();
+  }
+
+  let currentNoticePinData = null;
+  let selectedPinType = 'always';
+  let boardSearchKeyword = '';
+
+  // 공지 작성/수정 화면에서 첨부된 사진 썸네일 미리보기 및 개별 삭제 렌더링
+  function renderNoticeWriteImagePreviews() {
+    const listEl = document.getElementById('notice-image-preview-list');
+    if (!listEl) return;
+    if (!Array.isArray(currentNoticeImageList) || currentNoticeImageList.length === 0) {
+      listEl.innerHTML = '';
+      listEl.style.display = 'none';
+      return;
+    }
+    listEl.innerHTML = currentNoticeImageList.map((src, idx) => `
+      <div class="notice-image-preview-item">
+        <img src="${src}" alt="첨부 ${idx + 1}">
+        <button type="button" class="btn-notice-img-del" onclick="removeNoticeWriteImage(${idx})">✕</button>
+      </div>
+    `).join('');
+    listEl.style.display = 'flex';
+  }
+
+  function removeNoticeWriteImage(idx) {
+    if (!Array.isArray(currentNoticeImageList)) return;
+    currentNoticeImageList.splice(idx, 1);
+    const fileInput = document.getElementById('notice-image-input');
+    if (fileInput && currentNoticeImageList.length === 0) fileInput.value = '';
+    renderNoticeWriteImagePreviews();
+  }
+
+  // 게시글 상단 고정 유효 여부 확인 (상시 또는 기간 내)
+  function isPostPinned(post) {
+    if (!post || !post.pin || !post.pin.active) return false;
+    if (post.pin.type === 'always') return true;
+    if (post.pin.type === 'period') {
+      const today = getTodayKey();
+      if (post.pin.startDate && today < post.pin.startDate) return false;
+      if (post.pin.endDate && today > post.pin.endDate) return false;
+      return true;
+    }
+    return false;
+  }
+
+  // 공지 작성/수정 시 상단 고정 버튼 상태 업데이트
+  function updatePinAttachButtonUI() {
+    const btn = document.getElementById('btn-open-pin-modal');
+    if (!btn) return;
+    if (currentNoticePinData && currentNoticePinData.active) {
+      btn.classList.add('attached');
+      btn.innerText = currentNoticePinData.type === 'period' ? '📌 상단 고정 (기간)' : '📌 상단 고정';
+    } else {
+      btn.classList.remove('attached');
+      btn.innerText = '📌 상단 고정';
+    }
+  }
+
+  function selectPinType(type) {
+    selectedPinType = type;
+    const btnAlways = document.getElementById('btn-pin-type-always');
+    const btnPeriod = document.getElementById('btn-pin-type-period');
+    const periodGroup = document.getElementById('pin-period-group');
+    if (type === 'period') {
+      if (btnAlways) btnAlways.classList.remove('active');
+      if (btnPeriod) btnPeriod.classList.add('active');
+      if (periodGroup) periodGroup.style.display = 'block';
+    } else {
+      if (btnAlways) btnAlways.classList.add('active');
+      if (btnPeriod) btnPeriod.classList.remove('active');
+      if (periodGroup) periodGroup.style.display = 'none';
+    }
+  }
+
+  function openPinSetupModal() {
+    const startInput = document.getElementById('pin-start-input');
+    const endInput = document.getElementById('pin-end-input');
+    const removeBtn = document.getElementById('btn-pin-remove');
+    const today = getTodayKey();
+    const nextWeekDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const nwY = nextWeekDate.getFullYear();
+    const nwM = String(nextWeekDate.getMonth() + 1).padStart(2, '0');
+    const nwD = String(nextWeekDate.getDate()).padStart(2, '0');
+    const nextWeekStr = `${nwY}-${nwM}-${nwD}`;
+
+    if (currentNoticePinData && currentNoticePinData.active) {
+      selectPinType(currentNoticePinData.type || 'always');
+      if (startInput) startInput.value = currentNoticePinData.startDate || today;
+      if (endInput) endInput.value = currentNoticePinData.endDate || nextWeekStr;
+      if (removeBtn) removeBtn.style.display = 'block';
+    } else {
+      selectPinType('always');
+      if (startInput) startInput.value = today;
+      if (endInput) endInput.value = nextWeekStr;
+      if (removeBtn) removeBtn.style.display = 'none';
+    }
+
+    document.getElementById('modal-pin-setup').classList.add('show');
+  }
+
+  function closePinSetupModal() {
+    document.getElementById('modal-pin-setup').classList.remove('show');
+  }
+
+  function removeAttachedPin() {
+    currentNoticePinData = null;
+    updatePinAttachButtonUI();
+    closePinSetupModal();
+  }
+
+  function confirmPinSetup() {
+    if (selectedPinType === 'period') {
+      const startDate = document.getElementById('pin-start-input').value.trim();
+      const endDate = document.getElementById('pin-end-input').value.trim();
+      if (!startDate || !endDate) {
+        alert('고정 시작일과 종료일을 모두 설정해 주세요.');
+        return;
+      }
+      if (startDate > endDate) {
+        alert('종료일은 시작일보다 빠를 수 없습니다.');
+        return;
+      }
+      currentNoticePinData = {
+        active: true,
+        type: 'period',
+        startDate: startDate,
+        endDate: endDate
+      };
+    } else {
+      currentNoticePinData = {
+        active: true,
+        type: 'always',
+        startDate: '',
+        endDate: ''
+      };
+    }
+    updatePinAttachButtonUI();
+    closePinSetupModal();
+  }
+
+  // 다중 이미지 첨부 시 용량 최적화 변환(600px, 0.72) 및 미리보기 즉시 갱신
+  function handleNoticeImageChange(event) {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    if (files.length === 0) {
+      return;
+    }
+
+    const resizePromises = files.map(file => new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const maxWidth = 600;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.72));
+        };
+        img.onerror = () => resolve('');
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    }));
+
+    Promise.all(resizePromises).then(results => {
+      const newImages = results.filter(Boolean);
+      currentNoticeImageList = [...(Array.isArray(currentNoticeImageList) ? currentNoticeImageList : []), ...newImages];
+      renderNoticeWriteImagePreviews();
+    });
   }
 
   function getSortedNotices() {
@@ -3411,9 +3869,10 @@
       backBtn.innerText = (fromScreen === 'screen-menu') ? '목록' : '뒤로';
     }
 
+    const nextViews = (notices && notices[postId]) ? (Number(notices[postId].views || 0) + 1) : 1;
     if (notices && notices[postId]) {
+      notices[postId].views = nextViews;
       markPostAndCommentsAsSeen(notices[postId]);
-      notices[postId].views = Number(notices[postId].views || 0) + 1;
     }
 
     renderBoardDetail();
@@ -3422,13 +3881,16 @@
     try {
       await Promise.all([
         syncFromFirebase(),
-        fetchNoticeImages(postId),
-        fetch(`${FIREBASE_DB_URL}/clubData/notices/${postId}/views.json`, {
+        fetchNoticeImages(postId)
+      ]);
+      if (notices && notices[postId]) {
+        notices[postId].views = Math.max(nextViews, Number(notices[postId].views || 0));
+        await fetch(`${FIREBASE_DB_URL}/clubData/notices/${postId}/views.json`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(notices[postId] ? notices[postId].views : 1)
-        })
-      ]);
+          body: JSON.stringify(notices[postId].views)
+        });
+      }
     } catch (e) {}
 
     if (currentNoticeId === postId) {
