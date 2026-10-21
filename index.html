@@ -222,19 +222,10 @@
     }
 
     /* 전광판 바로 아래 가로 중앙 '오늘 접속' 표시 바 */
-    @font-face {
-      font-family: 'NanumSquareRoundEB';
-      src: url('https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundEB.woff2') format('woff2'),
-           url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumSquareRound.woff') format('woff');
-      font-weight: 800;
-      font-style: normal;
-      font-display: swap;
-    }
-
     .today-visit-bar {
       width: 100%;
       text-align: center;
-      font-family: 'NanumSquareRoundEB', 'Arial Rounded MT Bold', 'Apple SD Gothic Neo', 'NexonLv2Gothic', sans-serif;
+      font-family: 'NexonLv2Gothic', sans-serif;
       font-size: 0.92rem;
       font-weight: 800;
       letter-spacing: 0.2px;
@@ -317,6 +308,16 @@
       font-weight: 600;
       cursor: pointer;
       padding: 2px 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .board-total-count-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #6b7280;
+      margin-left: 6px;
     }
 
     .kids-board-card {
@@ -514,7 +515,7 @@
     .kids-item-subject {
       font-size: 0.96rem;
       font-weight: 700;
-      color: #374151;
+      color: #000000;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -680,7 +681,7 @@
     .board-detail-title {
       font-size: 1.1rem;
       font-weight: 800;
-      color: #111827;
+      color: #000000;
       line-height: 1.4;
       word-break: break-word;
     }
@@ -720,7 +721,7 @@
     .board-detail-content {
       font-size: 0.95rem;
       line-height: 1.65;
-      color: #1f2937;
+      color: #000000;
       white-space: pre-wrap;
       word-break: break-word;
       min-height: 80px;
@@ -1086,7 +1087,7 @@
 
     .comment-text {
       font-size: 0.88rem;
-      color: #1f2937;
+      color: #000000;
       line-height: 1.45;
       white-space: pre-wrap;
       word-break: break-word;
@@ -1157,6 +1158,505 @@
 
     .btn-rules-link:active {
       color: #555555;
+    }
+
+    /* ==================== 톡톡 수다방 (메인 미리보기 & 카카오톡형 채팅방) ==================== */
+    .talk-board-wrap {
+      width: 100%;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .talk-board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2px;
+    }
+
+    .talk-unread-info {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #2563eb;
+    }
+
+    .talk-unread-info.empty {
+      color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .talk-preview-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f3f4f6;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .talk-preview-item:last-child {
+      border-bottom: none;
+    }
+
+    .talk-preview-name {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #1e3a8a;
+      background-color: #eff6ff;
+      padding: 4px 9px;
+      border-radius: 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .talk-preview-text {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #000000;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: left;
+    }
+
+    /* 카카오톡 스타일 수다방 전체 화면 (모바일 가로 스크롤 완벽 차단) */
+    #screen-talk-room.active {
+      width: 100%;
+      max-width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      max-height: 100vh;
+      max-height: 100dvh;
+      padding: 0;
+      background-color: #bacee0;
+      overflow-x: hidden;
+      overflow-y: hidden;
+    }
+
+    .kakao-chat-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background-color: #bacee0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .kakao-chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-talk-profile-edit {
+      background: #e5e7eb;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #444;
+      cursor: pointer;
+    }
+
+    .btn-talk-profile-edit:active {
+      background: #d1d5db;
+    }
+
+    .kakao-chat-body {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 14px 12px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .kakao-date-divider {
+      display: flex;
+      justify-content: center;
+      margin: 6px 0;
+    }
+
+    .kakao-date-divider span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background-color: rgba(0, 0, 0, 0.12);
+      color: #000000;
+      font-size: 0.74rem;
+      font-weight: 400;
+      padding: 4px 14px;
+      border-radius: 999px;
+    }
+
+    .kakao-unread-divider {
+      display: flex;
+      justify-content: center;
+      margin: 8px 0;
+      width: 100%;
+    }
+
+    .kakao-unread-divider span {
+      background-color: rgba(255, 255, 255, 0.75);
+      color: #1f2937;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 16px;
+      border-radius: 999px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .kakao-msg-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .kakao-msg-row.mine {
+      justify-content: flex-end;
+    }
+
+    .kakao-msg-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.45rem;
+      flex-shrink: 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+      border: 1.5px solid rgba(255, 255, 255, 0.7);
+      user-select: none;
+    }
+
+    .kakao-msg-content-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      max-width: calc(100% - 50px);
+      min-width: 0;
+    }
+
+    .kakao-msg-row.mine .kakao-msg-content-wrap {
+      align-items: flex-end;
+      max-width: 86%;
+    }
+
+    .kakao-msg-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 4px;
+      padding-left: 2px;
+    }
+
+    .kakao-msg-bubble-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    .kakao-msg-bubble {
+      position: relative;
+      background-color: #ffffff;
+      color: #000000;
+      padding: 9px 12px;
+      border-radius: 4px 14px 14px 14px;
+      font-size: 0.92rem;
+      line-height: 1.48;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      text-align: left;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .kakao-msg-row.mine .kakao-msg-bubble {
+      background-color: #fee500;
+      border-radius: 14px 4px 14px 14px;
+    }
+
+    .kakao-msg-bubble a.chat-link {
+      color: #2563eb;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+
+    .kakao-msg-img-wrap {
+      display: inline-block;
+      width: fit-content;
+      max-width: 220px;
+      border-radius: 12px;
+      overflow: hidden;
+      line-height: 0;
+    }
+
+    .kakao-msg-img-wrap img {
+      width: auto;
+      max-width: 100%;
+      max-height: 280px;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+    }
+
+    .kakao-msg-body-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .kakao-msg-row.mine .kakao-msg-body-stack {
+      align-items: flex-end;
+    }
+
+    .kakao-msg-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .kakao-msg-row.mine .kakao-msg-meta {
+      align-items: flex-end;
+    }
+
+    .kakao-msg-time {
+      font-size: 0.68rem;
+      color: #4b5563;
+      white-space: nowrap;
+    }
+
+    .btn-kakao-msg-del {
+      background: none;
+      border: none;
+      color: #dc2626;
+      font-size: 0.68rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .kakao-chat-footer {
+      width: 100%;
+      max-width: 100%;
+      background-color: #ffffff;
+      border-top: 1px solid #e5e7eb;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    .talk-attach-preview-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      background-color: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      gap: 10px;
+    }
+
+    .talk-attach-preview-bar.show {
+      display: flex;
+    }
+
+    .talk-attach-thumb-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    .talk-attach-thumb-wrap img {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid #d1d5db;
+    }
+
+    .btn-talk-attach-cancel {
+      background: #fee2e2;
+      color: #dc2626;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .kakao-emoji-drawer {
+      display: none;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      padding: 10px 12px;
+      background-color: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    .kakao-emoji-drawer.show {
+      display: grid;
+    }
+
+    .btn-emoji-item {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 6px 0;
+      font-size: 1.25rem;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .btn-emoji-item:active {
+      background: #eff6ff;
+    }
+
+    .kakao-chat-input-bar {
+      width: 100%;
+      max-width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+    }
+
+    .btn-chat-tool {
+      background: #f3f4f6;
+      border: none;
+      width: 34px;
+      height: 38px;
+      border-radius: 10px;
+      font-size: 1.15rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #374151;
+    }
+
+    .kakao-chat-input {
+      width: 0;
+      flex: 1;
+      min-width: 0;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 18px;
+      font-size: 0.92rem;
+      color: #000000;
+      background-color: #f9fafb;
+      outline: none;
+    }
+
+    .kakao-chat-input:focus {
+      border-color: #eab308;
+      background-color: #ffffff;
+    }
+
+    .btn-kakao-send {
+      background-color: #fee500;
+      color: #191919;
+      border: none;
+      padding: 0 15px;
+      height: 38px;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* 최초 1회 이름 + 50종 캐릭터 선택 모달 */
+    .talk-char-scroll-box {
+      max-height: 230px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 6px;
+      background-color: #f9fafb;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .talk-char-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 10px;
+      background-color: #ffffff;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .talk-char-item.selected {
+      border-color: #2563eb;
+      background-color: #eff6ff;
+    }
+
+    .talk-char-item-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #000000;
+      flex: 1;
+    }
+
+    .talk-char-item-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #d1d5db;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 900;
+      color: transparent;
+    }
+
+    .talk-char-item.selected .talk-char-item-check {
+      border-color: #2563eb;
+      background-color: #2563eb;
+      color: #ffffff;
     }
 
     /* 한줄 게시판 (LED 전광판 영역 - 이미지 바로 위 배치 및 클릭 시 설정 연결) */
@@ -1313,6 +1813,7 @@
       padding: 12px 6px;
       border-bottom: 1px solid #f0f2f5;
       vertical-align: middle;
+      color: #000000;
     }
 
     /* 출석 체크 표 전체 5개 열 균형 배분 (잘림 방지 및 열 간격 밸런스 최적화) */
@@ -1675,14 +2176,25 @@
     <button class="btn-menu-custom btn-menu-checkin" onclick="openCheckinScreen()">출석 체크</button>
     <button class="btn-menu-custom btn-menu-rolling" onclick="openTodayScreen()">실시간 롤딩 현황</button>
 
-    <!-- 키즈 게시판 (최근 공지/투표 4개 표시) -->
+    <!-- 톡톡 게시판 (최근 공지/투표 4개 표시) -->
     <div class="kids-board-wrap">
       <div class="kids-board-header">
-        <span class="kids-board-title">키즈 게시판</span>
-        <button class="btn-kids-more" onclick="openBoardListScreen()">전체보기</button>
+        <span class="kids-board-title">톡톡 게시판</span>
+        <button id="btn-kids-more" class="btn-kids-more" onclick="openBoardListScreen()">전체보기</button>
       </div>
       <div id="kids-board-preview" class="kids-board-card">
         <!-- JS로 최근 공지/투표 렌더링 -->
+      </div>
+    </div>
+
+    <!-- 톡톡 수다방 (테두리 안쪽 영역 클릭 시 수다방 입장) -->
+    <div class="talk-board-wrap">
+      <div class="talk-board-header">
+        <span class="kids-board-title">톡톡 수다방</span>
+        <div id="talk-unread-info" class="talk-unread-info"></div>
+      </div>
+      <div id="talk-board-preview" class="kids-board-card" style="cursor: pointer;" onclick="openTalkRoomScreen()">
+        <!-- JS로 최신 채팅 4건 렌더링 -->
       </div>
     </div>
 
@@ -1858,7 +2370,7 @@
   <!-- [화면 8] 키즈 게시판 전체보기 리스트 화면 ('키즈 게시판' 클릭 시 댓글 삭제 관리자 활성화) -->
   <div id="screen-board-list" class="screen">
     <div class="header-bar" style="gap: 8px;">
-      <span id="board-list-header-title" class="header-title clickable-admin" style="white-space: nowrap; flex-shrink: 0;" onclick="openBoardCommentAdminPwModal()">키즈 게시판</span>
+      <span id="board-list-header-title" class="header-title clickable-admin" style="white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: baseline;" onclick="openBoardCommentAdminPwModal()">키즈 게시판</span>
       <button class="btn-back" style="white-space: nowrap; flex-shrink: 0;" onclick="goToScreen('screen-menu')">메인</button>
     </div>
     <div class="board-search-wrap">
@@ -1944,6 +2456,69 @@
     <button class="btn-primary" style="flex-shrink:0; padding: 13px;" onclick="saveNoticePost()">등록</button>
   </div>
 
+  <!-- [화면 11] 톡톡 수다방 (카카오톡 스타일 실시간 채팅방) -->
+  <div id="screen-talk-room" class="screen">
+    <div class="kakao-chat-header">
+      <div class="kakao-chat-header-left">
+        <span id="talk-room-header-title" class="header-title clickable-admin" onclick="openBoardCommentAdminPwModal()">톡톡 수다방</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn-talk-profile-edit" onclick="openTalkProfileModal()">프로필 변경</button>
+        <button class="btn-back" style="background: rgba(255,255,255,0.75);" onclick="goBack('screen-menu')">뒤로</button>
+      </div>
+    </div>
+
+    <div id="kakao-chat-body" class="kakao-chat-body">
+      <!-- JS로 날짜 구분선 및 채팅 메시지 렌더링 -->
+    </div>
+
+    <div class="kakao-chat-footer">
+      <div id="talk-attach-preview-bar" class="talk-attach-preview-bar">
+        <div class="talk-attach-thumb-wrap">
+          <img id="talk-attach-preview-img" src="" alt="첨부 미리보기">
+          <span>사진 첨부됨 (전송을 누르세요)</span>
+        </div>
+        <button type="button" class="btn-talk-attach-cancel" onclick="clearTalkAttachedImage()">취소 ✕</button>
+      </div>
+      <div id="kakao-emoji-drawer" class="kakao-emoji-drawer">
+        <!-- JS로 입력창용 캐릭터/이모티콘 렌더링 -->
+      </div>
+      <div class="kakao-chat-input-bar">
+        <button type="button" class="btn-chat-tool" title="캐릭터 이모티콘 넣기" onclick="toggleTalkEmojiDrawer()">😊</button>
+        <button type="button" class="btn-chat-tool" title="사진 첨부하기" onclick="triggerTalkImageSelect()" aria-label="사진 첨부">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </button>
+        <input type="file" id="talk-image-input" accept="image/*" style="display:none;" onchange="handleTalkImageSelect(event)">
+        <input type="text" id="talk-message-input" class="kakao-chat-input" maxlength="300" placeholder="한마디 수다를 입력하세요" onfocus="handleTalkInputFocus(this)" onclick="handleTalkInputFocus(this)" onkeyup="if(event.key==='Enter') submitTalkMessage()">
+        <button type="button" class="btn-kakao-send" onclick="submitTalkMessage()">전송</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- [팝업] 톡톡 수다방 최초 1회 이름 및 50종 캐릭터 선택 모달 -->
+<div id="modal-talk-profile" class="modal-overlay">
+  <div class="modal-content" style="max-width:350px; padding:22px 18px 18px;">
+    <div class="modal-text" style="font-size:1.08rem; margin-bottom:6px;">🛼 수다방 내 프로필 설정</div>
+    <div style="font-size:0.78rem; color:#6b7280; margin-bottom:14px;">최초 1회만 설정하면 브라우저에 자동 저장됩니다.</div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">내 이름 입력</label>
+      <input type="text" id="talk-profile-name-input" class="form-input" style="color:#000000; font-weight:700;" maxlength="25" placeholder="예시) 정아인, 정기덕(아인아빠)">
+    </div>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">내 캐릭터 선택 (세로 스크롤 50종)</label>
+      <div id="talk-char-scroll-list" class="talk-char-scroll-box"></div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button type="button" class="btn-modal-cancel" onclick="closeTalkProfileModal()">취소</button>
+      <button type="button" class="btn-modal-ok" onclick="confirmTalkProfileSetup()">선택 완료</button>
+    </div>
+  </div>
 </div>
 
 <!-- [로딩] 최초 접속 및 페이지 전환용 로딩 아이콘 오버레이 -->
@@ -2214,6 +2789,27 @@
         localStorage.setItem('tabogga_my_comments', JSON.stringify(myComments.slice(-300)));
       }
 
+      const myChats = JSON.parse(localStorage.getItem('tabogga_my_chats') || '[]');
+      if (Array.isArray(myChats) && myChats.length > 300) {
+        localStorage.setItem('tabogga_my_chats', JSON.stringify(myChats.slice(-300)));
+      }
+
+      const seenMap = JSON.parse(localStorage.getItem('tabogga_board_seen_state') || '{}');
+      const seenKeys = Object.keys(seenMap);
+      if (seenKeys.length > 300) {
+        const trimmedSeen = {};
+        seenKeys.slice(-300).forEach(k => { trimmedSeen[k] = seenMap[k]; });
+        localStorage.setItem('tabogga_board_seen_state', JSON.stringify(trimmedSeen));
+      }
+
+      const votedMap = JSON.parse(localStorage.getItem('tabogga_voted_polls') || '{}');
+      const votedKeys = Object.keys(votedMap);
+      if (votedKeys.length > 200) {
+        const trimmedVoted = {};
+        votedKeys.slice(-200).forEach(k => { trimmedVoted[k] = votedMap[k]; });
+        localStorage.setItem('tabogga_voted_polls', JSON.stringify(trimmedVoted));
+      }
+
       const cacheObj = JSON.parse(localStorage.getItem('tabogga_url_preview_cache') || '{}');
       const cacheKeys = Object.keys(cacheObj);
       const maxCache = aggressive ? 50 : 150;
@@ -2301,7 +2897,7 @@
     { id: 17, name: '수아 가족', lastGrade: 1, lastCount: 0, thisCount: 0, regDate: '2026-10-16', gradeSinceMonth: '2026-10' },
     { id: 18, name: '은성 가족', lastGrade: 1, lastCount: 0, thisCount: 0, regDate: '2026-10-16', gradeSinceMonth: '2026-10' },
     { id: 19, name: '현규', lastGrade: 1, lastCount: 0, thisCount: 0, regDate: '2026-10-16', gradeSinceMonth: '2026-10' },
-    { id: 20, name: '채언 가족', lastGrade: 1, lastCount: 0, thisCount: 0, regDate: '2026-10-16', gradeSinceMonth: '2026-10' },
+    { id: 20, name: '최언 가족', lastGrade: 1, lastCount: 0, thisCount: 0, regDate: '2026-10-16', gradeSinceMonth: '2026-10' },
     { id: 21, name: '은희', lastGrade: 1, lastCount: 0, thisCount: 0, regDate: '2026-10-16', gradeSinceMonth: '2026-10' }
   ];
 
@@ -2314,6 +2910,7 @@
   };
   let notices = {};
   let noticeImagesCache = {};
+  let chats = {};
   let visitStatsData = { totalVisits: 0, dailyVisits: {} };
 
   // 서버 표준 시간 오프셋 (스마트폰 기기 시계 오류로 인한 미래 월 강제 이관 방지)
@@ -2687,6 +3284,7 @@
         const dbMembers = data.members || {};
         attendanceLog = data.attendanceLog || {};
         notices = data.notices || {};
+        chats = data.chats || {};
         if (data.visitStats) {
           visitStatsData = data.visitStats;
         }
@@ -2764,9 +3362,42 @@
           }
         });
 
+        // 삭제된 옛날 공지글의 로컬 읽음/투표 기록 자동 정리 (수년간 장기 운영 시 찌꺼기 누적 방지)
+        try {
+          const validNoticeIds = new Set(Object.keys(notices));
+          const seenMap = getBoardSeenStateMap();
+          let seenChanged = false;
+          Object.keys(seenMap).forEach(k => {
+            if (!validNoticeIds.has(k)) {
+              delete seenMap[k];
+              seenChanged = true;
+            }
+          });
+          if (seenChanged) saveBoardSeenStateMap(seenMap);
+        } catch (e) {}
+
+        // 스마트폰 시계 오차로 인한 월간 출석부 조기 초기화 방지 (파이어베이스 서버 표준 시간 직접 검증)
+        let verifiedCurrentMonth = currentMonth;
+        if (data.currentMonth && data.currentMonth < currentMonth && serverTimeOffsetMs === 0) {
+          try {
+            const timeRes = await fetch(`${FIREBASE_DB_URL}/clubData/serverTimeCheck.json`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ '.sv': 'timestamp' })
+            });
+            if (timeRes.ok) {
+              const serverTs = Number(await timeRes.json());
+              if (serverTs > 0) {
+                serverTimeOffsetMs = serverTs - Date.now();
+                verifiedCurrentMonth = getCurrentMonthKey();
+              }
+            }
+          } catch (e) {}
+        }
+
         // 월(Month)이 바뀌었는지 확인 후 자동 월간 이관, 빈 달 보정, 등급 산정 및 오래된 일별 로그 정리
-        if (data.currentMonth && data.currentMonth < currentMonth) {
-          const monthSpan = getMonthRangeList(data.currentMonth, currentMonth);
+        if (data.currentMonth && data.currentMonth < verifiedCurrentMonth) {
+          const monthSpan = getMonthRangeList(data.currentMonth, verifiedCurrentMonth);
           members.forEach(m => {
             if (!m.monthlyCounts) m.monthlyCounts = {};
             m.monthlyCounts[data.currentMonth] = m.thisCount;
@@ -2821,6 +3452,7 @@
       renderLedBoard();
       renderTodayVisitBar();
       renderKidsBoardPreview();
+      renderTalkBoardPreview();
       checkNewNoticePopupAlert();
       if (syncEl) syncEl.innerText = '실시간 동기화 완료';
     } catch (err) {
@@ -2828,6 +3460,7 @@
       renderLedBoard();
       renderTodayVisitBar();
       renderKidsBoardPreview();
+      renderTalkBoardPreview();
       if (syncEl) syncEl.innerText = '오프라인 상태 (네트워크를 확인하세요)';
     }
   }
@@ -2855,6 +3488,8 @@
       initRinkSkaters();
     } else if (activeScreen.id === 'screen-month') {
       renderMonthTable();
+    } else if (activeScreen.id === 'screen-talk-room') {
+      renderTalkRoomMessages(false);
     }
   }
 
@@ -2908,6 +3543,7 @@
     if (screenId === 'screen-menu') {
       renderTodayVisitBar();
       renderKidsBoardPreview();
+      renderTalkBoardPreview();
     } else if (screenId === 'screen-board-list') {
       renderKidsBoardFullList();
     }
@@ -3102,9 +3738,14 @@
   function updateBoardAdminHeaderUI() {
     const listTitle = document.getElementById('board-list-header-title');
     const detailTitle = document.getElementById('board-detail-header-title');
+    const talkTitle = document.getElementById('talk-room-header-title');
     const suffix = isBoardCommentAdminMode ? '<span class="admin-mode-pill">관리자</span>' : '';
-    if (listTitle) listTitle.innerHTML = `키즈 게시판${suffix}`;
+    const totalNoticeCount = Object.values(notices || {}).filter(item => item && item.id).length;
+    if (listTitle) {
+      listTitle.innerHTML = `<span>키즈 게시판</span><span class="board-total-count-label">총 ${totalNoticeCount}건</span>${suffix}`;
+    }
     if (detailTitle) detailTitle.innerHTML = `키즈 게시판${suffix}`;
+    if (talkTitle) talkTitle.innerHTML = `톡톡 수다방${suffix}`;
   }
 
   function openBoardCommentAdminPwModal() {
@@ -3112,6 +3753,7 @@
       isBoardCommentAdminMode = false;
       updateBoardAdminHeaderUI();
       if (currentNoticeId) renderBoardDetail();
+      renderTalkRoomMessages(false);
       return;
     }
     const input = document.getElementById('board-comment-admin-pw-input');
@@ -3131,6 +3773,7 @@
       closeBoardCommentAdminPwModal();
       updateBoardAdminHeaderUI();
       if (currentNoticeId) renderBoardDetail();
+      renderTalkRoomMessages(false);
     } else {
       alert('비밀번호가 일치하지 않습니다.');
     }
@@ -4271,7 +4914,7 @@
         <div class="kids-item-left">
           ${getPostBadgeHtml(post)}
           <div class="kids-item-info">
-            <div class="kids-item-subject">${post.seqNum}. ${escapeHtmlText(post.title)}</div>
+            <div class="kids-item-subject">${escapeHtmlText(post.title)}</div>
             <div class="kids-item-date">
               <span>${escapeHtmlText(post.createdAt || '')}</span>
               <span>조회 ${viewsCount}</span>
@@ -4288,7 +4931,14 @@
     const wrap = document.getElementById('kids-board-preview');
     if (!wrap) return;
 
-    const recentList = getSortedNotices().slice(0, 4);
+    const allList = getSortedNotices();
+    const moreBtn = document.getElementById('btn-kids-more');
+    if (moreBtn) {
+      const hasAnyNew = allList.some(post => isNewPostForUser(post) || hasNewCommentForUser(post));
+      moreBtn.innerHTML = `${hasAnyNew ? '<span class="badge-new-comment">N</span>' : ''}<span>전체보기</span>`;
+    }
+
+    const recentList = allList.slice(0, 4);
     if (recentList.length === 0) {
       wrap.innerHTML = `<div class="kids-empty-msg">등록된 공지사항이 없습니다.</div>`;
       return;
@@ -4315,6 +4965,7 @@
   }
 
   function renderKidsBoardFullList() {
+    updateBoardAdminHeaderUI();
     const wrap = document.getElementById('kids-board-full-list');
     if (!wrap) return;
 
@@ -4400,12 +5051,14 @@
     }
 
     try {
+      const prevServerViews = postObj ? Math.max(0, nextViews - 1) : 0;
       await Promise.all([
         syncFromFirebase(),
         fetchNoticeImages(postId)
       ]);
       if (notices && notices[postId]) {
-        notices[postId].views = Math.max(nextViews, Number(notices[postId].views || 0));
+        const syncedViews = Number(notices[postId].views || 0);
+        notices[postId].views = (syncedViews >= nextViews) ? (syncedViews + 1) : Math.max(nextViews, prevServerViews + 1);
         await fetch(`${FIREBASE_DB_URL}/clubData/notices/${postId}/views.json`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -4459,8 +5112,7 @@
       }
     }
 
-    const seqPrefix = post.seqNum ? `${post.seqNum}. ` : '';
-    document.getElementById('detail-post-title').innerText = seqPrefix + (post.title || '');
+    document.getElementById('detail-post-title').innerText = post.title || '';
     const viewsCount = Number(post.views || 0);
     const commentStats = getPostCommentStats(post);
     document.getElementById('detail-post-date').innerText = `${post.createdAt || ''}  ·  조회 ${viewsCount}  ·  댓글 ${commentStats.count}`;
@@ -4632,7 +5284,12 @@
     renderBoardDetail();
   }
 
+  let isSubmittingVote = false;
+  let isSubmittingComment = false;
+  let isSavingNotice = false;
+
   async function submitPollVote() {
+    if (isSubmittingVote) return;
     if (!currentNoticeId || !notices[currentNoticeId] || !notices[currentNoticeId].poll) return;
     const post = notices[currentNoticeId];
     if (isPollClosed(post.poll)) {
@@ -4663,6 +5320,7 @@
       return;
     }
 
+    isSubmittingVote = true;
     try {
       // 이전 투표 항목이 있었다면 서버에서 이전 항목 득표수 -1 차감
       if (prevVotedIdx !== null && post.poll.options[prevVotedIdx]) {
@@ -4694,10 +5352,13 @@
       });
     } catch (e) {
       alert('투표 저장 중 네트워크 오류가 발생했습니다.');
+    } finally {
+      isSubmittingVote = false;
     }
   }
 
   async function submitAnonymousComment() {
+    if (isSubmittingComment) return;
     const input = document.getElementById('comment-text-input');
     const text = input ? input.value.trim() : '';
     if (!text) {
@@ -4706,6 +5367,7 @@
     }
     if (!currentNoticeId || !notices[currentNoticeId]) return;
 
+    isSubmittingComment = true;
     const nowMs = getNowDate().getTime();
     const commentId = 'c_' + nowMs + '_' + Math.floor(Math.random() * 1000);
     const commentObj = {
@@ -4734,6 +5396,8 @@
       });
     } catch (e) {
       alert('댓글 등록 중 네트워크 오류가 발생했습니다.');
+    } finally {
+      isSubmittingComment = false;
     }
   }
 
@@ -4782,14 +5446,19 @@
     document.getElementById('modal-notice-pw').classList.remove('show');
   }
 
+  let isProcessingNoticePw = false;
+
   async function confirmNoticePw() {
+    if (isProcessingNoticePw) return;
     const val = document.getElementById('notice-pw-input').value.trim();
     if (hashPassCode(val) !== NOTICE_PASS_HASH) {
       alert('비밀번호가 일치하지 않습니다.');
       return;
     }
 
+    isProcessingNoticePw = true;
     closeNoticePwModal();
+    try {
 
     if (noticeActionMode === 'create') {
       document.getElementById('board-write-header-title').innerText = '공지 작성하기';
@@ -4862,9 +5531,13 @@
       renderKidsBoardFullList();
       goBack(boardDetailBackScreen);
     }
+    } finally {
+      isProcessingNoticePw = false;
+    }
   }
 
   async function saveNoticePost() {
+    if (isSavingNotice) return;
     const title = document.getElementById('notice-title-input').value.trim();
     const editor = document.getElementById('notice-editor-container');
     const content = extractCleanTextFromEditor(editor);
@@ -4877,6 +5550,7 @@
       alert('내용을 입력해 주세요.');
       return;
     }
+    isSavingNotice = true;
 
     const nowMs = getNowDate().getTime();
     const isEdit = (noticeActionMode === 'edit' && currentNoticeId && notices[currentNoticeId]);
@@ -4966,10 +5640,12 @@
       }
       await Promise.all(saveRequests);
     } catch (e) {
+      isSavingNotice = false;
       alert('공지 저장 중 네트워크 오류가 발생했습니다.');
       return;
     }
 
+    isSavingNotice = false;
     renderKidsBoardPreview();
     renderKidsBoardFullList();
 
@@ -5497,6 +6173,807 @@
     await waitForPaint();
     if (loader) loader.classList.remove('show');
   });
+
+  /********************************************************************
+   * 9. 톡톡 수다방 (50종 캐릭터, 카카오톡형 UI, 날짜 구분선, URL 미리보기, 200건 자동 용량 관리)
+   ********************************************************************/
+  const MAX_CHAT_KEEP_COUNT = 200;
+
+  // 세련된 50종 캐릭터 아바타 정의 (고유 번호 1~50)
+  const TALK_CHARACTERS = [
+    { id: 1, icon: '🛼', bg: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', title: '블루 롤러 스타' },
+    { id: 2, icon: '👑', bg: 'linear-gradient(135deg,#facc15,#ca8a04)', title: '골드 크라운 킹' },
+    { id: 3, icon: '🐰', bg: 'linear-gradient(135deg,#f472b6,#db2777)', title: '러블리 핑크토끼' },
+    { id: 4, icon: '🐯', bg: 'linear-gradient(135deg,#fb923c,#ea580c)', title: '용맹한 호랑이' },
+    { id: 5, icon: '🐻', bg: 'linear-gradient(135deg,#a78bfa,#7c3aed)', title: '바이올렛 베어' },
+    { id: 6, icon: '🦊', bg: 'linear-gradient(135deg,#f87171,#dc2626)', title: '레드 폭스' },
+    { id: 7, icon: '🐼', bg: 'linear-gradient(135deg,#34d399,#059669)', title: '민트 팬더' },
+    { id: 8, icon: '🦁', bg: 'linear-gradient(135deg,#fbbf24,#d97706)', title: '썬더 라이온' },
+    { id: 9, icon: '🐱', bg: 'linear-gradient(135deg,#60a5fa,#2563eb)', title: '시크 블루캣' },
+    { id: 10, icon: '🐶', bg: 'linear-gradient(135deg,#fdba74,#f97316)', title: '해피 골든퍼피' },
+    { id: 11, icon: '🦄', bg: 'linear-gradient(135deg,#e879f9,#c026d3)', title: '드림 유니콘' },
+    { id: 12, icon: '🐨', bg: 'linear-gradient(135deg,#94a3b8,#475569)', title: '쿨 그레이 코알라' },
+    { id: 13, icon: '🐹', bg: 'linear-gradient(135deg,#fcd34d,#f59e0b)', title: '큐트 햄찌' },
+    { id: 14, icon: '🐧', bg: 'linear-gradient(135deg,#38bdf8,#0284c7)', title: '아이스 펭귄' },
+    { id: 15, icon: '🐥', bg: 'linear-gradient(135deg,#fde047,#eab308)', title: '삐약이 스케이터' },
+    { id: 16, icon: '🦋', bg: 'linear-gradient(135deg,#818cf8,#4f46e5)', title: '인디고 버터플라이' },
+    { id: 17, icon: '🐬', bg: 'linear-gradient(135deg,#2dd4bf,#0d9488)', title: '에메랄드 돌핀' },
+    { id: 18, icon: '🦖', bg: 'linear-gradient(135deg,#4ade80,#16a34a)', title: '다이노 파이터' },
+    { id: 19, icon: '🦉', bg: 'linear-gradient(135deg,#c084fc,#9333ea)', title: '나이트 아울' },
+    { id: 20, icon: '🐝', bg: 'linear-gradient(135deg,#facc15,#a16207)', title: '허니 비' },
+    { id: 21, icon: '🌟', bg: 'linear-gradient(135deg,#6366f1,#312e81)', title: '미드나잇 슈팅스타' },
+    { id: 22, icon: '⚡', bg: 'linear-gradient(135deg,#f59e0b,#b45309)', title: '스피드 번개' },
+    { id: 23, icon: '🔥', bg: 'linear-gradient(135deg,#ef4444,#991b1b)', title: '불꽃 질주' },
+    { id: 24, icon: '🌈', bg: 'linear-gradient(135deg,#ec4899,#6366f1)', title: '레인보우 프렌즈' },
+    { id: 25, icon: '🍀', bg: 'linear-gradient(135deg,#22c55e,#15803d)', title: '럭키 클로버' },
+    { id: 26, icon: '🍒', bg: 'linear-gradient(135deg,#fb7185,#e11d48)', title: '스위트 체리' },
+    { id: 27, icon: '🍑', bg: 'linear-gradient(135deg,#fda4af,#f43f5e)', title: '피치 요정' },
+    { id: 28, icon: '🍓', bg: 'linear-gradient(135deg,#f87171,#b91c1c)', title: '베리 스트로베리' },
+    { id: 29, icon: '🍋', bg: 'linear-gradient(135deg,#fef08a,#ca8a04)', title: '상큼 레몬톡' },
+    { id: 30, icon: '🥑', bg: 'linear-gradient(135deg,#86efac,#16a34a)', title: '그린 아보카도' },
+    { id: 31, icon: '🚀', bg: 'linear-gradient(135deg,#3b82f6,#1e3a8a)', title: '우주 로켓단' },
+    { id: 32, icon: '🛸', bg: 'linear-gradient(135deg,#14b8a6,#115e59)', title: '갤럭시 UFO' },
+    { id: 33, icon: '🎸', bg: 'linear-gradient(135deg,#f43f5e,#881337)', title: '락앤롤 기타리스트' },
+    { id: 34, icon: '🎧', bg: 'linear-gradient(135deg,#64748b,#1e293b)', title: '비트 DJ' },
+    { id: 35, icon: '🏆', bg: 'linear-gradient(135deg,#fbbf24,#92400e)', title: '챔피언 트로피' },
+    { id: 36, icon: '🥇', bg: 'linear-gradient(135deg,#f59e0b,#78350f)', title: '골드 메달리스트' },
+    { id: 37, icon: '💎', bg: 'linear-gradient(135deg,#38bdf8,#0369a1)', title: '블루 다이아몬드' },
+    { id: 38, icon: '🎈', bg: 'linear-gradient(135deg,#f472b6,#9d174d)', title: '파티 벌룬' },
+    { id: 39, icon: '🧸', bg: 'linear-gradient(135deg,#d97706,#78350f)', title: '포근 테디베어' },
+    { id: 40, icon: '🎠', bg: 'linear-gradient(135deg,#c084fc,#581c87)', title: '판타지 회전목마' },
+    { id: 41, icon: '😎', bg: 'linear-gradient(135deg,#1e293b,#0f172a)', title: '선글라스 멋쟁이' },
+    { id: 42, icon: '🥳', bg: 'linear-gradient(135deg,#ec4899,#be185d)', title: '파티 피플' },
+    { id: 43, icon: '🤩', bg: 'linear-gradient(135deg,#eab308,#a16207)', title: '반짝 스타아이' },
+    { id: 44, icon: '🥰', bg: 'linear-gradient(135deg,#fb7185,#be123c)', title: '하트 뿅뿅' },
+    { id: 45, icon: '🤗', bg: 'linear-gradient(135deg,#fb923c,#c2410c)', title: '해피 스마일' },
+    { id: 46, icon: '🦸', bg: 'linear-gradient(135deg,#2563eb,#1e3a8a)', title: '슈퍼 히어로' },
+    { id: 47, icon: '🧚', bg: 'linear-gradient(135deg,#a855f7,#6b21a8)', title: '매직 페어리' },
+    { id: 48, icon: '🐳', bg: 'linear-gradient(135deg,#0ea5e9,#075985)', title: '블루 웨일' },
+    { id: 49, icon: '🦩', bg: 'linear-gradient(135deg,#f43f5e,#9f1239)', title: '핑크 플라밍고' },
+    { id: 50, icon: '⛄', bg: 'linear-gradient(135deg,#7dd3fc,#0284c7)', title: '스노우 프렌드' }
+  ];
+
+  // 입력창에 간편하게 넣을 수 있는 40종 캐릭터/이모티콘 목록
+  const TALK_QUICK_EMOJIS = [
+    '🛼', '🔥', '👍', '❤️', '😂', '🥳', '👏', '🙌',
+    '😊', '🥰', '😎', '🤩', '😆', '😉', '🤔', '😭',
+    '💪', '🏆', '🥇', '✨', '🌟', '⚡', '🌈', '🎵',
+    '🐰', '🐯', '🐻', '🦊', '🐼', '🦁', '🐱', '🐶',
+    '🦄', '🐥', '🐬', '🦖', '🍀', '🍓', '🚀', '💎'
+  ];
+
+  let selectedTalkCharId = 1;
+
+  function getTalkCharacterById(charId) {
+    const num = Number(charId) || 1;
+    return TALK_CHARACTERS.find(c => c.id === num) || TALK_CHARACTERS[0];
+  }
+
+  function getSavedTalkProfile() {
+    try {
+      const raw = localStorage.getItem('tabogga_talk_profile');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.name && parsed.charId) {
+        return parsed;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function saveTalkProfile(name, charId) {
+    const profile = { name: String(name).trim(), charId: Number(charId) || 1 };
+    safeSetLocalStorage('tabogga_talk_profile', JSON.stringify(profile));
+    return profile;
+  }
+
+  function getMyChatIds() {
+    try {
+      return JSON.parse(localStorage.getItem('tabogga_my_chats') || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function addMyChatId(chatId) {
+    const list = getMyChatIds();
+    if (!list.includes(chatId)) {
+      list.push(chatId);
+      safeSetLocalStorage('tabogga_my_chats', JSON.stringify(list.slice(-300)));
+    }
+  }
+
+  function getSortedChats() {
+    const list = Object.values(chats || {}).filter(item => item && item.id && item.text);
+    list.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    return list;
+  }
+
+  function getUnreadTalkCount() {
+    const lastSeenTs = Number(localStorage.getItem('tabogga_talk_last_seen_ts') || '0');
+    const nowMs = getNowDate().getTime();
+    const all = getSortedChats();
+    return all.filter(item => {
+      const ts = Number(item.timestamp || 0);
+      if (!ts || (nowMs - ts) > 7 * 24 * 60 * 60 * 1000) return false;
+      return ts > lastSeenTs;
+    }).length;
+  }
+
+  function markTalkRoomAsSeen() {
+    const all = getSortedChats();
+    const latestTs = all.length > 0 ? Number(all[all.length - 1].timestamp || 0) : getNowDate().getTime();
+    const prevTs = Number(localStorage.getItem('tabogga_talk_last_seen_ts') || '0');
+    if (latestTs >= prevTs) {
+      safeSetLocalStorage('tabogga_talk_last_seen_ts', String(latestTs));
+    }
+  }
+
+  // 메인 화면의 톡톡 수다방 미리보기 (최신 4건 및 N 아이콘 + 건수 표시)
+  function renderTalkBoardPreview() {
+    const unreadEl = document.getElementById('talk-unread-info');
+    const previewEl = document.getElementById('talk-board-preview');
+    if (!previewEl || !unreadEl) return;
+
+    const unreadCount = getUnreadTalkCount();
+    unreadEl.className = unreadCount > 0 ? 'talk-unread-info' : 'talk-unread-info empty';
+    unreadEl.innerHTML = `<span class="badge-new-comment">N</span><span>${unreadCount}건</span>`;
+
+    const allChats = getSortedChats();
+    if (allChats.length === 0) {
+      previewEl.innerHTML = `<div class="kids-empty-msg" style="cursor: pointer;" onclick="openTalkRoomScreen()">첫 번째 수다 한마디를 남겨보세요!</div>`;
+      return;
+    }
+
+    // 최신 채팅글 4건 추출 (가장 최근 글이 위에 오도록 표시)
+    const latestFour = allChats.slice(-4).reverse();
+    previewEl.innerHTML = latestFour.map(item => `
+      <div class="talk-preview-item" onclick="openTalkRoomScreen()">
+        <span class="talk-preview-name">${escapeHtmlText(item.name || '회원')}</span>
+        <span class="talk-preview-text">${escapeHtmlText(item.text || '')}</span>
+      </div>
+    `).join('');
+  }
+
+  // 최초 1회(또는 프로필 변경 시) 직접 입력한 이름과 50종 캐릭터 선택 모달 열기
+  function openTalkProfileModal() {
+    const nameInputEl = document.getElementById('talk-profile-name-input');
+    const listEl = document.getElementById('talk-char-scroll-list');
+    if (!nameInputEl || !listEl) return;
+
+    const savedProfile = getSavedTalkProfile();
+    nameInputEl.value = (savedProfile && savedProfile.name) ? savedProfile.name : '';
+    selectedTalkCharId = (savedProfile && savedProfile.charId) ? Number(savedProfile.charId) : 1;
+
+    renderTalkCharacterSelectList();
+    document.getElementById('modal-talk-profile').classList.add('show');
+  }
+
+  function renderTalkCharacterSelectList() {
+    const listEl = document.getElementById('talk-char-scroll-list');
+    if (!listEl) return;
+    listEl.innerHTML = TALK_CHARACTERS.map(ch => {
+      const isSelected = (ch.id === selectedTalkCharId);
+      return `
+        <div class="talk-char-item ${isSelected ? 'selected' : ''}" onclick="selectTalkCharacter(${ch.id})">
+          <div class="kakao-msg-avatar" style="background: ${ch.bg}; width:36px; height:36px; font-size:1.25rem;">${ch.icon}</div>
+          <div class="talk-char-item-title">${ch.id}. ${escapeHtmlText(ch.title)}</div>
+          <span class="talk-char-item-check">✓</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function selectTalkCharacter(charId) {
+    selectedTalkCharId = Number(charId) || 1;
+    renderTalkCharacterSelectList();
+  }
+
+  function closeTalkProfileModal() {
+    document.getElementById('modal-talk-profile').classList.remove('show');
+  }
+
+  function confirmTalkProfileSetup() {
+    const nameInputEl = document.getElementById('talk-profile-name-input');
+    const chosenName = nameInputEl ? nameInputEl.value.trim() : '';
+    if (!chosenName) {
+      alert('내 이름을 입력해 주세요.');
+      if (nameInputEl) nameInputEl.focus();
+      return;
+    }
+    if (!selectedTalkCharId) {
+      alert('내 캐릭터를 선택해 주세요.');
+      return;
+    }
+    saveTalkProfile(chosenName, selectedTalkCharId);
+    closeTalkProfileModal();
+    renderTalkRoomMessages(false);
+
+    const inputEl = document.getElementById('talk-message-input');
+    if (inputEl) {
+      setTimeout(() => inputEl.focus(), 50);
+    }
+  }
+
+  const MAX_CHAT_IMAGE_KEEP_COUNT = 30;
+  let chatImagesCache = {};
+  let pendingTalkImageData = '';
+  let talkRoomEntrySeenTs = 0;
+
+  function handleTalkInputFocus(inputEl) {
+    if (!getSavedTalkProfile()) {
+      if (inputEl) inputEl.blur();
+      openTalkProfileModal();
+    }
+  }
+
+  // 수다방 사진 선택 및 초경량 압축 (최대 480px, JPEG 0.68 품질 -> 약 25KB)
+  function triggerTalkImageSelect() {
+    if (!getSavedTalkProfile()) {
+      openTalkProfileModal();
+      return;
+    }
+    const fileInput = document.getElementById('talk-image-input');
+    if (fileInput) {
+      fileInput.value = '';
+      fileInput.click();
+    }
+  }
+
+  function handleTalkImageSelect(event) {
+    const file = (event.target.files && event.target.files[0]) ? event.target.files[0] : null;
+    if (!file) return;
+    if (!file.type || !file.type.startsWith('image/')) {
+      alert('사진(이미지) 파일만 첨부할 수 있습니다.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const maxSide = 480;
+        let w = img.width;
+        let h = img.height;
+        if (w > h && w > maxSide) {
+          h = Math.round((h * maxSide) / w);
+          w = maxSide;
+        } else if (h >= w && h > maxSide) {
+          w = Math.round((w * maxSide) / h);
+          h = maxSide;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        pendingTalkImageData = canvas.toDataURL('image/jpeg', 0.68);
+
+        const bar = document.getElementById('talk-attach-preview-bar');
+        const previewImg = document.getElementById('talk-attach-preview-img');
+        if (previewImg) previewImg.src = pendingTalkImageData;
+        if (bar) bar.classList.add('show');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearTalkAttachedImage() {
+    pendingTalkImageData = '';
+    const fileInput = document.getElementById('talk-image-input');
+    if (fileInput) fileInput.value = '';
+    const bar = document.getElementById('talk-attach-preview-bar');
+    if (bar) bar.classList.remove('show');
+  }
+
+  // 별도 서랍(clubChatImages)에서 수다방 사진 온디맨드 로드 및 캐싱
+  async function fetchChatImageData(chatId) {
+    if (!chatId) return '';
+    if (chatImagesCache[chatId]) return chatImagesCache[chatId];
+    try {
+      const res = await fetch(`${FIREBASE_DB_URL}/clubChatImages/${chatId}.json`);
+      if (!res.ok) return '';
+      const data = await res.json();
+      if (typeof data === 'string' && data.startsWith('data:image')) {
+        chatImagesCache[chatId] = data;
+        return data;
+      }
+    } catch (e) {}
+    return '';
+  }
+
+  function initTalkEmojiDrawer() {
+    const drawer = document.getElementById('kakao-emoji-drawer');
+    if (!drawer || drawer.children.length > 0) return;
+    drawer.innerHTML = TALK_QUICK_EMOJIS.map(em => `
+      <button type="button" class="btn-emoji-item" onclick="insertTalkEmoji('${em}')">${em}</button>
+    `).join('');
+  }
+
+  function toggleTalkEmojiDrawer() {
+    if (!getSavedTalkProfile()) {
+      openTalkProfileModal();
+      return;
+    }
+    initTalkEmojiDrawer();
+    const drawer = document.getElementById('kakao-emoji-drawer');
+    if (drawer) {
+      drawer.classList.toggle('show');
+    }
+  }
+
+  function insertTalkEmoji(emojiStr) {
+    if (!getSavedTalkProfile()) {
+      openTalkProfileModal();
+      return;
+    }
+    const input = document.getElementById('talk-message-input');
+    if (!input) return;
+    input.value = (input.value || '') + emojiStr;
+    input.focus();
+  }
+
+  // 카카오톡 스타일 년도·월·일·요일 포맷 변환 함수 (고정 숫자 이모지 대신 선형 캘린더 SVG 사용)
+  function formatKakaoDateLabel(dateKeyStr) {
+    const parts = String(dateKeyStr || '').split('-').map(Number);
+    if (parts.length !== 3 || !parts[0]) return dateKeyStr;
+    const [y, m, d] = parts;
+    const dt = new Date(y, m - 1, d);
+    const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+    const dayLabel = dayNames[dt.getDay()] || '';
+    return `${y}년 ${m}월 ${d}일 ${dayLabel}`;
+  }
+
+  function getCalendarOutlineSvgHtml() {
+    return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
+  }
+
+  // 카카오톡 스타일 오전/오후 시각 포맷 변환 함수
+  function formatKakaoTimeLabel(timestampMs, fallbackTimeStr) {
+    if (timestampMs) {
+      const dt = new Date(Number(timestampMs));
+      if (!isNaN(dt.getTime())) {
+        let h = dt.getHours();
+        const m = String(dt.getMinutes()).padStart(2, '0');
+        const ampm = h < 12 ? '오전' : '오후';
+        h = h % 12;
+        if (h === 0) h = 12;
+        return `${ampm} ${h}:${m}`;
+      }
+    }
+    return fallbackTimeStr || '';
+  }
+
+  // 채팅 텍스트 내 URL 자동 링크 변환
+  function formatChatTextWithLinks(rawText) {
+    const escaped = escapeHtmlText(rawText || '');
+    return escaped.replace(/(https?:\/\/[^\s"'<>]+|www\.[^\s"'<>]+)/gi, (match) => {
+      let cleanUrl = match.replace(/[.,!?;:)\]]+$/, '');
+      const trailing = match.slice(cleanUrl.length);
+      const href = /^www\./i.test(cleanUrl) ? 'https://' + cleanUrl : cleanUrl;
+      return `<a class="chat-link" href="${href}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>${trailing}`;
+    });
+  }
+
+  function getChatsSignature(chatsMap) {
+    const list = Object.values(chatsMap || {}).filter(item => item && item.id);
+    list.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    const lastId = list.length > 0 ? list[list.length - 1].id : '';
+    return `${list.length}_${lastId}`;
+  }
+
+  let isPollingChats = false;
+  let isSubmittingTalk = false;
+  let isDeletingTalk = false;
+  let isUnreadAnchorLocked = false;
+
+  // 사용자가 직접 채팅창을 터치하거나 스크롤하면 '- 여기까지 읽었습니다 -' 자동 위치 고정을 해제
+  document.addEventListener('DOMContentLoaded', () => {
+    const bodyEl = document.getElementById('kakao-chat-body');
+    if (bodyEl) {
+      bodyEl.addEventListener('touchmove', () => { isUnreadAnchorLocked = false; }, { passive: true });
+      bodyEl.addEventListener('wheel', () => { isUnreadAnchorLocked = false; }, { passive: true });
+    }
+  });
+
+  // '- 여기까지 읽었습니다 -' 배너가 화면 상단 안쪽(위에서 18px 아래)에 확실히 보이도록 스크롤 정렬
+  function alignTalkScrollPosition(bodyEl, mode) {
+    if (!bodyEl) return;
+    if (mode === 'unread') {
+      const unreadEl = document.getElementById('kakao-unread-divider');
+      if (unreadEl) {
+        const bodyRect = bodyEl.getBoundingClientRect();
+        const unreadRect = unreadEl.getBoundingClientRect();
+        const currentOffsetInViewport = unreadRect.top - bodyRect.top;
+        bodyEl.scrollTop = Math.max(0, bodyEl.scrollTop + currentOffsetInViewport - 18);
+      } else {
+        bodyEl.scrollTop = bodyEl.scrollHeight;
+      }
+    } else if (mode === 'bottom' || mode === true) {
+      bodyEl.scrollTop = bodyEl.scrollHeight;
+    }
+  }
+
+  // 수다방 열려 있을 때 다수 인원 실시간 대화 자동 반영 (3.5초 주기 경량 폴링, 전송/삭제 중 충돌 방지)
+  setInterval(async () => {
+    if (document.visibilityState && document.visibilityState !== 'visible') return;
+    const activeScreen = document.querySelector('.screen.active');
+    if (!activeScreen || activeScreen.id !== 'screen-talk-room') return;
+    if (isPollingChats || isSubmittingTalk || isDeletingTalk) return;
+
+    isPollingChats = true;
+    try {
+      const prevSig = getChatsSignature(chats);
+      const res = await fetch(`${FIREBASE_DB_URL}/clubData/chats.json`);
+      if (res.ok) {
+        const latestChats = (await res.json()) || {};
+        const nextSig = getChatsSignature(latestChats);
+        if (prevSig !== nextSig) {
+          const bodyEl = document.getElementById('kakao-chat-body');
+          const isNearBottom = bodyEl ? ((bodyEl.scrollHeight - bodyEl.scrollTop - bodyEl.clientHeight) < 90) : true;
+          chats = latestChats;
+          markTalkRoomAsSeen();
+          renderTalkBoardPreview();
+          if (isUnreadAnchorLocked && document.getElementById('kakao-unread-divider')) {
+            renderTalkRoomMessages('unread');
+          } else {
+            renderTalkRoomMessages(isNearBottom ? 'bottom' : 'none');
+          }
+        }
+      }
+    } catch (e) {
+    } finally {
+      isPollingChats = false;
+    }
+  }, 3500);
+
+  async function openTalkRoomScreen() {
+    initTalkEmojiDrawer();
+    const drawer = document.getElementById('kakao-emoji-drawer');
+    if (drawer) drawer.classList.remove('show');
+    clearTalkAttachedImage();
+    updateBoardAdminHeaderUI();
+
+    // 입장 직전 마지막으로 읽었던 시점 보관 ('- 여기까지 읽었습니다 -' 표시용)
+    talkRoomEntrySeenTs = Number(localStorage.getItem('tabogga_talk_last_seen_ts') || '0');
+    isUnreadAnchorLocked = true;
+    isPollingChats = true;
+
+    // 화면을 먼저 활성화(display:flex)한 뒤 렌더링해야 스크롤 위치가 오차 없이 계산됨
+    goToScreen('screen-talk-room');
+    markTalkRoomAsSeen();
+    renderTalkBoardPreview();
+    renderTalkRoomMessages('unread');
+
+    try {
+      await syncFromFirebase();
+      markTalkRoomAsSeen();
+      renderTalkBoardPreview();
+      renderTalkRoomMessages(isUnreadAnchorLocked ? 'unread' : 'none');
+    } finally {
+      isPollingChats = false;
+    }
+  }
+
+  // scrollMode: 'unread' ('- 여기까지 읽었습니다 -' 위치로 이동) | 'bottom' (맨 아래로) | 'none' (현재 위치 유지)
+  function renderTalkRoomMessages(scrollMode = 'bottom') {
+    const bodyEl = document.getElementById('kakao-chat-body');
+    if (!bodyEl) return;
+
+    const prevScrollTop = bodyEl.scrollTop;
+    const allChats = getSortedChats();
+    if (allChats.length === 0) {
+      bodyEl.innerHTML = `<div class="kids-empty-msg" style="color:#374151; background:rgba(255,255,255,0.55); border-radius:12px; padding:18px;">아직 등록된 수다가 없습니다. 첫 번째 한마디를 남겨보세요! 🛼</div>`;
+      return;
+    }
+
+    const myProfile = getSavedTalkProfile();
+    const myChatIds = getMyChatIds();
+    let lastDateKey = '';
+    const htmlParts = [];
+
+    // 이전에 읽은 글이 있고, 그 이후에 새로 올라온 글이 있을 때 '- 여기까지 읽었습니다 -' 배너 삽입
+    const hasReadMessages = talkRoomEntrySeenTs > 0 && allChats.some(m => Number(m.timestamp || 0) <= talkRoomEntrySeenTs);
+    const hasUnreadMessages = talkRoomEntrySeenTs > 0 && allChats.some(m => Number(m.timestamp || 0) > talkRoomEntrySeenTs);
+    let unreadDividerInserted = false;
+
+    allChats.forEach(msg => {
+      const msgTs = Number(msg.timestamp || 0);
+      if (hasReadMessages && hasUnreadMessages && !unreadDividerInserted && msgTs > talkRoomEntrySeenTs) {
+        unreadDividerInserted = true;
+        htmlParts.push(`
+          <div id="kakao-unread-divider" class="kakao-unread-divider">
+            <span>- 여기까지 읽었습니다 -</span>
+          </div>
+        `);
+      }
+
+      const msgDateKey = msg.dateKey || (msg.createdAt ? String(msg.createdAt).slice(0, 10) : getTodayKey());
+      if (msgDateKey !== lastDateKey) {
+        lastDateKey = msgDateKey;
+        htmlParts.push(`
+          <div class="kakao-date-divider">
+            <span>${getCalendarOutlineSvgHtml()}${escapeHtmlText(formatKakaoDateLabel(msgDateKey))}</span>
+          </div>
+        `);
+      }
+
+      const ch = getTalkCharacterById(msg.charId);
+      const isMine = myChatIds.includes(msg.id) || Boolean(myProfile && myProfile.name === msg.name);
+      const canDelete = myChatIds.includes(msg.id) || isBoardCommentAdminMode;
+      const timeLabel = formatKakaoTimeLabel(msg.timestamp, msg.timeStr);
+      const displayRawText = (msg.text === '📷 사진' && msg.hasImage) ? '' : (msg.text || '');
+      const urls = extractAllUrlsFromText(displayRawText);
+
+      const urlBoxesHtml = urls.map(u => {
+        const cached = urlPreviewCache[u] || buildFallbackUrlPreview(u);
+        return `<div class="inline-url-preview-box" data-chat-url="${escapeHtmlText(u)}" style="margin-top:6px;">${renderSingleUrlPreviewCardHtml(cached)}</div>`;
+      }).join('');
+
+      let imgHtml = '';
+      if (msg.hasImage) {
+        const cachedImg = chatImagesCache[msg.id] || '';
+        imgHtml = `
+          <div class="kakao-msg-img-wrap" data-chat-img-id="${escapeHtmlText(msg.id)}">
+            ${cachedImg ? `<img src="${cachedImg}" alt="채팅 사진">` : `<div style="padding:10px 12px; font-size:0.78rem; color:#4b5563; background:rgba(255,255,255,0.7); border-radius:10px; line-height:1.4;">사진 불러오는 중...</div>`}
+          </div>
+        `;
+        if (!cachedImg) {
+          fetchChatImageData(msg.id).then(loadedSrc => {
+            if (!loadedSrc) return;
+            document.querySelectorAll('[data-chat-img-id]').forEach(el => {
+              if (el.getAttribute('data-chat-img-id') === msg.id) {
+                const wasNearBottom = (bodyEl.scrollHeight - bodyEl.scrollTop - bodyEl.clientHeight) < 100;
+                el.innerHTML = `<img src="${loadedSrc}" alt="채팅 사진">`;
+                const imgNode = el.querySelector('img');
+                if (imgNode) {
+                  imgNode.onload = () => {
+                    if (isUnreadAnchorLocked && document.getElementById('kakao-unread-divider')) {
+                      alignTalkScrollPosition(bodyEl, 'unread');
+                    } else if (wasNearBottom) {
+                      bodyEl.scrollTop = bodyEl.scrollHeight;
+                    }
+                  };
+                }
+              }
+            });
+          });
+        }
+      }
+
+      // 사진은 말풍선 없이 이미지 사이즈만큼만 표시하고, 텍스트나 URL이 있을 때만 말풍선 생성
+      const hasTextOrUrl = Boolean(displayRawText || urlBoxesHtml);
+      const textBubbleHtml = hasTextOrUrl
+        ? `<div class="kakao-msg-bubble">${formatChatTextWithLinks(displayRawText)}${urlBoxesHtml}</div>`
+        : '';
+
+      let bodyContentHtml = '';
+      if (imgHtml && textBubbleHtml) {
+        bodyContentHtml = `<div class="kakao-msg-body-stack">${imgHtml}${textBubbleHtml}</div>`;
+      } else if (imgHtml) {
+        bodyContentHtml = imgHtml;
+      } else {
+        bodyContentHtml = textBubbleHtml;
+      }
+
+      if (isMine) {
+        htmlParts.push(`
+          <div class="kakao-msg-row mine">
+            <div class="kakao-msg-content-wrap">
+              <div class="kakao-msg-bubble-row">
+                <div class="kakao-msg-meta">
+                  ${canDelete ? `<button type="button" class="btn-kakao-msg-del" onclick="deleteTalkMessage('${msg.id}')">삭제</button>` : ''}
+                  <span class="kakao-msg-time">${escapeHtmlText(timeLabel)}</span>
+                </div>
+                ${bodyContentHtml}
+              </div>
+            </div>
+          </div>
+        `);
+      } else {
+        htmlParts.push(`
+          <div class="kakao-msg-row">
+            <div class="kakao-msg-avatar" style="background: ${ch.bg};">${ch.icon}</div>
+            <div class="kakao-msg-content-wrap">
+              <div class="kakao-msg-name">${escapeHtmlText(msg.name || '회원')}</div>
+              <div class="kakao-msg-bubble-row">
+                ${bodyContentHtml}
+                <div class="kakao-msg-meta">
+                  ${canDelete ? `<button type="button" class="btn-kakao-msg-del" onclick="deleteTalkMessage('${msg.id}')">삭제</button>` : ''}
+                  <span class="kakao-msg-time">${escapeHtmlText(timeLabel)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `);
+      }
+
+      // 캐시에 아직 없는 URL이 있으면 비동기로 메타데이터 불러와 미리보기 카드 갱신
+      urls.forEach(u => {
+        if (!urlPreviewCache[u]) {
+          fetchUrlPreviewData(u).then(meta => {
+            document.querySelectorAll('[data-chat-url]').forEach(el => {
+              if (el.getAttribute('data-chat-url') === u) {
+                el.innerHTML = renderSingleUrlPreviewCardHtml(meta);
+                if (isUnreadAnchorLocked && document.getElementById('kakao-unread-divider')) {
+                  alignTalkScrollPosition(bodyEl, 'unread');
+                }
+              }
+            });
+          });
+        }
+      });
+    });
+
+    bodyEl.innerHTML = htmlParts.join('');
+
+    // 이미 캐시에 있는 이미지들도 렌더링 직후 높이가 잡힐 때 위치 재보정
+    if (scrollMode === 'unread') {
+      bodyEl.querySelectorAll('.kakao-msg-img-wrap img').forEach(imgNode => {
+        if (!imgNode.complete) {
+          imgNode.addEventListener('load', () => {
+            if (isUnreadAnchorLocked && document.getElementById('kakao-unread-divider')) {
+              alignTalkScrollPosition(bodyEl, 'unread');
+            }
+          }, { once: true });
+        }
+      });
+    }
+
+    if (scrollMode === true || scrollMode === 'bottom') {
+      requestAnimationFrame(() => {
+        alignTalkScrollPosition(bodyEl, 'bottom');
+      });
+    } else if (scrollMode === 'unread') {
+      requestAnimationFrame(() => {
+        alignTalkScrollPosition(bodyEl, 'unread');
+        setTimeout(() => {
+          if (isUnreadAnchorLocked) alignTalkScrollPosition(bodyEl, 'unread');
+        }, 60);
+      });
+    } else {
+      bodyEl.scrollTop = prevScrollTop;
+    }
+  }
+
+  async function submitTalkMessage() {
+    if (isSubmittingTalk) return;
+    const profile = getSavedTalkProfile();
+    if (!profile) {
+      openTalkProfileModal();
+      return;
+    }
+
+    const inputEl = document.getElementById('talk-message-input');
+    const rawText = inputEl ? inputEl.value.trim() : '';
+    const hasAttachedImg = Boolean(pendingTalkImageData);
+
+    if (!rawText && !hasAttachedImg) {
+      alert('수다 내용을 입력하거나 사진을 첨부해 주세요.');
+      return;
+    }
+
+    isSubmittingTalk = true;
+    isUnreadAnchorLocked = false;
+    const nowMs = getNowDate().getTime();
+    const chatId = 't_' + nowMs + '_' + Math.floor(Math.random() * 1000);
+    const imgToUpload = pendingTalkImageData;
+
+    const chatObj = {
+      id: chatId,
+      name: profile.name,
+      charId: profile.charId,
+      text: rawText ? rawText.slice(0, 300) : '📷 사진',
+      hasImage: hasAttachedImg,
+      dateKey: getTodayKey(),
+      timeStr: getCurrentTimeStr(),
+      createdAt: getCurrentDateTimeStr(),
+      timestamp: nowMs
+    };
+
+    if (!chats) chats = {};
+    chats[chatId] = chatObj;
+    if (hasAttachedImg) {
+      chatImagesCache[chatId] = imgToUpload;
+    }
+    addMyChatId(chatId);
+    if (inputEl) inputEl.value = '';
+    clearTalkAttachedImage();
+
+    const drawer = document.getElementById('kakao-emoji-drawer');
+    if (drawer) drawer.classList.remove('show');
+
+    talkRoomEntrySeenTs = nowMs;
+    markTalkRoomAsSeen();
+    renderTalkRoomMessages('bottom');
+    renderTalkBoardPreview();
+
+    try {
+      const saveJobs = [
+        fetch(`${FIREBASE_DB_URL}/clubData/chats/${chatId}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(chatObj)
+        })
+      ];
+      if (hasAttachedImg) {
+        saveJobs.push(
+          fetch(`${FIREBASE_DB_URL}/clubChatImages/${chatId}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(imgToUpload)
+          })
+        );
+      }
+      await Promise.all(saveJobs);
+
+      const sorted = getSortedChats();
+
+      // 1) 사진 용량 최적화: 사진이 있는 채팅이 30개를 초과하면 가장 오래된 사진 데이터 자동 삭제
+      const imgChats = sorted.filter(item => item.hasImage);
+      if (imgChats.length > MAX_CHAT_IMAGE_KEEP_COUNT) {
+        const oldImgChats = imgChats.slice(0, imgChats.length - MAX_CHAT_IMAGE_KEEP_COUNT);
+        oldImgChats.forEach(oldItem => {
+          oldItem.hasImage = false;
+          delete chatImagesCache[oldItem.id];
+          fetch(`${FIREBASE_DB_URL}/clubChatImages/${oldItem.id}.json`, { method: 'DELETE' }).catch(() => {});
+          fetch(`${FIREBASE_DB_URL}/clubData/chats/${oldItem.id}/hasImage.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(false)
+          }).catch(() => {});
+        });
+      }
+
+      // 2) 전체 채팅 개수 최적화: 200건을 초과하면 가장 오래된 채팅 및 사진 자동 삭제
+      if (sorted.length > MAX_CHAT_KEEP_COUNT) {
+        const overflowList = sorted.slice(0, sorted.length - MAX_CHAT_KEEP_COUNT);
+        overflowList.forEach(oldItem => {
+          delete chats[oldItem.id];
+          delete chatImagesCache[oldItem.id];
+          fetch(`${FIREBASE_DB_URL}/clubData/chats/${oldItem.id}.json`, { method: 'DELETE' }).catch(() => {});
+          if (oldItem.hasImage) {
+            fetch(`${FIREBASE_DB_URL}/clubChatImages/${oldItem.id}.json`, { method: 'DELETE' }).catch(() => {});
+          }
+        });
+      }
+    } catch (e) {
+      alert('수다 전송 중 네트워크 오류가 발생했습니다.');
+    } finally {
+      isSubmittingTalk = false;
+    }
+  }
+
+  async function deleteTalkMessage(chatId) {
+    if (isDeletingTalk) return;
+    if (!chatId || !chats || !chats[chatId]) return;
+    if (!confirm('이 수다 글을 삭제할까요?')) return;
+
+    isDeletingTalk = true;
+    isUnreadAnchorLocked = false;
+    const hadImage = Boolean(chats[chatId].hasImage);
+    delete chats[chatId];
+    delete chatImagesCache[chatId];
+    renderTalkRoomMessages('none');
+    renderTalkBoardPreview();
+
+    try {
+      const delJobs = [
+        fetch(`${FIREBASE_DB_URL}/clubData/chats/${chatId}.json`, { method: 'DELETE' })
+      ];
+      if (hadImage) {
+        delJobs.push(
+          fetch(`${FIREBASE_DB_URL}/clubChatImages/${chatId}.json`, { method: 'DELETE' })
+        );
+      }
+      await Promise.all(delJobs);
+    } catch (e) {
+      alert('삭제 중 네트워크 오류가 발생했습니다.');
+    } finally {
+      isDeletingTalk = false;
+    }
+  }
 </script>
 
 </body>
