@@ -1290,6 +1290,9 @@
       min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+      overflow-anchor: none;
       padding: 14px 12px 18px;
       display: flex;
       flex-direction: column;
@@ -1390,17 +1393,25 @@
       position: relative;
       background-color: #ffffff;
       color: #000000;
-      padding: 9px 12px;
+      padding: 8px 11px;
       border-radius: 4px 14px 14px 14px;
       font-size: 0.92rem;
-      line-height: 1.48;
+      line-height: 1.42;
       word-break: break-word;
       overflow-wrap: anywhere;
-      white-space: pre-wrap;
+      white-space: normal;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
       text-align: left;
       min-width: 0;
       max-width: 100%;
+    }
+
+    .kakao-msg-text {
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      margin: 0;
+      padding: 0;
     }
 
     .kakao-msg-row.mine .kakao-msg-bubble {
@@ -1434,27 +1445,35 @@
     }
 
     .kakao-reply-quote {
-      padding-bottom: 6px;
-      margin-bottom: 6px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+      display: block;
+      padding: 0 0 5px 0;
+      margin: 0 0 5px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.14);
       cursor: pointer;
       text-align: left;
+      white-space: normal;
     }
 
     .kakao-reply-quote-name {
-      font-size: 0.76rem;
+      font-size: 0.74rem;
       font-weight: 800;
-      color: #1f2937;
-      margin-bottom: 2px;
+      color: #111827;
+      line-height: 1.25;
+      margin: 0 0 2px 0;
     }
 
     .kakao-reply-quote-text {
       font-size: 0.8rem;
       color: #4b5563;
-      white-space: nowrap;
+      line-height: 1.3;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 220px;
+      max-width: 230px;
     }
 
     .talk-reply-preview-bar {
@@ -1506,6 +1525,8 @@
       justify-content: center;
       align-items: center;
       padding: 16px;
+      overflow: hidden;
+      touch-action: none;
     }
 
     .chat-img-zoom-overlay.show {
@@ -1519,6 +1540,11 @@
       height: auto;
       border-radius: 10px;
       object-fit: contain;
+      transform-origin: center center;
+      will-change: transform;
+      user-select: none;
+      -webkit-user-drag: none;
+      touch-action: none;
     }
 
     .btn-chat-img-zoom-close {
@@ -2302,7 +2328,7 @@
     <!-- 톡톡 수다방 (테두리 안쪽 영역 클릭 시 수다방 입장) -->
     <div class="talk-board-wrap">
       <div class="talk-board-header">
-        <span class="kids-board-title">톡톡 수다방</span>
+        <span class="kids-board-title" style="display:inline-flex; align-items:baseline;"><span>톡톡 수다방</span><span id="talk-member-count-label" class="board-total-count-label">총 0명</span></span>
         <div id="talk-unread-info" class="talk-unread-info"></div>
       </div>
       <div id="talk-board-preview" class="kids-board-card" style="cursor: pointer;" onclick="openTalkRoomScreen()">
@@ -3036,6 +3062,7 @@
   let notices = {};
   let noticeImagesCache = {};
   let chats = {};
+  let talkProfiles = {};
   let visitStatsData = { totalVisits: 0, dailyVisits: {} };
 
   // 서버 표준 시간 오프셋 (스마트폰 기기 시계 오류로 인한 미래 월 강제 이관 방지)
@@ -3410,6 +3437,7 @@
         attendanceLog = data.attendanceLog || {};
         notices = data.notices || {};
         chats = data.chats || {};
+        talkProfiles = data.talkProfiles || {};
         if (data.visitStats) {
           visitStatsData = data.visitStats;
         }
@@ -3653,6 +3681,35 @@
   /********************************************************************
    * 4. 화면 전환 및 스마트폰 뒤로가기(History API) 제어
    ********************************************************************/
+  let isHandlingModalPopstate = false;
+  let ignoreNextModalBackPopstate = false;
+
+  function getOpenModalElements() {
+    return Array.from(document.querySelectorAll('.modal-overlay.show, .chat-img-zoom-overlay.show'));
+  }
+
+  function initModalBackHistoryObserver() {
+    const targets = document.querySelectorAll('.modal-overlay, .chat-img-zoom-overlay');
+    const observer = new MutationObserver(() => {
+      const openModals = getOpenModalElements();
+      if (openModals.length > 0) {
+        if (!(history.state && history.state.modalOpen)) {
+          const activeScreen = document.querySelector('.screen.active');
+          const curId = activeScreen ? activeScreen.id : (history.state && history.state.screenId ? history.state.screenId : 'screen-menu');
+          history.pushState({ screenId: curId, modalOpen: true }, '');
+        }
+      } else {
+        if (!isHandlingModalPopstate && history.state && history.state.modalOpen) {
+          ignoreNextModalBackPopstate = true;
+          history.back();
+        }
+      }
+    });
+    targets.forEach(el => observer.observe(el, { attributes: true, attributeFilter: ['class'] }));
+  }
+
+  document.addEventListener('DOMContentLoaded', initModalBackHistoryObserver);
+
   function goToScreen(screenId, skipHistory = false, replaceHistory = false) {
     const currentActive = document.querySelector('.screen.active');
     const currentId = currentActive ? currentActive.id : null;
@@ -3676,7 +3733,8 @@
     }
 
     if (!skipHistory && currentId !== screenId) {
-      if (replaceHistory || (currentId === 'screen-gps' && screenId === 'screen-checkin')) {
+      const hadModalState = Boolean(history.state && history.state.modalOpen);
+      if (replaceHistory || hadModalState || (currentId === 'screen-gps' && screenId === 'screen-checkin')) {
         history.replaceState({ screenId: screenId }, '');
       } else {
         history.pushState({ screenId: screenId }, '');
@@ -3685,6 +3743,11 @@
   }
 
   function goBack(fallbackScreenId) {
+    const openModals = getOpenModalElements();
+    if (openModals.length > 0) {
+      openModals.forEach(m => m.classList.remove('show'));
+      return;
+    }
     if (history.state && history.state.screenId && history.state.screenId !== 'screen-menu' && history.state.screenId !== 'screen-login') {
       history.back();
     } else {
@@ -3693,6 +3756,20 @@
   }
 
   window.addEventListener('popstate', (event) => {
+    if (ignoreNextModalBackPopstate) {
+      ignoreNextModalBackPopstate = false;
+      return;
+    }
+    const openModals = getOpenModalElements();
+    if (openModals.length > 0) {
+      isHandlingModalPopstate = true;
+      openModals.forEach(m => m.classList.remove('show'));
+      if (typeof resetChatZoomTransform === 'function') {
+        resetChatZoomTransform();
+      }
+      setTimeout(() => { isHandlingModalPopstate = false; }, 30);
+      return;
+    }
     stopRinkAnimation();
     if (event.state && event.state.screenId) {
       goToScreen(event.state.screenId, true);
@@ -5307,7 +5384,7 @@
             <div class="kakao-poll-option-content">
               <div class="kakao-poll-option-left">
                 <span class="kakao-poll-check">✓</span>
-                <span class="kakao-poll-option-text">${escapeHtmlText(opt.text)} ${isWinner ? '👑 (확정)' : ''}</span>
+                <span class="kakao-poll-option-text">${escapeHtmlText(opt.text)} ${isWinner ? '👑 (1위 승리)' : ''}</span>
               </div>
               <span class="kakao-poll-option-count">${votes}표 (${pct}%)</span>
             </div>
@@ -6436,10 +6513,34 @@
     }
   }
 
-  // 메인 화면의 톡톡 수다방 미리보기 (최신 4건 및 N 아이콘 + 건수 표시)
+  // 수다방 등록 인원수 산출 (프로필 등록자 및 대화 참여자 통합 집계)
+  function getTalkRegisteredMemberCount() {
+    const names = new Set();
+    Object.values(talkProfiles || {}).forEach(p => {
+      if (p && p.name && String(p.name).trim()) {
+        names.add(String(p.name).trim());
+      }
+    });
+    Object.values(chats || {}).forEach(c => {
+      if (c && c.name && String(c.name).trim()) {
+        names.add(String(c.name).trim());
+      }
+    });
+    const mySaved = getSavedTalkProfile();
+    if (mySaved && mySaved.name && String(mySaved.name).trim()) {
+      names.add(String(mySaved.name).trim());
+    }
+    return names.size;
+  }
+
+  // 메인 화면의 톡톡 수다방 미리보기 (등록자 수, 최신 4건 및 N 아이콘 + 건수 표시)
   function renderTalkBoardPreview() {
     const unreadEl = document.getElementById('talk-unread-info');
     const previewEl = document.getElementById('talk-board-preview');
+    const memberCountEl = document.getElementById('talk-member-count-label');
+    if (memberCountEl) {
+      memberCountEl.innerText = `총 ${getTalkRegisteredMemberCount()}명`;
+    }
     if (!previewEl || !unreadEl) return;
 
     const unreadCount = getUnreadTalkCount();
@@ -6448,14 +6549,14 @@
 
     const allChats = getSortedChats();
     if (allChats.length === 0) {
-      previewEl.innerHTML = `<div class="kids-empty-msg" style="cursor: pointer;" onclick="openTalkRoomScreen()">첫 번째 수다 한마디를 남겨보세요!</div>`;
+      previewEl.innerHTML = `<div class="kids-empty-msg" style="cursor: pointer;">첫 번째 수다 한마디를 남겨보세요!</div>`;
       return;
     }
 
-    // 최신 채팅글 4건 추출 (가장 최근 글이 위에 오도록 표시)
+    // 최신 채팅글 4건 추출 (부모 카드에 onclick이 있으므로 자식 중복 onclick 제거하여 2중 실행 방지)
     const latestFour = allChats.slice(-4).reverse();
     previewEl.innerHTML = latestFour.map(item => `
-      <div class="talk-preview-item" onclick="openTalkRoomScreen()">
+      <div class="talk-preview-item">
         <span class="talk-preview-name">${escapeHtmlText(item.name || '회원')}</span>
         <span class="talk-preview-text">${escapeHtmlText(item.text || '')}</span>
       </div>
@@ -6500,6 +6601,25 @@
     document.getElementById('modal-talk-profile').classList.remove('show');
   }
 
+  async function syncMyTalkProfileToServer(profileObj) {
+    if (!profileObj || !profileObj.name) return;
+    const myDevId = getMyTalkDeviceId();
+    if (!talkProfiles) talkProfiles = {};
+    talkProfiles[myDevId] = {
+      name: profileObj.name,
+      charId: profileObj.charId || 1,
+      updatedAt: getNowDate().getTime()
+    };
+    renderTalkBoardPreview();
+    try {
+      await fetch(`${FIREBASE_DB_URL}/clubData/talkProfiles/${myDevId}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(talkProfiles[myDevId])
+      });
+    } catch (e) {}
+  }
+
   function confirmTalkProfileSetup() {
     const nameInputEl = document.getElementById('talk-profile-name-input');
     const chosenName = nameInputEl ? nameInputEl.value.trim() : '';
@@ -6512,9 +6632,10 @@
       alert('내 캐릭터를 선택해 주세요.');
       return;
     }
-    saveTalkProfile(chosenName, selectedTalkCharId);
+    const saved = saveTalkProfile(chosenName, selectedTalkCharId);
+    syncMyTalkProfileToServer(saved);
     closeTalkProfileModal();
-    renderTalkRoomMessages(false);
+    renderTalkRoomMessages('none');
 
     const inputEl = document.getElementById('talk-message-input');
     if (inputEl) {
@@ -6544,6 +6665,7 @@
   let talkRoomEntrySeenTs = 0;
   let showTalkUnreadDivider = false;
   let talkUnreadFirstChatId = '';
+  let isUserScrolledTalkRoom = false;
   var chatReadStatus = {};
   let lastKnownChatMeta = { lastChatId: '', deletedAt: 0, readUpdatedAt: 0 };
 
@@ -6664,15 +6786,17 @@
       await updateMyChatReadStatus();
 
       if (!isInitialEntry && (chatsChanged || readChanged)) {
-        const bodyEl = document.getElementById('kakao-chat-body');
-        const isNearBottom = bodyEl ? ((bodyEl.scrollHeight - bodyEl.scrollTop - bodyEl.clientHeight) < 90) : true;
         markTalkRoomAsSeen();
         renderTalkBoardPreview();
         if (chatsChanged) {
-          // 수다방 접속 중일 때는 새로 올라온 글에 '여기까지 읽었습니다' 미표시
-          showTalkUnreadDivider = false;
-          isUnreadAnchorLocked = false;
-          renderTalkRoomMessages(isNearBottom ? 'bottom' : 'none');
+          // 사용자가 화면을 터치해 기존 대화글을 보고 있거나 '여기까지 읽었습니다' 상단 고정 상태일 때는 자동 스크롤 금지
+          if (isUserScrolledTalkRoom) {
+            renderTalkRoomMessages('none');
+          } else if (showTalkUnreadDivider && isUnreadAnchorLocked) {
+            renderTalkRoomMessages('unread');
+          } else {
+            renderTalkRoomMessages('bottom');
+          }
         } else {
           renderTalkRoomMessages('none');
         }
@@ -6770,7 +6894,26 @@
     return '';
   }
 
-  // 수다방 업로드 이미지 터치 시 확대 보기 모달 (이미 로드된 이미지 재사용으로 다운로드 용량 소모 없음)
+  // 수다방 이미지 확대 보기 및 두 손가락 핀치 줌 제어
+  let chatZoomScale = 1;
+  let chatZoomTx = 0;
+  let chatZoomTy = 0;
+  let chatZoomMoved = false;
+
+  function applyChatZoomTransform() {
+    const zoomImg = document.getElementById('chat-img-zoom-target');
+    if (!zoomImg) return;
+    zoomImg.style.transform = `translate(${chatZoomTx}px, ${chatZoomTy}px) scale(${chatZoomScale})`;
+  }
+
+  function resetChatZoomTransform() {
+    chatZoomScale = 1;
+    chatZoomTx = 0;
+    chatZoomTy = 0;
+    chatZoomMoved = false;
+    applyChatZoomTransform();
+  }
+
   async function openChatImageZoom(chatId) {
     if (!chatId) return;
     let src = chatImagesCache[chatId] || '';
@@ -6780,13 +6923,19 @@
     if (!src) return;
     const zoomImg = document.getElementById('chat-img-zoom-target');
     const modal = document.getElementById('modal-chat-img-zoom');
+    resetChatZoomTransform();
     if (zoomImg) zoomImg.src = src;
     if (modal) modal.classList.add('show');
   }
 
   function closeChatImageZoom() {
+    if (chatZoomMoved) {
+      chatZoomMoved = false;
+      return;
+    }
     const modal = document.getElementById('modal-chat-img-zoom');
     if (modal) modal.classList.remove('show');
+    resetChatZoomTransform();
   }
 
   // 카카오톡 스타일 말풍선 왼쪽 밀기 답장 설정 및 해제
@@ -6826,6 +6975,8 @@
     if (!chatId) return;
     const row = document.querySelector(`.kakao-msg-row[data-chat-id="${chatId}"]`);
     if (row) {
+      isUserScrolledTalkRoom = true;
+      isUnreadAnchorLocked = false;
       row.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
@@ -6916,7 +7067,7 @@
   let isUnreadAnchorLocked = false;
   let lastTalkViewportHeight = 0;
 
-  // 스마트폰 자판이 올라올 때 입력칸이 가려지지 않도록 실제 가시 영역(visualViewport) 높이에 즉시 맞춤
+  // 스마트폰 자판이 올라올 때 입력칸이 가려지지 않도록 실제 가시 영역(visualViewport) 높이에 맞춤 (떨림 유발 scrollTo 제거)
   function updateTalkRoomViewport() {
     const talkScreen = document.getElementById('screen-talk-room');
     if (!talkScreen || !talkScreen.classList.contains('active')) {
@@ -6925,6 +7076,7 @@
         talkScreen.style.maxHeight = '';
         talkScreen.style.top = '';
       }
+      lastTalkViewportHeight = 0;
       return;
     }
     if (window.visualViewport) {
@@ -6933,27 +7085,33 @@
       const prevH = lastTalkViewportHeight || vv.height;
       const diffH = prevH - vv.height;
 
-      talkScreen.style.height = `${vv.height}px`;
-      talkScreen.style.maxHeight = `${vv.height}px`;
-      talkScreen.style.top = `${vv.offsetTop}px`;
-      lastTalkViewportHeight = vv.height;
+      if (Math.abs(diffH) > 2 || !talkScreen.style.height) {
+        talkScreen.style.height = `${vv.height}px`;
+        talkScreen.style.maxHeight = `${vv.height}px`;
+        talkScreen.style.top = `${vv.offsetTop}px`;
+        lastTalkViewportHeight = vv.height;
 
-      if (bodyEl && diffH > 60) {
-        bodyEl.scrollTop += diffH;
+        if (bodyEl && diffH > 60 && !isUserScrolledTalkRoom && !isUnreadAnchorLocked) {
+          bodyEl.scrollTop += diffH;
+        }
       }
     }
-    window.scrollTo(0, 0);
   }
 
-  // 터치 스크롤 잠금, 하단 입력바 들림 방지, 말풍선 왼쪽 밀어서 답장 제스처 등록
+  // 터치 스크롤 잠금, 하단 떨림 방지, 말풍선 왼쪽 밀어서 답장, 확대 이미지 두 손가락 핀치 줌 등록
   document.addEventListener('DOMContentLoaded', () => {
     const bodyEl = document.getElementById('kakao-chat-body');
     const footerEl = document.querySelector('.kakao-chat-footer');
     const headerEl = document.querySelector('.kakao-chat-header');
+    const zoomModal = document.getElementById('modal-chat-img-zoom');
+
+    const mySavedProf = getSavedTalkProfile();
+    if (mySavedProf) {
+      syncMyTalkProfileToServer(mySavedProf);
+    }
 
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', updateTalkRoomViewport);
-      window.visualViewport.addEventListener('scroll', updateTalkRoomViewport);
     }
 
     // 입력칸·전송버튼 가로 영역 및 상단바를 눌러 위로 밀 때 아래쪽 여백이 생기는 현상 원천 차단
@@ -6969,37 +7127,140 @@
       }, { passive: false });
     }
 
-    if (bodyEl) {
-      bodyEl.addEventListener('touchmove', () => { isUnreadAnchorLocked = false; }, { passive: true });
-      bodyEl.addEventListener('wheel', () => { isUnreadAnchorLocked = false; }, { passive: true });
+    // 확대 이미지 모달 두 손가락 핀치 줌 및 한 손가락 이동
+    if (zoomModal) {
+      let pinchStartDist = 0;
+      let pinchStartScale = 1;
+      let panStartX = 0;
+      let panStartY = 0;
+      let startTx = 0;
+      let startTy = 0;
+      let isPinching = false;
+      let isPanning = false;
 
+      zoomModal.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+          isPinching = true;
+          isPanning = false;
+          chatZoomMoved = true;
+          const dx = e.touches[1].clientX - e.touches[0].clientX;
+          const dy = e.touches[1].clientY - e.touches[0].clientY;
+          pinchStartDist = Math.hypot(dx, dy) || 1;
+          pinchStartScale = chatZoomScale;
+        } else if (e.touches.length === 1 && chatZoomScale > 1.02) {
+          isPanning = true;
+          panStartX = e.touches[0].clientX;
+          panStartY = e.touches[0].clientY;
+          startTx = chatZoomTx;
+          startTy = chatZoomTy;
+        }
+      }, { passive: true });
+
+      zoomModal.addEventListener('touchmove', (e) => {
+        if (isPinching && e.touches.length === 2) {
+          e.preventDefault();
+          const dx = e.touches[1].clientX - e.touches[0].clientX;
+          const dy = e.touches[1].clientY - e.touches[0].clientY;
+          const dist = Math.hypot(dx, dy) || 1;
+          chatZoomScale = Math.min(5, Math.max(1, pinchStartScale * (dist / pinchStartDist)));
+          if (chatZoomScale <= 1.02) {
+            chatZoomScale = 1;
+            chatZoomTx = 0;
+            chatZoomTy = 0;
+          }
+          applyChatZoomTransform();
+        } else if (isPanning && e.touches.length === 1 && chatZoomScale > 1.02) {
+          e.preventDefault();
+          const moveX = e.touches[0].clientX - panStartX;
+          const moveY = e.touches[0].clientY - panStartY;
+          if (Math.abs(moveX) > 4 || Math.abs(moveY) > 4) {
+            chatZoomMoved = true;
+          }
+          chatZoomTx = startTx + moveX;
+          chatZoomTy = startTy + moveY;
+          applyChatZoomTransform();
+        }
+      }, { passive: false });
+
+      const endZoomTouch = (e) => {
+        if (!e.touches || e.touches.length === 0) {
+          isPinching = false;
+          isPanning = false;
+          setTimeout(() => { chatZoomMoved = false; }, 80);
+        } else if (e.touches.length === 1) {
+          isPinching = false;
+          if (chatZoomScale > 1.02) {
+            isPanning = true;
+            panStartX = e.touches[0].clientX;
+            panStartY = e.touches[0].clientY;
+            startTx = chatZoomTx;
+            startTy = chatZoomTy;
+          }
+        }
+      };
+
+      zoomModal.addEventListener('touchend', endZoomTouch, { passive: true });
+      zoomModal.addEventListener('touchcancel', endZoomTouch, { passive: true });
+    }
+
+    if (bodyEl) {
       let swipeRow = null;
       let swipeChatId = '';
       let startX = 0;
       let startY = 0;
       let currentDx = 0;
 
+      bodyEl.addEventListener('wheel', () => {
+        isUnreadAnchorLocked = false;
+        isUserScrolledTalkRoom = true;
+      }, { passive: true });
+
       bodyEl.addEventListener('touchstart', (e) => {
         if (!e.touches || e.touches.length !== 1) return;
-        const row = e.target.closest('.kakao-msg-row');
-        if (!row) return;
-        swipeRow = row;
-        swipeChatId = row.getAttribute('data-chat-id') || '';
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
         currentDx = 0;
-        swipeRow.style.transition = 'none';
+        const row = e.target.closest('.kakao-msg-row');
+        if (row) {
+          swipeRow = row;
+          swipeChatId = row.getAttribute('data-chat-id') || '';
+          swipeRow.style.transition = 'none';
+        } else {
+          swipeRow = null;
+          swipeChatId = '';
+        }
       }, { passive: true });
 
       bodyEl.addEventListener('touchmove', (e) => {
-        if (!swipeRow || !e.touches || e.touches.length !== 1) return;
+        if (!e.touches || e.touches.length !== 1) return;
         const dx = e.touches[0].clientX - startX;
         const dy = e.touches[0].clientY - startY;
-        if (dx < -12 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+
+        // 세로 스크롤 조작 시 사용자 스크롤 고정 활성화 및 끝부분 오버스크롤 떨림 차단
+        if (Math.abs(dy) > 6 && Math.abs(dy) >= Math.abs(dx)) {
+          isUnreadAnchorLocked = false;
+          isUserScrolledTalkRoom = true;
+
+          const maxScroll = bodyEl.scrollHeight - bodyEl.clientHeight;
+          if (maxScroll <= 0) {
+            if (e.cancelable) e.preventDefault();
+            return;
+          }
+          if (bodyEl.scrollTop <= 0 && dy > 0) {
+            if (e.cancelable) e.preventDefault();
+            return;
+          }
+          if (bodyEl.scrollTop >= maxScroll - 1 && dy < 0) {
+            if (e.cancelable) e.preventDefault();
+            return;
+          }
+        }
+
+        if (swipeRow && dx < -10 && Math.abs(dx) > Math.abs(dy) * 1.2) {
           currentDx = Math.max(-56, dx);
           swipeRow.style.transform = `translateX(${currentDx}px)`;
         }
-      }, { passive: true });
+      }, { passive: false });
 
       const finishSwipe = () => {
         if (!swipeRow) return;
@@ -7011,7 +7272,7 @@
         currentDx = 0;
         targetRow.style.transition = 'transform 0.2s ease';
         targetRow.style.transform = '';
-        if (finalDx <= -40 && targetId) {
+        if (finalDx <= -28 && targetId) {
           setTalkReplyTarget(targetId);
         }
       };
@@ -7027,7 +7288,7 @@
     if (mode === 'unread') {
       const unreadEl = document.getElementById('kakao-unread-divider');
       if (unreadEl) {
-        bodyEl.scrollTop = Math.max(0, unreadEl.offsetTop - 6);
+        bodyEl.scrollTop = Math.max(0, unreadEl.offsetTop - 8);
       } else {
         bodyEl.scrollTop = bodyEl.scrollHeight;
       }
@@ -7064,14 +7325,25 @@
       showTalkUnreadDivider = true;
       talkUnreadFirstChatId = unreadList[0].id;
       isUnreadAnchorLocked = true;
+      safeSetLocalStorage('tabogga_talk_unread_first_id', talkUnreadFirstChatId);
     } else {
-      showTalkUnreadDivider = false;
-      talkUnreadFirstChatId = '';
-      isUnreadAnchorLocked = false;
+      const savedDividerId = localStorage.getItem('tabogga_talk_unread_first_id') || '';
+      if (savedDividerId && chats && chats[savedDividerId]) {
+        showTalkUnreadDivider = true;
+        talkUnreadFirstChatId = savedDividerId;
+        isUnreadAnchorLocked = true;
+      } else {
+        showTalkUnreadDivider = false;
+        talkUnreadFirstChatId = '';
+        isUnreadAnchorLocked = false;
+      }
     }
   }
 
   async function openTalkRoomScreen() {
+    const activeScreen = document.querySelector('.screen.active');
+    if (activeScreen && activeScreen.id === 'screen-talk-room') return;
+
     initTalkEmojiDrawer();
     const drawer = document.getElementById('kakao-emoji-drawer');
     if (drawer) drawer.classList.remove('show');
@@ -7079,6 +7351,7 @@
     clearTalkReplyTarget();
     updateBoardAdminHeaderUI();
 
+    isUserScrolledTalkRoom = false;
     // 메인 화면의 N 건수 기준 시점을 그대로 저장하여 안 읽은 첫 글 바로 위에 배너 표시
     talkRoomEntrySeenTs = Number(localStorage.getItem('tabogga_talk_last_seen_ts') || '0');
     computeUnreadDividerOnEntry(talkRoomEntrySeenTs);
@@ -7095,7 +7368,13 @@
       computeUnreadDividerOnEntry(talkRoomEntrySeenTs);
       markTalkRoomAsSeen();
       renderTalkBoardPreview();
-      renderTalkRoomMessages(showTalkUnreadDivider && isUnreadAnchorLocked ? 'unread' : 'bottom');
+      if (isUserScrolledTalkRoom) {
+        renderTalkRoomMessages('none');
+      } else if (showTalkUnreadDivider) {
+        renderTalkRoomMessages('unread');
+      } else {
+        renderTalkRoomMessages('bottom');
+      }
     } finally {
       isPollingChats = false;
     }
@@ -7153,14 +7432,13 @@
         return `<div class="inline-url-preview-box" data-chat-url="${escapeHtmlText(u)}" style="margin-top:6px;">${renderSingleUrlPreviewCardHtml(cached)}</div>`;
       }).join('');
 
-      const replyQuoteHtml = (msg.replyTo && msg.replyTo.name)
-        ? `
-          <div class="kakao-reply-quote" onclick="scrollToChatMessage('${escapeHtmlText(msg.replyTo.id || '')}')">
-            <div class="kakao-reply-quote-name">${escapeHtmlText(msg.replyTo.name)}에게 답장</div>
-            <div class="kakao-reply-quote-text">${escapeHtmlText(msg.replyTo.text || '')}</div>
-          </div>
-        `
-        : '';
+      let replyQuoteHtml = '';
+      if (msg.replyTo && (msg.replyTo.name || msg.replyTo.id)) {
+        const origMsg = (msg.replyTo.id && chats && chats[msg.replyTo.id]) ? chats[msg.replyTo.id] : null;
+        const replyName = msg.replyTo.name || (origMsg ? origMsg.name : '회원');
+        const replyText = msg.replyTo.text || (origMsg ? ((origMsg.text === '📷 사진' && origMsg.hasImage) ? '📷 사진' : (origMsg.text || '📷 사진')) : '');
+        replyQuoteHtml = `<div class="kakao-reply-quote" onclick="scrollToChatMessage('${escapeHtmlText(msg.replyTo.id || '')}')"><div class="kakao-reply-quote-name">${escapeHtmlText(replyName)}님에게 답장</div><div class="kakao-reply-quote-text">${escapeHtmlText(replyText)}</div></div>`;
+      }
 
       let imgHtml = '';
       if (msg.hasImage) {
@@ -7175,14 +7453,14 @@
             if (!loadedSrc) return;
             document.querySelectorAll('[data-chat-img-id]').forEach(el => {
               if (el.getAttribute('data-chat-img-id') === msg.id) {
-                const wasNearBottom = (bodyEl.scrollHeight - bodyEl.scrollTop - bodyEl.clientHeight) < 100;
                 el.innerHTML = `<img src="${loadedSrc}" alt="채팅 사진">`;
                 const imgNode = el.querySelector('img');
                 if (imgNode) {
                   imgNode.onload = () => {
+                    if (isUserScrolledTalkRoom) return;
                     if (isUnreadAnchorLocked && document.getElementById('kakao-unread-divider')) {
                       alignTalkScrollPosition(bodyEl, 'unread');
-                    } else if (wasNearBottom) {
+                    } else {
                       bodyEl.scrollTop = bodyEl.scrollHeight;
                     }
                   };
@@ -7193,9 +7471,10 @@
         }
       }
 
-      const hasTextOrUrlOrReply = Boolean(displayRawText || urlBoxesHtml || replyQuoteHtml);
+      const textPartHtml = displayRawText ? `<div class="kakao-msg-text">${formatChatTextWithLinks(displayRawText)}</div>` : '';
+      const hasTextOrUrlOrReply = Boolean(textPartHtml || urlBoxesHtml || replyQuoteHtml);
       const textBubbleHtml = hasTextOrUrlOrReply
-        ? `<div class="kakao-msg-bubble">${replyQuoteHtml}${formatChatTextWithLinks(displayRawText)}${urlBoxesHtml}</div>`
+        ? `<div class="kakao-msg-bubble">${replyQuoteHtml}${textPartHtml}${urlBoxesHtml}</div>`
         : '';
 
       let bodyContentHtml = '';
@@ -7246,7 +7525,7 @@
             document.querySelectorAll('[data-chat-url]').forEach(el => {
               if (el.getAttribute('data-chat-url') === u) {
                 el.innerHTML = renderSingleUrlPreviewCardHtml(meta);
-                if (isUnreadAnchorLocked && document.getElementById('kakao-unread-divider')) {
+                if (!isUserScrolledTalkRoom && isUnreadAnchorLocked && document.getElementById('kakao-unread-divider')) {
                   alignTalkScrollPosition(bodyEl, 'unread');
                 }
               }
@@ -7256,30 +7535,54 @@
       });
     });
 
+    // '여기까지 읽었습니다'가 상단에 위치할 수 있도록 하단 여유 공간 보장
+    if (unreadDividerInserted) {
+      htmlParts.push(`<div id="kakao-unread-tail-spacer" style="width:100%; height:0px; flex-shrink:0;"></div>`);
+    }
+
     bodyEl.innerHTML = htmlParts.join('');
 
+    const ensureUnreadCanReachTop = () => {
+      const unreadEl = document.getElementById('kakao-unread-divider');
+      const spacerEl = document.getElementById('kakao-unread-tail-spacer');
+      if (!unreadEl || !spacerEl) return;
+      spacerEl.style.height = '0px';
+      const targetTop = Math.max(0, unreadEl.offsetTop - 8);
+      const maxScroll = bodyEl.scrollHeight - bodyEl.clientHeight;
+      if (targetTop > maxScroll) {
+        spacerEl.style.height = `${targetTop - maxScroll + 12}px`;
+      }
+    };
+
     if (scrollMode === 'unread') {
+      ensureUnreadCanReachTop();
+      alignTalkScrollPosition(bodyEl, 'unread');
       bodyEl.querySelectorAll('.kakao-msg-img-wrap img').forEach(imgNode => {
         if (!imgNode.complete) {
           imgNode.addEventListener('load', () => {
-            if (isUnreadAnchorLocked && document.getElementById('kakao-unread-divider')) {
+            if (!isUserScrolledTalkRoom && isUnreadAnchorLocked && document.getElementById('kakao-unread-divider')) {
+              ensureUnreadCanReachTop();
               alignTalkScrollPosition(bodyEl, 'unread');
             }
           }, { once: true });
         }
       });
-    }
-
-    if (scrollMode === true || scrollMode === 'bottom') {
       requestAnimationFrame(() => {
-        alignTalkScrollPosition(bodyEl, 'bottom');
-      });
-    } else if (scrollMode === 'unread') {
-      requestAnimationFrame(() => {
-        alignTalkScrollPosition(bodyEl, 'unread');
+        if (!isUserScrolledTalkRoom && isUnreadAnchorLocked) {
+          ensureUnreadCanReachTop();
+          alignTalkScrollPosition(bodyEl, 'unread');
+        }
         setTimeout(() => {
-          if (isUnreadAnchorLocked) alignTalkScrollPosition(bodyEl, 'unread');
-        }, 60);
+          if (!isUserScrolledTalkRoom && isUnreadAnchorLocked) {
+            ensureUnreadCanReachTop();
+            alignTalkScrollPosition(bodyEl, 'unread');
+          }
+        }, 80);
+      });
+    } else if (scrollMode === true || scrollMode === 'bottom') {
+      alignTalkScrollPosition(bodyEl, 'bottom');
+      requestAnimationFrame(() => {
+        if (!isUserScrolledTalkRoom) alignTalkScrollPosition(bodyEl, 'bottom');
       });
     } else {
       bodyEl.scrollTop = prevScrollTop;
@@ -7304,8 +7607,8 @@
     }
 
     isSubmittingTalk = true;
+    isUserScrolledTalkRoom = false;
     isUnreadAnchorLocked = false;
-    showTalkUnreadDivider = false;
     const nowMs = getNowDate().getTime();
     const chatId = 't_' + nowMs + '_' + Math.floor(Math.random() * 1000);
     const imgToUpload = pendingTalkImageData;
@@ -7426,7 +7729,6 @@
 
     isDeletingTalk = true;
     isUnreadAnchorLocked = false;
-    showTalkUnreadDivider = false;
     const hadImage = Boolean(chats[chatId].hasImage);
     delete chats[chatId];
     delete chatImagesCache[chatId];
