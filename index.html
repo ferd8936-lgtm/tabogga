@@ -222,11 +222,22 @@
     }
 
     /* 전광판 바로 아래 가로 중앙 '오늘 접속' 표시 바 */
+    @font-face {
+      font-family: 'NanumSquareRoundEB';
+      src: url('https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundEB.woff2') format('woff2'),
+           url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumSquareRound.woff') format('woff');
+      font-weight: 800;
+      font-style: normal;
+      font-display: swap;
+    }
+
     .today-visit-bar {
       width: 100%;
       text-align: center;
-      font-size: 0.85rem;
-      font-weight: 700;
+      font-family: 'NanumSquareRoundEB', 'Arial Rounded MT Bold', 'Apple SD Gothic Neo', 'NexonLv2Gothic', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.2px;
       color: #4b5563;
       margin-top: -6px;
       margin-bottom: -4px;
@@ -234,8 +245,9 @@
     }
 
     .today-visit-bar strong {
+      font-family: inherit;
       color: #2563eb;
-      font-weight: 800;
+      font-weight: 900;
     }
 
     .btn-menu-custom {
@@ -268,6 +280,7 @@
 
     .btn-menu-rolling {
       background-color: #0d9488; /* 틸 에메랄드 */
+      margin-top: -4px;
     }
 
     .btn-menu-rolling:active {
@@ -342,6 +355,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      width: 46px;
       flex-shrink: 0;
     }
 
@@ -714,7 +728,8 @@
 
     /* 인라인 URL 미리보기 박스 및 안정형 블록 에디터 스타일 */
     .inline-url-preview-box {
-      margin: 8px 0;
+      margin: 2px 0;
+      white-space: normal;
       user-select: none;
     }
 
@@ -1651,7 +1666,7 @@
     </div>
 
     <!-- 전광판 바로 아래 가로 중앙 오늘 접속 수 표시 -->
-    <div id="today-visit-bar" class="today-visit-bar">오늘 접속 <strong>0</strong></div>
+    <div id="today-visit-bar" class="today-visit-bar">타보까톡 TADAY <strong>0</strong></div>
 
     <div class="main-banner-wrap">
       <img src="1.jpg" alt="롤러 클럽 메인 이미지" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22260%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%232563eb%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22>1.jpg 이미지를 업로드해주세요</text></svg>';">
@@ -2338,7 +2353,7 @@
     if (!barEl) return;
     const today = getTodayKey();
     const todayCnt = (visitStatsData && visitStatsData.dailyVisits && Number(visitStatsData.dailyVisits[today])) || 0;
-    barEl.innerHTML = `오늘 접속 <strong>${todayCnt}</strong>`;
+    barEl.innerHTML = `타보까톡 TADAY <strong>${todayCnt}</strong>`;
   }
 
   function getTodayKey() {
@@ -4335,11 +4350,18 @@
     return Promise.race([Promise.all(promises), timeout]);
   }
 
+  let currentDetailPrevSeenCommentTs = 0;
+
   async function openBoardDetailScreen(postId, fromScreen = 'screen-board-list') {
     currentNoticeId = postId;
     boardDetailBackScreen = fromScreen;
     selectedPollOptionIdx = getMyVotedOptionIdx(postId);
     isRevotingMode = false;
+
+    const prevSeenMap = getBoardSeenStateMap();
+    currentDetailPrevSeenCommentTs = (prevSeenMap[postId] && prevSeenMap[postId].seenLatestCommentTs)
+      ? Number(prevSeenMap[postId].seenLatestCommentTs)
+      : 0;
 
     const backBtn = document.getElementById('btn-detail-back');
     if (backBtn) {
@@ -4440,7 +4462,8 @@
     const seqPrefix = post.seqNum ? `${post.seqNum}. ` : '';
     document.getElementById('detail-post-title').innerText = seqPrefix + (post.title || '');
     const viewsCount = Number(post.views || 0);
-    document.getElementById('detail-post-date').innerText = `${post.createdAt || ''}  ·  조회 ${viewsCount}`;
+    const commentStats = getPostCommentStats(post);
+    document.getElementById('detail-post-date').innerText = `${post.createdAt || ''}  ·  조회 ${viewsCount}  ·  댓글 ${commentStats.count}`;
 
     const contentEl = document.getElementById('detail-post-content');
     const detailPreviewWrap = document.getElementById('detail-post-url-preview');
@@ -4567,10 +4590,13 @@
     } else {
       commentListEl.innerHTML = commentsArr.map(c => {
         const canDelete = isMyComment(c.id) || isBoardCommentAdminMode;
+        const commentTs = Number(c.timestamp || 0);
+        const isRecentComment = commentTs > 0 && (getNowDate().getTime() - commentTs) <= 7 * 24 * 60 * 60 * 1000;
+        const isNewComment = isRecentComment && commentTs > currentDetailPrevSeenCommentTs;
         return `
           <div class="comment-item">
             <div class="comment-meta">
-              <span>익명</span>
+              <span style="display:inline-flex; align-items:center; gap:4px;">익명${isNewComment ? '<span class="badge-new-comment">N</span>' : ''}</span>
               <div>
                 <span>${escapeHtmlText(c.createdAt || '')}</span>
                 ${canDelete ? `<button class="btn-comment-delete" onclick="openCommentDeleteModal('${c.id}')">삭제</button>` : ''}
