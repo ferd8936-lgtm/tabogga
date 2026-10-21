@@ -3946,7 +3946,7 @@
     const suffix = isBoardCommentAdminMode ? '<span class="admin-mode-pill">관리자</span>' : '';
     const totalNoticeCount = Object.values(notices || {}).filter(item => item && item.id).length;
     if (listTitle) {
-      listTitle.innerHTML = `<span>키즈 게시판</span><span class="board-total-count-label">총 ${totalNoticeCount}건</span>${suffix}`;
+      listTitle.innerHTML = `<span>키즈 게시판</span><span class="board-total-count-label">등록 ${totalNoticeCount}건</span>${suffix}`;
     }
     if (detailTitle) detailTitle.innerHTML = `키즈 게시판${suffix}`;
     if (talkTitle) talkTitle.innerHTML = `톡톡 수다방${suffix}`;
