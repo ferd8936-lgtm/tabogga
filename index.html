@@ -278,7 +278,7 @@
       background-color: #0f766e;
     }
 
-    /* 키즈 게시판 (실시간 롤딩 현황 버튼과의 세로 간격 2배 반영) */
+    /* 톡톡 게시판 (실시간 롤딩 현황 버튼과의 세로 간격 2배 반영) */
     .kids-board-wrap {
       width: 100%;
       margin-top: 26px;
@@ -444,7 +444,7 @@
       color: #111827;
     }
 
-    /* 키즈 게시판 검색창 (공지 작성하기 버튼 위, 동일 사이즈 및 우측 돋보기 아이콘) */
+    /* 톡톡 게시판 검색창 (공지 작성하기 버튼 위, 동일 사이즈 및 우측 돋보기 아이콘) */
     .board-search-wrap {
       position: relative;
       display: flex;
@@ -676,6 +676,12 @@
       align-items: center;
       gap: 8px;
       margin-bottom: 8px;
+    }
+
+    .board-detail-top .badge-wrap {
+      width: auto;
+      justify-content: flex-start;
+      align-items: flex-start;
     }
 
     .board-detail-title {
@@ -1188,6 +1194,174 @@
     .talk-unread-info.empty {
       color: #9ca3af;
       font-weight: 600;
+    }
+
+    #talk-member-count-label {
+      font-size: 0.72rem;
+      font-weight: 400;
+    }
+
+    .talk-entry-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 66px;
+      padding: 16px 2px;
+    }
+
+    .talk-kakao-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background-color: #fee500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    }
+
+    .talk-entry-text {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #1f2937;
+      text-align: left;
+      line-height: 1.4;
+      word-break: keep-all;
+    }
+
+    .talk-latest-floating-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 6px 10px 2px;
+      padding: 8px 14px;
+      background-color: rgba(31, 41, 55, 0.78);
+      backdrop-filter: blur(4px);
+      color: #ffffff;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      z-index: 15;
+    }
+
+    .talk-latest-floating-bar.show {
+      display: flex;
+    }
+
+    .talk-latest-floating-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .talk-latest-floating-name {
+      font-weight: 800;
+      color: #fde047;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .talk-latest-floating-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #ffffff;
+      flex: 1;
+      text-align: left;
+    }
+
+    .talk-cal-year-row {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-cal-year {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1.5px solid #d1d5db;
+      background: #ffffff;
+      color: #374151;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-cal-year.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .talk-cal-month-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding: 0 4px;
+    }
+
+    .btn-cal-month-arrow {
+      background: #f3f4f6;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #374151;
+      cursor: pointer;
+    }
+
+    .talk-cal-month-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .talk-cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .talk-cal-dow {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #6b7280;
+      padding: 4px 0;
+    }
+
+    .talk-cal-cell {
+      padding: 8px 0;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1f2937;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .talk-cal-cell.empty {
+      background: transparent;
+      border-color: transparent;
+      cursor: default;
+    }
+
+    .talk-cal-cell.selected {
+      background-color: #2563eb;
+      color: #ffffff;
+      border-color: #1d4ed8;
     }
 
     .talk-preview-item {
@@ -2293,7 +2467,7 @@
     </div>
   </div>
 
-  <!-- [화면 3] 메뉴 화면 (상단 LED 전광판, 오늘 접속, 메인 이미지, 메뉴 버튼, 키즈 게시판 반영) -->
+  <!-- [화면 3] 메뉴 화면 (상단 LED 전광판, 오늘 접속, 메인 이미지, 메뉴 버튼, 톡톡 게시판 반영) -->
   <div id="screen-menu" class="screen">
     <!-- LED 전광판 (이미지 바로 위 배치, 클릭 시 비밀번호 입력 후 설정) -->
     <div class="led-board-section" onclick="openBoardPwModal()">
@@ -2353,7 +2527,7 @@
       <span id="checkin-header-title" class="header-title clickable-admin" onclick="openCheckinAdminPwModal()">출석 체크</span>
       <div style="display:flex; gap:8px;">
         <button class="btn-back" onclick="openMonthScreen()">누적 현황</button>
-        <button class="btn-back" onclick="goBack('screen-menu')">뒤로</button>
+        <button class="btn-back" onclick="goToScreen('screen-menu')">메인</button>
       </div>
     </div>
     <div class="table-wrapper">
@@ -2505,10 +2679,10 @@
 — 타보까 롤러 클럽 운영자 작성—</div>
   </div>
 
-  <!-- [화면 8] 키즈 게시판 전체보기 리스트 화면 ('키즈 게시판' 클릭 시 댓글 삭제 관리자 활성화) -->
+  <!-- [화면 8] 톡톡 게시판 전체보기 리스트 화면 ('톡톡 게시판' 클릭 시 댓글 삭제 관리자 활성화) -->
   <div id="screen-board-list" class="screen">
     <div class="header-bar" style="gap: 8px;">
-      <span id="board-list-header-title" class="header-title clickable-admin" style="white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: baseline;" onclick="openBoardCommentAdminPwModal()">키즈 게시판</span>
+      <span id="board-list-header-title" class="header-title clickable-admin" style="white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: baseline;" onclick="openBoardCommentAdminPwModal()">톡톡 게시판</span>
       <button class="btn-back" style="white-space: nowrap; flex-shrink: 0;" onclick="goToScreen('screen-menu')">메인</button>
     </div>
     <div class="board-search-wrap">
@@ -2526,24 +2700,24 @@
     </div>
   </div>
 
-  <!-- [화면 9] 키즈 게시판 공지 상세 보기, 투표 및 댓글 화면 -->
+  <!-- [화면 9] 톡톡 게시판 공지 상세 보기, 투표 및 댓글 화면 -->
   <div id="screen-board-detail" class="screen">
     <div class="header-bar">
-      <span id="board-detail-header-title" class="header-title clickable-admin" onclick="openBoardCommentAdminPwModal()">키즈 게시판</span>
+      <span id="board-detail-header-title" class="header-title clickable-admin" onclick="openBoardCommentAdminPwModal()">톡톡 게시판</span>
       <button id="btn-detail-back" class="btn-back" onclick="handleBoardDetailBack()">뒤로</button>
     </div>
     <div class="board-detail-box">
       <div class="board-detail-top">
-        <span id="detail-post-badge-wrap" style="display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+        <span id="detail-post-badge-wrap">
           <span id="detail-post-badge" class="badge-notice">공지</span>
         </span>
         <div id="detail-post-title" class="board-detail-title"></div>
       </div>
       <div class="board-detail-meta">
         <span id="detail-post-date"></span>
-        <div class="board-detail-actions">
-          <button class="btn-post-action" onclick="openNoticePwModal('edit')">수정</button>
-          <button class="btn-post-action delete" onclick="openNoticePwModal('delete')">삭제</button>
+        <div id="detail-post-actions" class="board-detail-actions" style="display:none;">
+          <button class="btn-post-action" onclick="openAdminNoticeActionModal('edit')">수정</button>
+          <button class="btn-post-action delete" onclick="openAdminNoticeActionModal('delete')">삭제</button>
         </div>
       </div>
       <div id="detail-post-content" class="board-detail-content"></div>
@@ -2567,7 +2741,7 @@
     </div>
   </div>
 
-  <!-- [화면 10] 키즈 게시판 공지 작성 / 수정 화면 (각 URL 바로 아래 안정적 인라인 미리보기 생성) -->
+  <!-- [화면 10] 톡톡 게시판 공지 작성 / 수정 화면 (각 URL 바로 아래 안정적 인라인 미리보기 생성) -->
   <div id="screen-board-write" class="screen">
     <div class="header-bar">
       <div style="display:flex; align-items:center; gap:8px;">
@@ -2601,6 +2775,7 @@
         <span id="talk-room-header-title" class="header-title clickable-admin" onclick="openBoardCommentAdminPwModal()">톡톡 수다방</span>
       </div>
       <div style="display:flex; gap:8px;">
+        <button type="button" id="btn-talk-access-config" class="btn-talk-profile-edit" style="display:none; background:#fef08a; color:#111827;" onclick="openTalkCalendarModal()">접속 설정</button>
         <button type="button" class="btn-talk-profile-edit" onclick="openTalkProfileModal()">프로필 변경</button>
         <button class="btn-back" style="background: rgba(255,255,255,0.75);" onclick="goBack('screen-menu')">뒤로</button>
       </div>
@@ -2611,6 +2786,13 @@
     </div>
 
     <div class="kakao-chat-footer">
+      <div id="talk-latest-floating-bar" class="talk-latest-floating-bar" onclick="scrollToBottomFromFloatingBar()">
+        <div class="talk-latest-floating-left">
+          <span id="talk-latest-floating-name" class="talk-latest-floating-name"></span>
+          <span id="talk-latest-floating-text" class="talk-latest-floating-text"></span>
+        </div>
+        <span style="font-size:0.8rem; font-weight:800; flex-shrink:0;">▼</span>
+      </div>
       <div id="talk-reply-preview-bar" class="talk-reply-preview-bar">
         <div class="talk-reply-info">
           <div id="talk-reply-preview-title" class="talk-reply-title"></div>
@@ -2704,10 +2886,59 @@
   </div>
 </div>
 
+<!-- [팝업] 관리자 모드 게시글 수정/삭제 확인 모달 (비밀번호 없음) -->
+<div id="modal-notice-action-confirm" class="modal-overlay">
+  <div class="modal-content">
+    <div id="notice-action-confirm-text" class="modal-text" style="font-size:1.1rem; margin-bottom:18px;">수정할까요?</div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn-modal-cancel" onclick="closeAdminNoticeActionModal()">취소</button>
+      <button id="btn-notice-action-confirm-ok" class="btn-modal-ok" onclick="confirmAdminNoticeAction()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- [팝업] 톡톡 수다방 입장 비밀번호 입력 모달 -->
+<div id="modal-talk-pw" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-text" style="font-size:1.05rem; margin-bottom:14px;">비밀번호를 입력하세요</div>
+    <input type="password" id="talk-pw-input" class="input-pw" style="padding:11px; font-size:0.95rem; margin-bottom:16px;" placeholder="비밀번호 입력" onkeyup="if(event.key==='Enter') confirmTalkPw()">
+    <div style="display:flex; gap:8px;">
+      <button class="btn-modal-cancel" onclick="closeTalkPwModal()">취소</button>
+      <button class="btn-modal-ok" onclick="confirmTalkPw()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- [팝업] 톡톡 수다방 이용시간 안내 및 종료 모달 -->
+<div id="modal-talk-time-alert" class="modal-overlay">
+  <div class="modal-content">
+    <div id="talk-time-alert-text" class="modal-text" style="font-size:1.12rem; line-height:1.5; margin-bottom:20px;"></div>
+    <button class="btn-modal-ok" onclick="confirmTalkTimeAlertModal()">확인</button>
+  </div>
+</div>
+
+<!-- [팝업] 톡톡 수다방 관리자 접속 설정 (년도별 캘린더) 모달 -->
+<div id="modal-talk-calendar" class="modal-overlay">
+  <div class="modal-content" style="max-width:350px; padding:22px 16px 18px;">
+    <div class="modal-text" style="font-size:1.08rem; margin-bottom:10px;">📅 수다방 휴일 설정</div>
+    <div id="talk-cal-year-row" class="talk-cal-year-row"></div>
+    <div class="talk-cal-month-nav">
+      <button type="button" class="btn-cal-month-arrow" onclick="changeTalkCalMonth(-1)">◀</button>
+      <span id="talk-cal-month-title" class="talk-cal-month-title"></span>
+      <button type="button" class="btn-cal-month-arrow" onclick="changeTalkCalMonth(1)">▶</button>
+    </div>
+    <div id="talk-cal-grid" class="talk-cal-grid"></div>
+    <div style="display:flex; gap:8px;">
+      <button type="button" class="btn-modal-cancel" onclick="closeTalkCalendarModal()">취소</button>
+      <button type="button" class="btn-modal-ok" onclick="saveTalkCalendarConfig()">저장</button>
+    </div>
+  </div>
+</div>
+
 <!-- [팝업] 새 게시글 등록 알림 모달 -->
 <div id="modal-new-notice-alert" class="modal-overlay">
   <div class="modal-content">
-    <div class="modal-text" style="font-size:1.05rem; margin-bottom:8px; color:#2563eb;">📢 키즈 게시판 새 글 알림</div>
+    <div class="modal-text" style="font-size:1.05rem; margin-bottom:8px; color:#2563eb;">📢 톡톡 게시판 새 글 알림</div>
     <div id="new-notice-alert-title" style="font-size:0.95rem; font-weight:700; color:#1f2937; margin-bottom:18px; word-break:keep-all;"></div>
     <div style="display:flex; gap:8px;">
       <button class="btn-modal-cancel" onclick="closeNewNoticeAlertModal()">닫기</button>
@@ -2794,7 +3025,7 @@
   </div>
 </div>
 
-<!-- [팝업] 키즈 게시판 공지 작성/수정/삭제 비밀번호 입력 모달 -->
+<!-- [팝업] 톡톡 게시판 공지 작성/수정/삭제 비밀번호 입력 모달 -->
 <div id="modal-notice-pw" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-text" style="font-size:1.05rem; margin-bottom:14px;">비밀번호를 입력하세요</div>
@@ -2806,7 +3037,7 @@
   </div>
 </div>
 
-<!-- [팝업] 키즈 게시판 댓글 삭제 관리자 비밀번호 입력 모달 -->
+<!-- [팝업] 톡톡 게시판 댓글 삭제 관리자 비밀번호 입력 모달 -->
 <div id="modal-board-comment-admin-pw" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-text" style="font-size:1.05rem; margin-bottom:14px;">비밀번호를 입력하세요</div>
@@ -3063,6 +3294,7 @@
   let noticeImagesCache = {};
   let chats = {};
   let talkProfiles = {};
+  let talkConfig = { openDates: { '2026-10-22': true }, lastClearedDate: '2026-10-22' };
   let visitStatsData = { totalVisits: 0, dailyVisits: {} };
 
   // 서버 표준 시간 오프셋 (스마트폰 기기 시계 오류로 인한 미래 월 강제 이관 방지)
@@ -3438,6 +3670,19 @@
         notices = data.notices || {};
         chats = data.chats || {};
         talkProfiles = data.talkProfiles || {};
+        if (data.talkConfig) {
+          talkConfig = {
+            openDates: data.talkConfig.openDates || { '2026-10-22': true },
+            lastClearedDate: data.talkConfig.lastClearedDate || '2026-10-22'
+          };
+        } else {
+          talkConfig = { openDates: { '2026-10-22': true }, lastClearedDate: '2026-10-22' };
+          fetch(`${FIREBASE_DB_URL}/clubData/talkConfig.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(talkConfig)
+          }).catch(() => {});
+        }
         if (data.visitStats) {
           visitStatsData = data.visitStats;
         }
@@ -3937,19 +4182,115 @@
   /* ==================== [후반부 시작 - 전반부 코드 바로 아래에 이어 붙여주세요] ==================== */
 
   /********************************************************************
-   * 4-1. 키즈 게시판 관리자(댓글 삭제) & 출석 체크 관리자(등급/탈퇴) 제어
+   * 4-1. 톡톡 게시판 관리자(댓글 삭제) & 출석 체크 관리자(등급/탈퇴) 제어
    ********************************************************************/
   function updateBoardAdminHeaderUI() {
     const listTitle = document.getElementById('board-list-header-title');
     const detailTitle = document.getElementById('board-detail-header-title');
     const talkTitle = document.getElementById('talk-room-header-title');
+    const detailActions = document.getElementById('detail-post-actions');
+    const talkAccessBtn = document.getElementById('btn-talk-access-config');
     const suffix = isBoardCommentAdminMode ? '<span class="admin-mode-pill">관리자</span>' : '';
     const totalNoticeCount = Object.values(notices || {}).filter(item => item && item.id).length;
     if (listTitle) {
-      listTitle.innerHTML = `<span>키즈 게시판</span><span class="board-total-count-label">등록 ${totalNoticeCount}건</span>${suffix}`;
+      listTitle.innerHTML = `<span>톡톡 게시판</span><span class="board-total-count-label">등록 ${totalNoticeCount}건</span>${suffix}`;
     }
-    if (detailTitle) detailTitle.innerHTML = `키즈 게시판${suffix}`;
+    if (detailTitle) detailTitle.innerHTML = `톡톡 게시판${suffix}`;
     if (talkTitle) talkTitle.innerHTML = `톡톡 수다방${suffix}`;
+    if (detailActions) detailActions.style.display = isBoardCommentAdminMode ? 'flex' : 'none';
+    if (talkAccessBtn) talkAccessBtn.style.display = isBoardCommentAdminMode ? 'inline-block' : 'none';
+  }
+
+  let pendingAdminNoticeAction = '';
+
+  function openAdminNoticeActionModal(mode) {
+    if (!isBoardCommentAdminMode) return;
+    pendingAdminNoticeAction = mode;
+    const textEl = document.getElementById('notice-action-confirm-text');
+    const okBtn = document.getElementById('btn-notice-action-confirm-ok');
+    if (mode === 'delete') {
+      if (textEl) textEl.innerText = '삭제할까요?';
+      if (okBtn) {
+        okBtn.innerText = '삭제';
+        okBtn.style.backgroundColor = '#dc2626';
+      }
+    } else {
+      if (textEl) textEl.innerText = '수정할까요?';
+      if (okBtn) {
+        okBtn.innerText = '수정';
+        okBtn.style.backgroundColor = '#2563eb';
+      }
+    }
+    document.getElementById('modal-notice-action-confirm').classList.add('show');
+  }
+
+  function closeAdminNoticeActionModal() {
+    pendingAdminNoticeAction = '';
+    document.getElementById('modal-notice-action-confirm').classList.remove('show');
+  }
+
+  async function confirmAdminNoticeAction() {
+    const mode = pendingAdminNoticeAction;
+    closeAdminNoticeActionModal();
+    if (!isBoardCommentAdminMode || !mode) return;
+    noticeActionMode = mode;
+
+    if (mode === 'edit') {
+      const post = notices[currentNoticeId];
+      if (!post) return;
+      document.getElementById('board-write-header-title').innerText = '공지 수정하기';
+      document.getElementById('notice-title-input').value = post.title || '';
+      if (Array.isArray(post.urlPreviews)) {
+        post.urlPreviews.forEach(p => { if (p && p.url) urlPreviewCache[p.url] = p; });
+      } else if (post.urlPreview && post.urlPreview.url) {
+        urlPreviewCache[post.urlPreview.url] = post.urlPreview;
+      }
+      const editor = document.getElementById('notice-editor-container');
+      if (editor) {
+        populateEditorWithTextAndPreviews(editor, post.content || '');
+      }
+      const fileInput = document.getElementById('notice-image-input');
+      if (fileInput) fileInput.value = '';
+      const loadedImages = await fetchNoticeImages(currentNoticeId);
+      currentNoticeImageList = Array.isArray(loadedImages) ? [...loadedImages] : [];
+      currentNoticeImageData = currentNoticeImageList[0] || '';
+      currentNoticePollData = post.poll ? JSON.parse(JSON.stringify(post.poll)) : null;
+      currentNoticePinData = post.pin ? JSON.parse(JSON.stringify(post.pin)) : null;
+      renderNoticeWriteImagePreviews();
+      updatePollAttachButtonUI();
+      updatePinAttachButtonUI();
+      goToScreen('screen-board-write');
+    } else if (mode === 'delete') {
+      if (!currentNoticeId || !notices[currentNoticeId]) return;
+      const deletingId = currentNoticeId;
+      delete notices[deletingId];
+      delete noticeImagesCache[deletingId];
+      const seenMap = getBoardSeenStateMap();
+      if (seenMap[deletingId]) {
+        delete seenMap[deletingId];
+        saveBoardSeenStateMap(seenMap);
+      }
+      const remaining = Object.values(notices || {}).filter(item => item && item.id).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      if (remaining.length > 0) {
+        addAlertedNoticeIds(remaining.map(item => item.id), remaining[0].timestamp || 0);
+        safeSetLocalStorage('tabogga_last_seen_notice_id', remaining[0].id);
+      }
+      try {
+        await Promise.all([
+          fetch(`${FIREBASE_DB_URL}/clubData/notices/${deletingId}.json`, {
+            method: 'DELETE'
+          }),
+          fetch(`${FIREBASE_DB_URL}/clubImages/${deletingId}.json`, {
+            method: 'DELETE'
+          })
+        ]);
+      } catch (e) {
+        alert('삭제 중 네트워크 오류가 발생했습니다.');
+      }
+      renderKidsBoardPreview();
+      renderKidsBoardFullList();
+      goBack(boardDetailBackScreen);
+    }
   }
 
   function openBoardCommentAdminPwModal() {
@@ -4050,7 +4391,7 @@
   }
 
   /********************************************************************
-   * 4-2. 키즈 게시판 (인라인 다중 URL 미리보기, 조회수, 고정+투표 이중 배지, 재투표)
+   * 4-2. 톡톡 게시판 (인라인 다중 URL 미리보기, 조회수, 고정+투표 이중 배지, 재투표)
    ********************************************************************/
   let currentNoticeId = null;
   let noticeActionMode = 'create'; // 'create' | 'edit' | 'delete'
@@ -4692,7 +5033,7 @@
 
       if ('Notification' in window && Notification.permission === 'granted') {
         try {
-          new Notification('타보까 키즈 게시판 새 글 등록', { body: latest.title || '' });
+          new Notification('타보까 톡톡 게시판 새 글 등록', { body: latest.title || '' });
         } catch (e) {}
       }
     }
@@ -6513,27 +6854,23 @@
     }
   }
 
-  // 수다방 등록 인원수 산출 (프로필 등록자 및 대화 참여자 통합 집계)
+  // 수다방 등록 인원수 산출 (최초 프로필 등록을 완료한 총 인원수만 반영)
   function getTalkRegisteredMemberCount() {
-    const names = new Set();
-    Object.values(talkProfiles || {}).forEach(p => {
+    const registeredIds = new Set();
+    Object.keys(talkProfiles || {}).forEach(devId => {
+      const p = talkProfiles[devId];
       if (p && p.name && String(p.name).trim()) {
-        names.add(String(p.name).trim());
-      }
-    });
-    Object.values(chats || {}).forEach(c => {
-      if (c && c.name && String(c.name).trim()) {
-        names.add(String(c.name).trim());
+        registeredIds.add(devId);
       }
     });
     const mySaved = getSavedTalkProfile();
     if (mySaved && mySaved.name && String(mySaved.name).trim()) {
-      names.add(String(mySaved.name).trim());
+      registeredIds.add(getMyTalkDeviceId());
     }
-    return names.size;
+    return registeredIds.size;
   }
 
-  // 메인 화면의 톡톡 수다방 미리보기 (등록자 수, 최신 4건 및 N 아이콘 + 건수 표시)
+  // 메인 화면의 톡톡 수다방 접속 영역 (카카오톡 아이콘 + 안내 문구 표시)
   function renderTalkBoardPreview() {
     const unreadEl = document.getElementById('talk-unread-info');
     const previewEl = document.getElementById('talk-board-preview');
@@ -6547,20 +6884,16 @@
     unreadEl.className = unreadCount > 0 ? 'talk-unread-info' : 'talk-unread-info empty';
     unreadEl.innerHTML = `<span class="badge-new-comment">N</span><span>${unreadCount}건</span>`;
 
-    const allChats = getSortedChats();
-    if (allChats.length === 0) {
-      previewEl.innerHTML = `<div class="kids-empty-msg" style="cursor: pointer;">첫 번째 수다 한마디를 남겨보세요!</div>`;
-      return;
-    }
-
-    // 최신 채팅글 4건 추출 (부모 카드에 onclick이 있으므로 자식 중복 onclick 제거하여 2중 실행 방지)
-    const latestFour = allChats.slice(-4).reverse();
-    previewEl.innerHTML = latestFour.map(item => `
-      <div class="talk-preview-item">
-        <span class="talk-preview-name">${escapeHtmlText(item.name || '회원')}</span>
-        <span class="talk-preview-text">${escapeHtmlText(item.text || '')}</span>
+    previewEl.innerHTML = `
+      <div class="talk-entry-banner">
+        <span class="talk-kakao-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#3c1e1e" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 4C6.48 4 2 7.52 2 11.86C2 14.66 3.86 17.12 6.68 18.52L5.5 22.15C5.4 22.46 5.75 22.71 6.02 22.52L10.35 19.62C10.89 19.69 11.44 19.72 12 19.72C17.52 19.72 22 16.2 22 11.86C22 7.52 17.52 4 12 4Z"/>
+          </svg>
+        </span>
+        <span class="talk-entry-text">평일은 키즈 비밀 대화방 / 휴일(Rolling)은 전체 채팅 가능!</span>
       </div>
-    `).join('');
+    `;
   }
 
   // 최초 1회(또는 프로필 변경 시) 직접 입력한 이름과 50종 캐릭터 선택 모달 열기
@@ -6665,9 +6998,261 @@
   let talkRoomEntrySeenTs = 0;
   let showTalkUnreadDivider = false;
   let talkUnreadFirstChatId = '';
+  let talkUnreadAfterChatId = '';
   let isUserScrolledTalkRoom = false;
   var chatReadStatus = {};
   let lastKnownChatMeta = { lastChatId: '', deletedAt: 0, readUpdatedAt: 0 };
+  let talkTimeAlertMode = '';
+  let lastTalkWarn2155Date = '';
+  let talkCalYear = 2026;
+  let talkCalMonth = 10;
+  let tempSelectedOpenDates = {};
+
+  function isTalkOperatingHours() {
+    const h = getNowDate().getHours();
+    return h >= 8 && h < 22;
+  }
+
+  function isTodayTalkOpenDate() {
+    const today = getTodayKey();
+    return Boolean(talkConfig && talkConfig.openDates && talkConfig.openDates[today]);
+  }
+
+  async function ensureOpenDateChatCleared() {
+    const today = getTodayKey();
+    if (!isTodayTalkOpenDate()) return;
+    if (talkConfig && talkConfig.lastClearedDate === today) return;
+
+    const nowMs = getNowDate().getTime();
+    chats = {};
+    chatImagesCache = {};
+    saveChatImagesCacheToStorage();
+    safeSetLocalStorage('tabogga_talk_prev_last_chat_id', '');
+    safeSetLocalStorage('tabogga_talk_unread_first_id', '');
+    if (!talkConfig) talkConfig = { openDates: { [today]: true }, lastClearedDate: today };
+    talkConfig.lastClearedDate = today;
+    lastKnownChatMeta = { lastChatId: '', deletedAt: nowMs, readUpdatedAt: nowMs };
+
+    try {
+      await Promise.all([
+        fetch(`${FIREBASE_DB_URL}/clubData/chats.json`, { method: 'DELETE' }),
+        fetch(`${FIREBASE_DB_URL}/clubChatImages.json`, { method: 'DELETE' }),
+        fetch(`${FIREBASE_DB_URL}/clubData/talkConfig.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(talkConfig)
+        }),
+        fetch(`${FIREBASE_DB_URL}/clubData/chatMeta.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lastChatId: '', lastChatTs: nowMs, deletedAt: nowMs, readUpdatedAt: nowMs })
+        })
+      ]);
+    } catch (e) {}
+  }
+
+  function openTalkTimeAlertModal(htmlMsg, mode) {
+    talkTimeAlertMode = mode;
+    const textEl = document.getElementById('talk-time-alert-text');
+    if (textEl) textEl.innerHTML = htmlMsg;
+    document.getElementById('modal-talk-time-alert').classList.add('show');
+  }
+
+  function confirmTalkTimeAlertModal() {
+    const mode = talkTimeAlertMode;
+    talkTimeAlertMode = '';
+    document.getElementById('modal-talk-time-alert').classList.remove('show');
+    if (mode === 'close') {
+      const activeScreen = document.querySelector('.screen.active');
+      if (activeScreen && activeScreen.id === 'screen-talk-room') {
+        goToScreen('screen-menu');
+      }
+    }
+  }
+
+  function checkTalkRoomOperatingTime() {
+    const activeScreen = document.querySelector('.screen.active');
+    if (!activeScreen || activeScreen.id !== 'screen-talk-room') return;
+
+    const now = getNowDate();
+    const h = now.getHours();
+    const m = now.getMinutes();
+    const today = getTodayKey();
+
+    if (h >= 22 || h < 8) {
+      if (talkTimeAlertMode !== 'close') {
+        openTalkTimeAlertModal(
+          `수다방을 종료합니다!<br><span style="font-size:0.95rem; font-weight:600; color:#4b5563;">(이용시간: 08:00~22:00)</span>`,
+          'close'
+        );
+      }
+      return;
+    }
+
+    if (h === 21 && m === 55 && lastTalkWarn2155Date !== today) {
+      lastTalkWarn2155Date = today;
+      openTalkTimeAlertModal('22시 수다방은 종료됩니다!', 'warn');
+    }
+  }
+
+  setInterval(checkTalkRoomOperatingTime, 5000);
+
+  function openTalkPwModal() {
+    const input = document.getElementById('talk-pw-input');
+    if (input) input.value = '';
+    document.getElementById('modal-talk-pw').classList.add('show');
+    setTimeout(() => { if (input) input.focus(); }, 50);
+  }
+
+  function closeTalkPwModal() {
+    document.getElementById('modal-talk-pw').classList.remove('show');
+  }
+
+  async function confirmTalkPw() {
+    const val = document.getElementById('talk-pw-input').value.trim();
+    if (val === 'talk2025') {
+      safeSetLocalStorage('tabogga_talk_pw_saved', 'talk2025');
+      closeTalkPwModal();
+      await enterTalkRoomScreenInternal();
+    } else {
+      alert('비밀번호가 일치하지 않습니다.');
+    }
+  }
+
+  function openTalkCalendarModal() {
+    if (!isBoardCommentAdminMode) return;
+    const now = getNowDate();
+    talkCalYear = now.getFullYear();
+    talkCalMonth = now.getMonth() + 1;
+    tempSelectedOpenDates = { ...((talkConfig && talkConfig.openDates) ? talkConfig.openDates : { '2026-10-22': true }) };
+    renderTalkCalendarUI();
+    document.getElementById('modal-talk-calendar').classList.add('show');
+  }
+
+  function closeTalkCalendarModal() {
+    document.getElementById('modal-talk-calendar').classList.remove('show');
+  }
+
+  function selectTalkCalYear(y) {
+    talkCalYear = Number(y);
+    renderTalkCalendarUI();
+  }
+
+  function changeTalkCalMonth(delta) {
+    talkCalMonth += delta;
+    if (talkCalMonth < 1) {
+      talkCalMonth = 12;
+      talkCalYear -= 1;
+    } else if (talkCalMonth > 12) {
+      talkCalMonth = 1;
+      talkCalYear += 1;
+    }
+    renderTalkCalendarUI();
+  }
+
+  function toggleTalkCalDate(dateStr) {
+    if (!dateStr) return;
+    if (tempSelectedOpenDates[dateStr]) {
+      delete tempSelectedOpenDates[dateStr];
+    } else {
+      tempSelectedOpenDates[dateStr] = true;
+    }
+    renderTalkCalendarUI();
+  }
+
+  function renderTalkCalendarUI() {
+    const yearRow = document.getElementById('talk-cal-year-row');
+    const monthTitle = document.getElementById('talk-cal-month-title');
+    const grid = document.getElementById('talk-cal-grid');
+    if (!yearRow || !monthTitle || !grid) return;
+
+    const baseYear = getNowDate().getFullYear();
+    const years = [baseYear - 1, baseYear, baseYear + 1, baseYear + 2];
+    if (!years.includes(talkCalYear)) years.push(talkCalYear);
+    years.sort((a, b) => a - b);
+
+    yearRow.innerHTML = years.map(y => `
+      <button type="button" class="btn-cal-year ${y === talkCalYear ? 'active' : ''}" onclick="selectTalkCalYear(${y})">${y}년</button>
+    `).join('');
+
+    monthTitle.innerText = `${talkCalYear}년 ${talkCalMonth}월`;
+
+    const dows = ['일', '월', '화', '수', '목', '금', '토'];
+    const firstDay = new Date(talkCalYear, talkCalMonth - 1, 1).getDay();
+    const daysInMonth = new Date(talkCalYear, talkCalMonth, 0).getDate();
+
+    let html = dows.map(d => `<div class="talk-cal-dow">${d}</div>`).join('');
+    for (let i = 0; i < firstDay; i++) {
+      html += `<div class="talk-cal-cell empty"></div>`;
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${talkCalYear}-${String(talkCalMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const isSel = Boolean(tempSelectedOpenDates[dateStr]);
+      html += `<div class="talk-cal-cell ${isSel ? 'selected' : ''}" onclick="toggleTalkCalDate('${dateStr}')">${d}</div>`;
+    }
+    grid.innerHTML = html;
+  }
+
+  async function saveTalkCalendarConfig() {
+    const today = getTodayKey();
+    const wasTodayOpen = Boolean(talkConfig && talkConfig.openDates && talkConfig.openDates[today]);
+    const isNowTodayOpen = Boolean(tempSelectedOpenDates[today]);
+
+    if (!talkConfig) talkConfig = { openDates: {}, lastClearedDate: '' };
+    talkConfig.openDates = { ...tempSelectedOpenDates };
+
+    if (!wasTodayOpen && isNowTodayOpen) {
+      talkConfig.lastClearedDate = '';
+    }
+
+    closeTalkCalendarModal();
+
+    try {
+      await fetch(`${FIREBASE_DB_URL}/clubData/talkConfig.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(talkConfig)
+      });
+      if (isNowTodayOpen && talkConfig.lastClearedDate !== today) {
+        await ensureOpenDateChatCleared();
+        renderTalkRoomMessages('bottom');
+        renderTalkBoardPreview();
+      }
+    } catch (e) {
+      alert('접속 설정 저장 중 네트워크 오류가 발생했습니다.');
+    }
+  }
+
+  function isChatBodyNearBottom(bodyEl) {
+    if (!bodyEl) return true;
+    const spacer = document.getElementById('kakao-unread-tail-spacer');
+    const spacerH = spacer ? spacer.offsetHeight : 0;
+    const effectiveHeight = bodyEl.scrollHeight - spacerH;
+    return (effectiveHeight - bodyEl.scrollTop - bodyEl.clientHeight) <= 50;
+  }
+
+  function showLatestFloatingBar(msg) {
+    if (!msg) return;
+    const bar = document.getElementById('talk-latest-floating-bar');
+    const nameEl = document.getElementById('talk-latest-floating-name');
+    const textEl = document.getElementById('talk-latest-floating-text');
+    if (nameEl) nameEl.innerText = msg.name || '회원';
+    if (textEl) textEl.innerText = msg.text || '📷 사진';
+    if (bar) bar.classList.add('show');
+  }
+
+  function hideLatestFloatingBar() {
+    const bar = document.getElementById('talk-latest-floating-bar');
+    if (bar) bar.classList.remove('show');
+  }
+
+  function scrollToBottomFromFloatingBar() {
+    hideLatestFloatingBar();
+    showTalkUnreadDivider = false;
+    isUnreadAnchorLocked = false;
+    isUserScrolledTalkRoom = false;
+    renderTalkRoomMessages('bottom');
+  }
 
   function getMyTalkDeviceId() {
     let devId = localStorage.getItem('tabogga_talk_device_id');
@@ -6786,15 +7371,27 @@
       await updateMyChatReadStatus();
 
       if (!isInitialEntry && (chatsChanged || readChanged)) {
+        const updatedSorted = getSortedChats();
+        const latestMsg = updatedSorted.length > 0 ? updatedSorted[updatedSorted.length - 1] : null;
+        if (latestMsg && latestMsg.id) {
+          safeSetLocalStorage('tabogga_talk_prev_last_chat_id', latestMsg.id);
+        }
         markTalkRoomAsSeen();
         renderTalkBoardPreview();
+
+        // 수다방 접속 중일 때는 '여기까지 읽었습니다' 표시 해제
+        showTalkUnreadDivider = false;
+        isUnreadAnchorLocked = false;
+
         if (chatsChanged) {
-          // 사용자가 화면을 터치해 기존 대화글을 보고 있거나 '여기까지 읽었습니다' 상단 고정 상태일 때는 자동 스크롤 금지
-          if (isUserScrolledTalkRoom) {
+          const bodyEl = document.getElementById('kakao-chat-body');
+          if (isUserScrolledTalkRoom && !isChatBodyNearBottom(bodyEl)) {
             renderTalkRoomMessages('none');
-          } else if (showTalkUnreadDivider && isUnreadAnchorLocked) {
-            renderTalkRoomMessages('unread');
+            if (latestMsg && latestMsg.id !== localLastId) {
+              showLatestFloatingBar(latestMsg);
+            }
           } else {
+            hideLatestFloatingBar();
             renderTalkRoomMessages('bottom');
           }
         } else {
@@ -6814,7 +7411,22 @@
       openTalkProfileModal();
       return;
     }
-    setTimeout(updateTalkRoomViewport, 120);
+    hideLatestFloatingBar();
+    isUserScrolledTalkRoom = false;
+    isUnreadAnchorLocked = false;
+    if (showTalkUnreadDivider) {
+      showTalkUnreadDivider = false;
+      renderTalkRoomMessages('bottom');
+    }
+    const scrollBottomNow = () => {
+      updateTalkRoomViewport();
+      const bodyEl = document.getElementById('kakao-chat-body');
+      if (bodyEl) bodyEl.scrollTop = bodyEl.scrollHeight;
+    };
+    scrollBottomNow();
+    setTimeout(scrollBottomNow, 120);
+    setTimeout(scrollBottomNow, 280);
+    setTimeout(scrollBottomNow, 450);
   }
 
   // 수다방 사진 선택 및 초경량 압축 (최대 480px, JPEG 0.68 품질 -> 약 25KB)
@@ -7067,7 +7679,7 @@
   let isUnreadAnchorLocked = false;
   let lastTalkViewportHeight = 0;
 
-  // 스마트폰 자판이 올라올 때 입력칸이 가려지지 않도록 실제 가시 영역(visualViewport) 높이에 맞춤 (떨림 유발 scrollTo 제거)
+  // 스마트폰 자판이 올라올 때 입력칸 및 채팅방 제일 아래 최신글이 자판 바로 위에 보이도록 가시 영역(visualViewport) 맞춤
   function updateTalkRoomViewport() {
     const talkScreen = document.getElementById('screen-talk-room');
     if (!talkScreen || !talkScreen.classList.contains('active')) {
@@ -7084,6 +7696,7 @@
       const bodyEl = document.getElementById('kakao-chat-body');
       const prevH = lastTalkViewportHeight || vv.height;
       const diffH = prevH - vv.height;
+      const isInputFocused = (document.activeElement && document.activeElement.id === 'talk-message-input');
 
       if (Math.abs(diffH) > 2 || !talkScreen.style.height) {
         talkScreen.style.height = `${vv.height}px`;
@@ -7091,9 +7704,12 @@
         talkScreen.style.top = `${vv.offsetTop}px`;
         lastTalkViewportHeight = vv.height;
 
-        if (bodyEl && diffH > 60 && !isUserScrolledTalkRoom && !isUnreadAnchorLocked) {
-          bodyEl.scrollTop += diffH;
+        if (bodyEl && (isInputFocused || (diffH > 0 && !isUserScrolledTalkRoom && !isUnreadAnchorLocked))) {
+          bodyEl.scrollTop = bodyEl.scrollHeight;
         }
+      } else if (bodyEl && isInputFocused) {
+        talkScreen.style.top = `${vv.offsetTop}px`;
+        bodyEl.scrollTop = bodyEl.scrollHeight;
       }
     }
   }
@@ -7313,30 +7929,15 @@
     }
   }, 3500);
 
-  function computeUnreadDividerOnEntry(entrySeenTs) {
-    const nowMs = getNowDate().getTime();
-    const all = getSortedChats();
-    const unreadList = all.filter(item => {
-      const ts = Number(item.timestamp || 0);
-      if (!ts || (nowMs - ts) > 7 * 24 * 60 * 60 * 1000) return false;
-      return ts > entrySeenTs;
-    });
-    if (unreadList.length > 0) {
+  function computeUnreadDividerOnEntry(prevLastId) {
+    if (prevLastId && chats && chats[prevLastId]) {
       showTalkUnreadDivider = true;
-      talkUnreadFirstChatId = unreadList[0].id;
+      talkUnreadAfterChatId = prevLastId;
       isUnreadAnchorLocked = true;
-      safeSetLocalStorage('tabogga_talk_unread_first_id', talkUnreadFirstChatId);
     } else {
-      const savedDividerId = localStorage.getItem('tabogga_talk_unread_first_id') || '';
-      if (savedDividerId && chats && chats[savedDividerId]) {
-        showTalkUnreadDivider = true;
-        talkUnreadFirstChatId = savedDividerId;
-        isUnreadAnchorLocked = true;
-      } else {
-        showTalkUnreadDivider = false;
-        talkUnreadFirstChatId = '';
-        isUnreadAnchorLocked = false;
-      }
+      showTalkUnreadDivider = false;
+      talkUnreadAfterChatId = '';
+      isUnreadAnchorLocked = false;
     }
   }
 
@@ -7344,17 +7945,50 @@
     const activeScreen = document.querySelector('.screen.active');
     if (activeScreen && activeScreen.id === 'screen-talk-room') return;
 
+    if (!isTalkOperatingHours()) {
+      openTalkTimeAlertModal(
+        `수다방 사용 불가!<br><span style="font-size:0.95rem; font-weight:600; color:#4b5563;">(이용시간: 08:00~22:00)</span>`,
+        'block'
+      );
+      return;
+    }
+
+    if (isTodayTalkOpenDate()) {
+      await ensureOpenDateChatCleared();
+      await enterTalkRoomScreenInternal();
+      return;
+    }
+
+    if (localStorage.getItem('tabogga_talk_pw_saved') === 'talk2025') {
+      await enterTalkRoomScreenInternal();
+    } else {
+      openTalkPwModal();
+    }
+  }
+
+  async function enterTalkRoomScreenInternal() {
     initTalkEmojiDrawer();
     const drawer = document.getElementById('kakao-emoji-drawer');
     if (drawer) drawer.classList.remove('show');
     clearTalkAttachedImage();
     clearTalkReplyTarget();
+    hideLatestFloatingBar();
     updateBoardAdminHeaderUI();
 
+    const bodyEl = document.getElementById('kakao-chat-body');
+    if (bodyEl && !bodyEl.dataset.scrollBound) {
+      bodyEl.dataset.scrollBound = '1';
+      bodyEl.addEventListener('scroll', () => {
+        if (isChatBodyNearBottom(bodyEl) && !isUnreadAnchorLocked) {
+          hideLatestFloatingBar();
+          isUserScrolledTalkRoom = false;
+        }
+      }, { passive: true });
+    }
+
     isUserScrolledTalkRoom = false;
-    // 메인 화면의 N 건수 기준 시점을 그대로 저장하여 안 읽은 첫 글 바로 위에 배너 표시
-    talkRoomEntrySeenTs = Number(localStorage.getItem('tabogga_talk_last_seen_ts') || '0');
-    computeUnreadDividerOnEntry(talkRoomEntrySeenTs);
+    const prevLastIdOnEntry = localStorage.getItem('tabogga_talk_prev_last_chat_id') || '';
+    computeUnreadDividerOnEntry(prevLastIdOnEntry);
     isPollingChats = true;
 
     goToScreen('screen-talk-room');
@@ -7365,7 +7999,11 @@
 
     try {
       await syncTalkRoomIncremental(true);
-      computeUnreadDividerOnEntry(talkRoomEntrySeenTs);
+      computeUnreadDividerOnEntry(prevLastIdOnEntry);
+      const allNow = getSortedChats();
+      if (allNow.length > 0) {
+        safeSetLocalStorage('tabogga_talk_prev_last_chat_id', allNow[allNow.length - 1].id);
+      }
       markTalkRoomAsSeen();
       renderTalkBoardPreview();
       if (isUserScrolledTalkRoom) {
@@ -7399,15 +8037,6 @@
     let unreadDividerInserted = false;
 
     allChats.forEach(msg => {
-      if (showTalkUnreadDivider && !unreadDividerInserted && msg.id === talkUnreadFirstChatId) {
-        unreadDividerInserted = true;
-        htmlParts.push(`
-          <div id="kakao-unread-divider" class="kakao-unread-divider">
-            <span>- 여기까지 읽었습니다 -</span>
-          </div>
-        `);
-      }
-
       const msgDateKey = msg.dateKey || (msg.createdAt ? String(msg.createdAt).slice(0, 10) : getTodayKey());
       if (msgDateKey !== lastDateKey) {
         lastDateKey = msgDateKey;
@@ -7518,6 +8147,16 @@
         `);
       }
 
+      // 이전에 접속했을 때 보이던 마지막 대화글 바로 아래에 '여기까지 읽었습니다' 표시
+      if (showTalkUnreadDivider && !unreadDividerInserted && msg.id === talkUnreadAfterChatId) {
+        unreadDividerInserted = true;
+        htmlParts.push(`
+          <div id="kakao-unread-divider" class="kakao-unread-divider">
+            <span>- 여기까지 읽었습니다 -</span>
+          </div>
+        `);
+      }
+
       // 캐시에 아직 없는 URL이 있으면 비동기로 메타데이터 불러와 미리보기 카드 갱신
       urls.forEach(u => {
         if (!urlPreviewCache[u]) {
@@ -7607,10 +8246,13 @@
     }
 
     isSubmittingTalk = true;
+    showTalkUnreadDivider = false;
     isUserScrolledTalkRoom = false;
     isUnreadAnchorLocked = false;
+    hideLatestFloatingBar();
     const nowMs = getNowDate().getTime();
     const chatId = 't_' + nowMs + '_' + Math.floor(Math.random() * 1000);
+    safeSetLocalStorage('tabogga_talk_prev_last_chat_id', chatId);
     const imgToUpload = pendingTalkImageData;
     const replyDataToSave = pendingTalkReplyData ? { ...pendingTalkReplyData } : null;
 
