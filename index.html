@@ -2524,7 +2524,7 @@
     </div>
 
     <!-- 전광판 바로 아래 가로 중앙 오늘 접속 수 표시 -->
-    <div id="today-visit-bar" class="today-visit-bar">타보까톡 TADAY <strong>0</strong></div>
+    <div id="today-visit-bar" class="today-visit-bar">타보까톡 TODAY <strong>0</strong></div>
 
     <div class="main-banner-wrap">
       <img src="1.jpg" alt="롤러 클럽 메인 이미지" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22260%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%232563eb%22/><text x=%2250%25%22 y=%2250%25%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22>1.jpg 이미지를 업로드해주세요</text></svg>';">
@@ -2571,8 +2571,9 @@
     <div class="header-bar">
       <span id="checkin-header-title" class="header-title clickable-admin" onclick="openCheckinAdminPwModal()">출석 체크</span>
       <div style="display:flex; gap:8px;">
-        <button class="btn-back" onclick="openMonthScreen()">누적 현황</button>
-        <button class="btn-back" onclick="goToScreen('screen-menu')">메인</button>
+        <button type="button" id="btn-checkin-add-member" class="btn-back" style="display:none; background:#fef08a; color:#111827; font-weight:800;" onclick="openAddMemberModal()">+ 회원 추가</button>
+        <button id="btn-checkin-month" class="btn-back" onclick="openMonthScreen()">누적 현황</button>
+        <button id="btn-checkin-main" class="btn-back" onclick="goToScreen('screen-menu')">메인</button>
       </div>
     </div>
     <div class="table-wrapper">
@@ -2820,7 +2821,7 @@
         <span id="talk-room-header-title" class="header-title clickable-admin" onclick="openBoardCommentAdminPwModal()">톡톡 수다방</span>
       </div>
       <div style="display:flex; gap:8px;">
-        <button type="button" id="btn-talk-access-config" class="btn-talk-profile-edit" style="display:none; background:#fef08a; color:#111827;" onclick="openTalkCalendarModal()">접속 설정</button>
+        <button type="button" id="btn-talk-access-config" class="btn-talk-profile-edit" style="display:none; background:#fef08a; color:#111827;" onclick="openTalkAdminMenuModal()">접속 설정</button>
         <button type="button" id="btn-talk-profile-edit" class="btn-talk-profile-edit" onclick="openTalkProfileModal()">프로필 변경</button>
         <button id="btn-talk-back" class="btn-back" style="background: rgba(255,255,255,0.75);" onclick="goBack('screen-menu')">뒤로</button>
       </div>
@@ -2879,12 +2880,52 @@
   <img id="chat-img-zoom-target" class="chat-img-zoom-img" src="" alt="확대 사진" onclick="event.stopPropagation()">
 </div>
 
-<!-- [팝업] 톡톡 수다방 등록 프로필 목록 모달 (가나다순 10개 표시 및 스크롤) -->
+<!-- [팝업] 톡톡 수다방 관리자 접속 설정 메뉴 선택 모달 (휴일 설정 / 프로필 관리) -->
+<div id="modal-talk-admin-menu" class="modal-overlay">
+  <div class="modal-content" style="max-width:320px; padding:24px 18px 18px;">
+    <div class="modal-text" style="font-size:1.08rem; margin-bottom:16px;">⚙️ 수다방 접속 설정</div>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;">
+      <button type="button" class="btn-modal-ok" style="background-color:#2563eb;" onclick="openTalkCalendarFromAdminMenu()">📅 수다방 휴일 설정</button>
+      <button type="button" class="btn-modal-ok" style="background-color:#0d9488;" onclick="openTalkProfileManageFromAdminMenu()">👥 프로필 관리</button>
+    </div>
+    <button type="button" class="btn-modal-cancel" onclick="closeTalkAdminMenuModal()">닫기</button>
+  </div>
+</div>
+
+<!-- [팝업] 톡톡 수다방 등록 프로필 목록 및 관리자 선택 삭제 모달 -->
 <div id="modal-talk-member-list" class="modal-overlay">
   <div class="modal-content" style="max-width:340px; padding:22px 18px 18px;">
     <div id="talk-member-modal-title" class="modal-text" style="font-size:1.05rem; margin-bottom:12px;">수다방 등록 프로필</div>
     <div id="talk-member-scroll-list" class="talk-member-scroll-box"></div>
-    <button type="button" class="btn-modal-ok" onclick="closeTalkMemberListModal()">확인</button>
+    <button type="button" id="btn-talk-member-ok" class="btn-modal-ok" onclick="closeTalkMemberListModal()">확인</button>
+    <div id="talk-member-admin-actions" style="display:none; gap:8px;">
+      <button type="button" class="btn-modal-cancel" onclick="closeTalkMemberListModal()">취소</button>
+      <button type="button" class="btn-modal-ok" style="background-color:#dc2626;" onclick="deleteSelectedTalkMemberProfiles()">선택 삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- [팝업] 출석 체크 관리자 신규 회원 추가 모달 -->
+<div id="modal-add-member" class="modal-overlay">
+  <div class="modal-content" style="max-width:330px; padding:24px 18px 18px;">
+    <div class="modal-text" style="font-size:1.08rem; margin-bottom:14px;">➕ 신규 회원 추가</div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">회원 이름</label>
+      <input type="text" id="add-member-name-input" class="form-input" maxlength="25" placeholder="예시) 홍길동 가족, 김철수" onkeyup="if(event.key==='Enter') confirmAddMember()">
+    </div>
+    <div class="form-group" style="margin-bottom:18px;">
+      <label class="form-label">초기 등급</label>
+      <select id="add-member-grade-select" class="form-select">
+        <option value="1" selected>Guest</option>
+        <option value="2">Member</option>
+        <option value="3">Family</option>
+        <option value="4">Tabogga Core</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button type="button" class="btn-modal-cancel" onclick="closeAddMemberModal()">취소</button>
+      <button type="button" class="btn-modal-ok" onclick="confirmAddMember()">추가</button>
+    </div>
   </div>
 </div>
 
@@ -3388,7 +3429,7 @@
     if (!barEl) return;
     const today = getTodayKey();
     const todayCnt = (visitStatsData && visitStatsData.dailyVisits && Number(visitStatsData.dailyVisits[today])) || 0;
-    barEl.innerHTML = `타보까톡 TADAY <strong>${todayCnt}</strong>`;
+    barEl.innerHTML = `타보까톡 TODAY <strong>${todayCnt}</strong>`;
   }
 
   function getTodayKey() {
@@ -3605,6 +3646,161 @@
     return [];
   }
 
+  // 게시글(notices) 로컬 캐시 불러오기 및 저장 (매번 전체 게시글을 다시 다운로드하지 않도록 최적화)
+  let lastKnownNoticeMetaTs = Number(localStorage.getItem('tabogga_notice_meta_ts') || '0');
+  try {
+    const cachedNoticesRaw = localStorage.getItem('tabogga_notices_cache');
+    if (cachedNoticesRaw) {
+      const parsedNotices = JSON.parse(cachedNoticesRaw);
+      if (parsedNotices && typeof parsedNotices === 'object') {
+        notices = parsedNotices;
+      }
+    }
+  } catch (e) {}
+
+  function saveNoticesToLocalCache(metaTs) {
+    try {
+      safeSetLocalStorage('tabogga_notices_cache', JSON.stringify(notices || {}));
+      if (metaTs !== undefined && metaTs !== null && Number(metaTs) > 0) {
+        lastKnownNoticeMetaTs = Number(metaTs);
+        safeSetLocalStorage('tabogga_notice_meta_ts', String(lastKnownNoticeMetaTs));
+      }
+    } catch (e) {}
+  }
+
+  async function updateNoticeMetaOnServer(tsVal) {
+    const nowTs = tsVal || getNowDate().getTime();
+    saveNoticesToLocalCache(nowTs);
+    try {
+      await fetch(`${FIREBASE_DB_URL}/clubData/noticeMeta.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updatedAt: nowTs })
+      });
+    } catch (e) {}
+  }
+
+  async function syncNoticesIfNeeded(serverNoticeMeta) {
+    const serverTs = (serverNoticeMeta && Number(serverNoticeMeta.updatedAt)) || 0;
+    const hasLocalNotices = notices && Object.keys(notices).length > 0;
+    if (hasLocalNotices && serverTs > 0 && serverTs === lastKnownNoticeMetaTs) {
+      return false;
+    }
+    const res = await fetch(`${FIREBASE_DB_URL}/clubData/notices.json`);
+    if (!res.ok) return false;
+    notices = (await res.json()) || {};
+
+    // 기존 notices 내부에 남아있는 무거운 이미지 데이터를 clubImages 별도 서랍으로 자동 분리 이관
+    Object.values(notices).forEach(post => {
+      if (!post || !post.id) return;
+      const legacyImages = (Array.isArray(post.imageList) && post.imageList.length > 0)
+        ? post.imageList
+        : (post.imageData ? [post.imageData] : []);
+      if (legacyImages.length > 0) {
+        noticeImagesCache[post.id] = legacyImages;
+        post.hasImage = true;
+        delete post.imageList;
+        delete post.imageData;
+        fetch(`${FIREBASE_DB_URL}/clubImages/${post.id}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(legacyImages)
+        }).then(() => {
+          fetch(`${FIREBASE_DB_URL}/clubData/notices/${post.id}.json`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ hasImage: true, imageList: null, imageData: null })
+          }).catch(() => {});
+        }).catch(() => {});
+      }
+    });
+
+    const nextTs = serverTs > 0 ? serverTs : getNowDate().getTime();
+    saveNoticesToLocalCache(nextTs);
+    if (!serverTs) {
+      fetch(`${FIREBASE_DB_URL}/clubData/noticeMeta.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updatedAt: nextTs })
+      }).catch(() => {});
+    }
+    return true;
+  }
+
+  // 기본 21명 회원 외에 관리자가 추가한 신규 회원까지 함께 병합하는 함수
+  function buildMergedMemberList(dbMembers, dbCurrentMonth) {
+    const currentMonth = getCurrentMonthKey();
+    const prevMonth = getPrevMonthKey();
+    let needUpdate = false;
+    const defaultIdSet = new Set(DEFAULT_MEMBERS.map(d => d.id));
+
+    const baseList = DEFAULT_MEMBERS.map(defMember => {
+      const saved = dbMembers ? dbMembers[defMember.id] : null;
+      if (saved) {
+        const mCounts = saved.monthlyCounts || {
+          [prevMonth]: saved.lastCount ?? defMember.lastCount,
+          [currentMonth]: saved.thisCount ?? defMember.thisCount
+        };
+        if (dbCurrentMonth === currentMonth) {
+          mCounts[currentMonth] = saved.thisCount ?? defMember.thisCount;
+        }
+        if (!saved.monthlyCounts || saved.name !== defMember.name) needUpdate = true;
+
+        const validGrade = (saved.lastGrade !== undefined && saved.lastGrade !== null && saved.lastGrade >= 0 && saved.lastGrade <= 4)
+          ? Number(saved.lastGrade)
+          : defMember.lastGrade;
+
+        return {
+          ...defMember,
+          lastGrade: validGrade,
+          lastCount: saved.lastCount ?? defMember.lastCount,
+          thisCount: saved.thisCount ?? defMember.thisCount,
+          gradeSinceMonth: saved.gradeSinceMonth || defMember.gradeSinceMonth || '2026-10',
+          monthlyCounts: mCounts
+        };
+      } else {
+        needUpdate = true;
+        return {
+          ...defMember,
+          monthlyCounts: {
+            [prevMonth]: defMember.lastCount,
+            [currentMonth]: defMember.thisCount
+          }
+        };
+      }
+    });
+
+    if (dbMembers && typeof dbMembers === 'object') {
+      Object.values(dbMembers).forEach(saved => {
+        if (!saved || !saved.id || !saved.name) return;
+        const numId = Number(saved.id);
+        if (!numId || defaultIdSet.has(numId)) return;
+        const mCounts = saved.monthlyCounts || {
+          [prevMonth]: saved.lastCount ?? 0,
+          [currentMonth]: saved.thisCount ?? 0
+        };
+        if (dbCurrentMonth === currentMonth) {
+          mCounts[currentMonth] = saved.thisCount ?? 0;
+        }
+        const validGrade = (saved.lastGrade !== undefined && saved.lastGrade !== null && saved.lastGrade >= 0 && saved.lastGrade <= 4)
+          ? Number(saved.lastGrade)
+          : 1;
+        baseList.push({
+          id: numId,
+          name: String(saved.name).trim(),
+          lastGrade: validGrade,
+          lastCount: Number(saved.lastCount) || 0,
+          thisCount: Number(saved.thisCount) || 0,
+          regDate: saved.regDate || '2026-10-16',
+          gradeSinceMonth: saved.gradeSinceMonth || '2026-10',
+          monthlyCounts: mCounts
+        });
+      });
+    }
+
+    return { mergedMembers: baseList, needUpdate };
+  }
+
   // 출석 체크 시 무거운 공지사항을 제외하고 출석 데이터만 빠르게 동기화하는 경량 함수
   async function syncAttendanceOnlyFromFirebase() {
     try {
@@ -3621,7 +3817,6 @@
       const dbMonth = await monthRes.json();
 
       const currentMonth = getCurrentMonthKey();
-      const prevMonth = getPrevMonthKey();
 
       if (dbMonth && dbMonth < currentMonth) {
         await syncFromFirebase();
@@ -3629,61 +3824,108 @@
       }
 
       attendanceLog = dbLog;
-      members = DEFAULT_MEMBERS.map(defMember => {
-        const saved = dbMembers[defMember.id];
-        if (!saved) return defMember;
-        const mCounts = saved.monthlyCounts || {
-          [prevMonth]: saved.lastCount ?? defMember.lastCount,
-          [currentMonth]: saved.thisCount ?? defMember.thisCount
-        };
-        const validGrade = (saved.lastGrade >= 0 && saved.lastGrade <= 4) ? Number(saved.lastGrade) : defMember.lastGrade;
-        return {
-          ...defMember,
-          lastGrade: validGrade,
-          lastCount: saved.lastCount ?? defMember.lastCount,
-          thisCount: saved.thisCount ?? defMember.thisCount,
-          gradeSinceMonth: saved.gradeSinceMonth || defMember.gradeSinceMonth || '2026-10',
-          monthlyCounts: mCounts
-        };
-      });
+      const { mergedMembers } = buildMergedMemberList(dbMembers, dbMonth || currentMonth);
+      members = mergedMembers;
     } catch (e) {
       console.error('출석 경량 동기화 오류:', e);
     }
   }
 
   /********************************************************************
-   * 3. 파이어베이스 실시간 데이터 불러오기 및 동기화 (네트워크 오류 시 DB 초기화 방어)
+   * 3. 파이어베이스 실시간 데이터 불러오기 및 동기화 (게시글/채팅 중복 다운로드 방지)
    ********************************************************************/
   async function syncFromFirebase() {
     const syncEl = document.getElementById('sync-indicator');
-    if (syncEl) syncEl.innerText = '서버에서 최신 출석부 불러오는 중...';
+    if (syncEl) syncEl.innerText = '서버에서 최신 데이터 불러오는 중...';
 
     try {
-      const res = await fetch(`${FIREBASE_DB_URL}/clubData.json`);
-      updateServerTimeOffsetFromResponse(res);
+      const [
+        tokenRes,
+        monthRes,
+        memRes,
+        logRes,
+        boardCfgRes,
+        talkCfgRes,
+        talkProfRes,
+        visitRes,
+        noticeMetaRes,
+        chatMetaRes
+      ] = await Promise.all([
+        fetch(`${FIREBASE_DB_URL}/clubData/resetToken.json`),
+        fetch(`${FIREBASE_DB_URL}/clubData/currentMonth.json`),
+        fetch(`${FIREBASE_DB_URL}/clubData/members.json`),
+        fetch(`${FIREBASE_DB_URL}/clubData/attendanceLog.json`),
+        fetch(`${FIREBASE_DB_URL}/clubData/boardConfig.json`),
+        fetch(`${FIREBASE_DB_URL}/clubData/talkConfig.json`),
+        fetch(`${FIREBASE_DB_URL}/clubData/talkProfiles.json`),
+        fetch(`${FIREBASE_DB_URL}/clubData/visitStats.json`),
+        fetch(`${FIREBASE_DB_URL}/clubData/noticeMeta.json`),
+        fetch(`${FIREBASE_DB_URL}/clubData/chatMeta.json`)
+      ]);
+      updateServerTimeOffsetFromResponse(memRes);
 
-      if (res.status === 401 || res.status === 403) {
+      if (memRes.status === 401 || memRes.status === 403) {
         alert('파이어베이스 [규칙(Rules)] 탭에서 .read와 .write를 true로 설정 후 게시해 주세요.');
         return;
       }
-      if (!res.ok) {
-        throw new Error('HTTP 오류: ' + res.status);
+      if (!memRes.ok) {
+        throw new Error('HTTP 오류: ' + memRes.status);
       }
 
-      const data = await res.json();
+      const [
+        dbResetToken,
+        dbCurrentMonth,
+        dbMembersRaw,
+        dbLogRaw,
+        dbBoardCfg,
+        dbTalkCfg,
+        dbTalkProfiles,
+        dbVisitStats,
+        dbNoticeMeta,
+        dbChatMeta
+      ] = await Promise.all([
+        tokenRes.json(),
+        monthRes.json(),
+        memRes.json(),
+        logRes.json(),
+        boardCfgRes.json(),
+        talkCfgRes.json(),
+        talkProfRes.json(),
+        visitRes.json(),
+        noticeMetaRes.json(),
+        chatMetaRes.json()
+      ]);
+
+      // 공지사항은 noticeMeta가 변경되었거나 로컬 캐시가 없을 때만 다운로드
+      await syncNoticesIfNeeded(dbNoticeMeta);
+
+      // 수다방 채팅도 변경 사항이 있거나 최초 로드일 때만 다운로드
+      const localChatsCount = Object.keys(chats || {}).length;
+      if (localChatsCount === 0 || (dbChatMeta && dbChatMeta.lastChatId && dbChatMeta.lastChatId !== lastKnownChatMeta.lastChatId) || (dbChatMeta && dbChatMeta.deletedAt && dbChatMeta.deletedAt !== lastKnownChatMeta.deletedAt)) {
+        const chatsRes = await fetch(`${FIREBASE_DB_URL}/clubData/chats.json`);
+        if (chatsRes.ok) {
+          chats = (await chatsRes.json()) || {};
+        }
+        if (dbChatMeta) {
+          lastKnownChatMeta = {
+            lastChatId: dbChatMeta.lastChatId || '',
+            deletedAt: dbChatMeta.deletedAt || 0,
+            readUpdatedAt: dbChatMeta.readUpdatedAt || 0
+          };
+        }
+      }
+
       const currentMonth = getCurrentMonthKey();
       const prevMonth = getPrevMonthKey();
 
       const hasExistingData = Boolean(
-        data && (
-          (data.members && Object.keys(data.members).length > 0) ||
-          (data.notices && Object.keys(data.notices).length > 0) ||
-          (data.attendanceLog && Object.keys(data.attendanceLog).length > 0)
-        )
+        (dbMembersRaw && Object.keys(dbMembersRaw).length > 0) ||
+        (notices && Object.keys(notices).length > 0) ||
+        (dbLogRaw && Object.keys(dbLogRaw).length > 0)
       );
 
-      // DB가 완전히 비어있고 기존 데이터도 전혀 없을 때만 최초 초기화 수행 (네트워크 오류나 토큰 누락으로 기존 DB가 덮어씌워지는 현상 원천 차단)
-      if (!data && !hasExistingData) {
+      // DB가 완전히 비어있고 기존 데이터도 전혀 없을 때만 최초 초기화 수행
+      if (!dbMembersRaw && !hasExistingData) {
         const initialObj = {
           resetToken: OFFICIAL_RESET_TOKEN,
           currentMonth: currentMonth,
@@ -3718,16 +3960,29 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(initialObj)
         });
-      } else if (data) {
-        const dbMembers = data.members || {};
-        attendanceLog = data.attendanceLog || {};
-        notices = data.notices || {};
-        chats = data.chats || {};
-        talkProfiles = data.talkProfiles || {};
-        if (data.talkConfig) {
+      } else {
+        const dbMembers = dbMembersRaw || {};
+        attendanceLog = dbLogRaw || {};
+        talkProfiles = dbTalkProfiles || {};
+
+        // 관리자가 서버에서 삭제한 프로필인 경우 해당 회원의 로컬 프로필도 자동 초기화
+        const myDevId = getMyTalkDeviceId();
+        const mySavedProf = getSavedTalkProfile();
+        if (mySavedProf) {
+          if (localStorage.getItem('tabogga_talk_profile_synced') === '1') {
+            if (!talkProfiles[myDevId]) {
+              localStorage.removeItem('tabogga_talk_profile');
+              localStorage.removeItem('tabogga_talk_profile_synced');
+            }
+          } else {
+            syncMyTalkProfileToServer(mySavedProf);
+          }
+        }
+
+        if (dbTalkCfg) {
           talkConfig = {
-            openDates: data.talkConfig.openDates || { '2026-10-22': true },
-            lastClearedDate: data.talkConfig.lastClearedDate || '2026-10-22'
+            openDates: dbTalkCfg.openDates || { '2026-10-22': true },
+            lastClearedDate: dbTalkCfg.lastClearedDate || '2026-10-22'
           };
         } else {
           talkConfig = { openDates: { '2026-10-22': true }, lastClearedDate: '2026-10-22' };
@@ -3737,84 +3992,26 @@
             body: JSON.stringify(talkConfig)
           }).catch(() => {});
         }
-        if (data.visitStats) {
-          visitStatsData = data.visitStats;
+        if (dbVisitStats) {
+          visitStatsData = dbVisitStats;
         }
-        if (data.boardConfig) {
+        if (dbBoardCfg) {
           boardConfig = {
-            text: data.boardConfig.text ?? boardConfig.text,
-            color: data.boardConfig.color || boardConfig.color,
-            size: data.boardConfig.size || boardConfig.size
+            text: dbBoardCfg.text ?? boardConfig.text,
+            color: dbBoardCfg.color || boardConfig.color,
+            size: dbBoardCfg.size || boardConfig.size
           };
         }
-        let needUpdateDB = false;
 
-        if (data.resetToken !== OFFICIAL_RESET_TOKEN) {
+        const { mergedMembers, needUpdate } = buildMergedMemberList(dbMembers, dbCurrentMonth);
+        members = mergedMembers;
+        let needUpdateDB = needUpdate;
+
+        if (dbResetToken !== OFFICIAL_RESET_TOKEN) {
           needUpdateDB = true;
         }
 
-        // 기존 notices 내부에 남아있는 무거운 이미지 데이터를 clubImages 별도 서랍으로 자동 분리 이관
-        Object.values(notices).forEach(post => {
-          if (!post || !post.id) return;
-          const legacyImages = (Array.isArray(post.imageList) && post.imageList.length > 0)
-            ? post.imageList
-            : (post.imageData ? [post.imageData] : []);
-          if (legacyImages.length > 0) {
-            noticeImagesCache[post.id] = legacyImages;
-            post.hasImage = true;
-            delete post.imageList;
-            delete post.imageData;
-            fetch(`${FIREBASE_DB_URL}/clubImages/${post.id}.json`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(legacyImages)
-            }).then(() => {
-              fetch(`${FIREBASE_DB_URL}/clubData/notices/${post.id}.json`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ hasImage: true, imageList: null, imageData: null })
-              }).catch(() => {});
-            }).catch(() => {});
-          }
-        });
-
-        members = DEFAULT_MEMBERS.map(defMember => {
-          const saved = dbMembers[defMember.id];
-          if (saved) {
-            const mCounts = saved.monthlyCounts || {
-              [prevMonth]: saved.lastCount ?? defMember.lastCount,
-              [currentMonth]: saved.thisCount ?? defMember.thisCount
-            };
-            if (data.currentMonth === currentMonth) {
-              mCounts[currentMonth] = saved.thisCount ?? defMember.thisCount;
-            }
-            if (!saved.monthlyCounts || saved.name !== defMember.name) needUpdateDB = true;
-
-            const validGrade = (saved.lastGrade !== undefined && saved.lastGrade !== null && saved.lastGrade >= 0 && saved.lastGrade <= 4)
-              ? Number(saved.lastGrade)
-              : defMember.lastGrade;
-
-            return {
-              ...defMember,
-              lastGrade: validGrade,
-              lastCount: saved.lastCount ?? defMember.lastCount,
-              thisCount: saved.thisCount ?? defMember.thisCount,
-              gradeSinceMonth: saved.gradeSinceMonth || defMember.gradeSinceMonth || '2026-10',
-              monthlyCounts: mCounts
-            };
-          } else {
-            needUpdateDB = true;
-            return {
-              ...defMember,
-              monthlyCounts: {
-                [prevMonth]: defMember.lastCount,
-                [currentMonth]: defMember.thisCount
-              }
-            };
-          }
-        });
-
-        // 삭제된 옛날 공지글의 로컬 읽음/투표 기록 자동 정리 (수년간 장기 운영 시 찌꺼기 누적 방지)
+        // 삭제된 옛날 공지글의 로컬 읽음/투표 기록 자동 정리
         try {
           const validNoticeIds = new Set(Object.keys(notices));
           const seenMap = getBoardSeenStateMap();
@@ -3828,9 +4025,9 @@
           if (seenChanged) saveBoardSeenStateMap(seenMap);
         } catch (e) {}
 
-        // 스마트폰 시계 오차로 인한 월간 출석부 조기 초기화 방지 (파이어베이스 서버 표준 시간 직접 검증)
+        // 스마트폰 시계 오차로 인한 월간 출석부 조기 초기화 방지
         let verifiedCurrentMonth = currentMonth;
-        if (data.currentMonth && data.currentMonth < currentMonth && serverTimeOffsetMs === 0) {
+        if (dbCurrentMonth && dbCurrentMonth < currentMonth && serverTimeOffsetMs === 0) {
           try {
             const timeRes = await fetch(`${FIREBASE_DB_URL}/clubData/serverTimeCheck.json`, {
               method: 'PUT',
@@ -3848,11 +4045,11 @@
         }
 
         // 월(Month)이 바뀌었는지 확인 후 자동 월간 이관, 빈 달 보정, 등급 산정 및 오래된 일별 로그 정리
-        if (data.currentMonth && data.currentMonth < verifiedCurrentMonth) {
-          const monthSpan = getMonthRangeList(data.currentMonth, verifiedCurrentMonth);
+        if (dbCurrentMonth && dbCurrentMonth < verifiedCurrentMonth) {
+          const monthSpan = getMonthRangeList(dbCurrentMonth, verifiedCurrentMonth);
           members.forEach(m => {
             if (!m.monthlyCounts) m.monthlyCounts = {};
-            m.monthlyCounts[data.currentMonth] = m.thisCount;
+            m.monthlyCounts[dbCurrentMonth] = m.thisCount;
             monthSpan.forEach(ym => {
               if (ym !== currentMonth && m.monthlyCounts[ym] === undefined) {
                 m.monthlyCounts[ym] = 0;
@@ -3869,10 +4066,10 @@
               delete attendanceLog[dateKey];
             }
           });
-          if (data.visitStats && data.visitStats.dailyVisits) {
-            Object.keys(data.visitStats.dailyVisits).forEach(dateKey => {
+          if (visitStatsData && visitStatsData.dailyVisits) {
+            Object.keys(visitStatsData.dailyVisits).forEach(dateKey => {
               if (!isWithinRecentDays(dateKey, 60)) {
-                delete data.visitStats.dailyVisits[dateKey];
+                delete visitStatsData.dailyVisits[dateKey];
               }
             });
           }
@@ -3889,8 +4086,8 @@
             members: updatedMembersObj,
             attendanceLog: attendanceLog
           };
-          if (data.visitStats) {
-            patchPayload.visitStats = data.visitStats;
+          if (visitStatsData) {
+            patchPayload.visitStats = visitStatsData;
           }
           await fetch(`${FIREBASE_DB_URL}/clubData.json`, {
             method: 'PATCH',
@@ -4096,7 +4293,7 @@
 
   async function enterCheckinAfterGps() {
     goToScreen('screen-checkin', false, true);
-    await syncFromFirebase();
+    await syncAttendanceOnlyFromFirebase();
     renderCheckinTable();
   }
 
@@ -4342,6 +4539,7 @@
             method: 'DELETE'
           })
         ]);
+        await updateNoticeMetaOnServer();
       } catch (e) {
         alert('삭제 중 네트워크 오류가 발생했습니다.');
       }
@@ -4384,10 +4582,90 @@
 
   function updateCheckinAdminHeaderUI() {
     const titleEl = document.getElementById('checkin-header-title');
-    if (!titleEl) return;
-    titleEl.innerHTML = isCheckinAdminMode
-      ? `출석 체크<span class="admin-mode-pill">등급관리</span>`
-      : `출석 체크`;
+    const addMemberBtn = document.getElementById('btn-checkin-add-member');
+    const monthBtn = document.getElementById('btn-checkin-month');
+    const mainBtn = document.getElementById('btn-checkin-main');
+    if (titleEl) {
+      titleEl.innerHTML = isCheckinAdminMode
+        ? `출석 체크<span class="admin-mode-pill">등급관리</span>`
+        : `출석 체크`;
+    }
+    if (addMemberBtn) addMemberBtn.style.display = isCheckinAdminMode ? 'inline-block' : 'none';
+    if (monthBtn) monthBtn.style.display = isCheckinAdminMode ? 'none' : 'inline-block';
+    if (mainBtn) mainBtn.style.display = isCheckinAdminMode ? 'none' : 'inline-block';
+  }
+
+  function openAddMemberModal() {
+    if (!isCheckinAdminMode) return;
+    const nameInput = document.getElementById('add-member-name-input');
+    const gradeSelect = document.getElementById('add-member-grade-select');
+    if (nameInput) nameInput.value = '';
+    if (gradeSelect) gradeSelect.value = '1';
+    document.getElementById('modal-add-member').classList.add('show');
+    setTimeout(() => { if (nameInput) nameInput.focus(); }, 50);
+  }
+
+  function closeAddMemberModal() {
+    document.getElementById('modal-add-member').classList.remove('show');
+  }
+
+  let isAddingMember = false;
+
+  async function confirmAddMember() {
+    if (!isCheckinAdminMode || isAddingMember) return;
+    const nameInput = document.getElementById('add-member-name-input');
+    const gradeSelect = document.getElementById('add-member-grade-select');
+    const newName = nameInput ? nameInput.value.trim() : '';
+    const selectedGrade = gradeSelect ? ( parseInt(gradeSelect.value, 10) || 1 ) : 1;
+
+    if (!newName) {
+      alert('추가할 회원 이름을 입력해 주세요.');
+      if (nameInput) nameInput.focus();
+      return;
+    }
+
+    const isDuplicate = members.some(m => String(m.name).trim() === newName);
+    if (isDuplicate) {
+      alert('이미 등록되어 있는 회원 이름입니다.');
+      return;
+    }
+
+    isAddingMember = true;
+    const maxId = members.reduce((max, m) => Math.max(max, Number(m.id) || 0), 21);
+    const nextId = maxId + 1;
+    const today = getTodayKey();
+    const currentMonth = getCurrentMonthKey();
+    const prevMonth = getPrevMonthKey();
+
+    const newMember = {
+      id: nextId,
+      name: newName,
+      lastGrade: selectedGrade,
+      lastCount: 0,
+      thisCount: 0,
+      regDate: today,
+      gradeSinceMonth: currentMonth,
+      monthlyCounts: {
+        [prevMonth]: 0,
+        [currentMonth]: 0
+      }
+    };
+
+    members.push(newMember);
+    closeAddMemberModal();
+    renderCheckinTable();
+
+    try {
+      await fetch(`${FIREBASE_DB_URL}/clubData/members/${nextId}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newMember)
+      });
+    } catch (e) {
+      alert('회원 추가 저장 중 네트워크 오류가 발생했습니다.');
+    } finally {
+      isAddingMember = false;
+    }
   }
 
   function openCheckinAdminPwModal() {
@@ -4765,7 +5043,7 @@
       thumbClass += ' naverbox';
     }
 
-    const thumbHtml = previewData.image
+    const thumbHtml = (previewData.image && platform !== 'naverbox')
       ? `<img class="url-preview-thumb" src="${escapeHtmlText(previewData.image)}" alt="미리보기" onerror="this.outerHTML='<div class=\\'${thumbClass}\\'>${badgeIcon}</div>'">`
       : `<div class="${thumbClass}">${badgeIcon}</div>`;
 
@@ -5023,6 +5301,12 @@
     if (Array.isArray(previewList)) {
       previewList.forEach(p => { if (p && p.url) previewMap[p.url] = p; });
     }
+
+    const renderSig = `${currentNoticeId || ''}__${text}__${JSON.stringify(previewMap)}`;
+    if (contentEl.dataset.renderedSig === renderSig && contentEl.childNodes.length > 0) {
+      return;
+    }
+    contentEl.dataset.renderedSig = renderSig;
 
     const allUrls = extractAllUrlsFromText(text);
     if (allUrls.length === 0) {
@@ -5563,8 +5847,17 @@
     updateBoardAdminHeaderUI();
     renderKidsBoardFullList();
     goToScreen('screen-board-list');
-    await syncFromFirebase();
-    renderKidsBoardFullList();
+    try {
+      const metaRes = await fetch(`${FIREBASE_DB_URL}/clubData/noticeMeta.json`);
+      if (metaRes.ok) {
+        const meta = await metaRes.json();
+        const changed = await syncNoticesIfNeeded(meta);
+        if (changed) {
+          renderKidsBoardFullList();
+          renderKidsBoardPreview();
+        }
+      }
+    } catch (e) {}
   }
 
   function renderKidsBoardFullList() {
@@ -5633,6 +5926,7 @@
     if (postObj) {
       postObj.views = nextViews;
       markPostAndCommentsAsSeen(postObj);
+      saveNoticesToLocalCache();
     }
 
     try {
@@ -5655,18 +5949,24 @@
 
     try {
       const prevServerViews = postObj ? Math.max(0, nextViews - 1) : 0;
-      await Promise.all([
-        syncFromFirebase(),
+      const [singlePostRes] = await Promise.all([
+        fetch(`${FIREBASE_DB_URL}/clubData/notices/${postId}.json`),
         fetchNoticeImages(postId)
       ]);
-      if (notices && notices[postId]) {
-        const syncedViews = Number(notices[postId].views || 0);
-        notices[postId].views = (syncedViews >= nextViews) ? (syncedViews + 1) : Math.max(nextViews, prevServerViews + 1);
-        await fetch(`${FIREBASE_DB_URL}/clubData/notices/${postId}/views.json`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(notices[postId].views)
-        });
+      if (singlePostRes && singlePostRes.ok) {
+        const latestPost = await singlePostRes.json();
+        if (latestPost && latestPost.id) {
+          if (!notices) notices = {};
+          const syncedViews = Number(latestPost.views || 0);
+          latestPost.views = (syncedViews >= nextViews) ? (syncedViews + 1) : Math.max(nextViews, prevServerViews + 1);
+          notices[postId] = latestPost;
+          saveNoticesToLocalCache();
+          await fetch(`${FIREBASE_DB_URL}/clubData/notices/${postId}/views.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(latestPost.views)
+          });
+        }
       }
     } catch (e) {}
 
@@ -5953,6 +6253,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(nextVotes)
       });
+      await updateNoticeMetaOnServer();
     } catch (e) {
       alert('투표 저장 중 네트워크 오류가 발생했습니다.');
     } finally {
@@ -5997,6 +6298,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(commentObj)
       });
+      await updateNoticeMetaOnServer(nowMs);
     } catch (e) {
       alert('댓글 등록 중 네트워크 오류가 발생했습니다.');
     } finally {
@@ -6032,6 +6334,7 @@
       await fetch(`${FIREBASE_DB_URL}/clubData/notices/${currentNoticeId}/comments/${commentId}.json`, {
         method: 'DELETE'
       });
+      await updateNoticeMetaOnServer();
     } catch (e) {
       alert('댓글 삭제 중 네트워크 오류가 발생했습니다.');
     }
@@ -6127,6 +6430,7 @@
             method: 'DELETE'
           })
         ]);
+        await updateNoticeMetaOnServer();
       } catch (e) {
         alert('삭제 중 네트워크 오류가 발생했습니다.');
       }
@@ -6217,6 +6521,8 @@
     }
     safeSetLocalStorage('tabogga_last_seen_notice_id', postId);
     markPostAndCommentsAsSeen(postObj);
+    const detailContentEl = document.getElementById('detail-post-content');
+    if (detailContentEl) detailContentEl.dataset.renderedSig = '';
 
     try {
       const saveRequests = [
@@ -6242,6 +6548,7 @@
         );
       }
       await Promise.all(saveRequests);
+      await updateNoticeMetaOnServer(nowMs);
     } catch (e) {
       isSavingNotice = false;
       alert('공지 저장 중 네트워크 오류가 발생했습니다.');
@@ -6546,7 +6853,7 @@
     if (loader) loader.classList.add('show');
 
     await Promise.all([
-      syncFromFirebase(),
+      syncAttendanceOnlyFromFirebase(),
       preloadRinkImage()
     ]);
 
@@ -6685,7 +6992,7 @@
    ********************************************************************/
   async function openMonthScreen() {
     goToScreen('screen-month');
-    await syncFromFirebase();
+    await syncAttendanceOnlyFromFirebase();
     renderMonthTable();
   }
 
@@ -6974,7 +7281,29 @@
     }
   }
 
-  // 수다방 등록 프로필 목록 가나다순 반환 (이름 기준 중복 완벽 제거)
+  let isTalkMemberListAdminMode = false;
+  let selectedTalkProfileNamesForDelete = new Set();
+
+  function openTalkAdminMenuModal() {
+    if (!isBoardCommentAdminMode) return;
+    document.getElementById('modal-talk-admin-menu').classList.add('show');
+  }
+
+  function closeTalkAdminMenuModal() {
+    document.getElementById('modal-talk-admin-menu').classList.remove('show');
+  }
+
+  function openTalkCalendarFromAdminMenu() {
+    closeTalkAdminMenuModal();
+    openTalkCalendarModal();
+  }
+
+  function openTalkProfileManageFromAdminMenu() {
+    closeTalkAdminMenuModal();
+    openTalkMemberListModal(true);
+  }
+
+  // 수다방 등록 프로필 목록 가나다순 반환 (서버 talkProfiles 기준, 중복 완벽 제거)
   function getTalkRegisteredProfileList() {
     cleanupDuplicateTalkProfiles();
     const byNameMap = {};
@@ -6992,15 +7321,6 @@
         }
       }
     });
-    const mySaved = getSavedTalkProfile();
-    if (mySaved && mySaved.name && String(mySaved.name).trim()) {
-      const myCleanName = String(mySaved.name).trim();
-      byNameMap[myCleanName] = {
-        name: myCleanName,
-        charId: Number(mySaved.charId) || 1,
-        updatedAt: Date.now()
-      };
-    }
     const list = Object.values(byNameMap);
     list.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
     return list;
@@ -7011,31 +7331,98 @@
     return getTalkRegisteredProfileList().length;
   }
 
+  function toggleSelectTalkMemberProfile(idx) {
+    if (!isTalkMemberListAdminMode) return;
+    const list = getTalkRegisteredProfileList();
+    const item = list[idx];
+    if (!item || !item.name) return;
+    if (selectedTalkProfileNamesForDelete.has(item.name)) {
+      selectedTalkProfileNamesForDelete.delete(item.name);
+    } else {
+      selectedTalkProfileNamesForDelete.add(item.name);
+    }
+    renderTalkMemberListModalContent();
+  }
+
+  async function deleteSelectedTalkMemberProfiles() {
+    if (!isTalkMemberListAdminMode) return;
+    const targetNames = Array.from(selectedTalkProfileNamesForDelete);
+    if (targetNames.length === 0) {
+      alert('삭제할 프로필을 선택해 주세요.');
+      return;
+    }
+    if (!confirm(`선택한 프로필 ${targetNames.length}명을 삭제할까요?`)) return;
+
+    const targetSet = new Set(targetNames);
+    const devIdsToDelete = [];
+    Object.keys(talkProfiles || {}).forEach(devId => {
+      const p = talkProfiles[devId];
+      const pName = (p && p.name) ? String(p.name).trim() : '';
+      if (targetSet.has(pName)) {
+        devIdsToDelete.push(devId);
+        delete talkProfiles[devId];
+      }
+    });
+
+    const mySaved = getSavedTalkProfile();
+    if (mySaved && mySaved.name && targetSet.has(String(mySaved.name).trim())) {
+      localStorage.removeItem('tabogga_talk_profile');
+      localStorage.removeItem('tabogga_talk_profile_synced');
+    }
+
+    selectedTalkProfileNamesForDelete.clear();
+    renderTalkBoardPreview();
+    renderTalkMemberListModalContent();
+
+    try {
+      await Promise.all(
+        devIdsToDelete.map(devId =>
+          fetch(`${FIREBASE_DB_URL}/clubData/talkProfiles/${devId}.json`, {
+            method: 'DELETE'
+          })
+        )
+      );
+    } catch (e) {
+      alert('프로필 삭제 중 네트워크 오류가 발생했습니다.');
+    }
+  }
+
   function renderTalkMemberListModalContent() {
     const listEl = document.getElementById('talk-member-scroll-list');
     const titleEl = document.getElementById('talk-member-modal-title');
+    const okBtn = document.getElementById('btn-talk-member-ok');
+    const adminActions = document.getElementById('talk-member-admin-actions');
     if (!listEl) return;
+
+    if (okBtn) okBtn.style.display = isTalkMemberListAdminMode ? 'none' : 'block';
+    if (adminActions) adminActions.style.display = isTalkMemberListAdminMode ? 'flex' : 'none';
 
     const list = getTalkRegisteredProfileList();
     if (titleEl) {
-      titleEl.innerText = `수다방 등록 프로필 (${list.length}명)`;
+      titleEl.innerText = isTalkMemberListAdminMode
+        ? `프로필 관리 - 선택 삭제 (${list.length}명)`
+        : `수다방 등록 프로필 (${list.length}명)`;
     }
     if (list.length === 0) {
       listEl.innerHTML = `<div class="kids-empty-msg" style="padding:18px 0;">등록된 프로필이 없습니다.</div>`;
       return;
     }
-    listEl.innerHTML = list.map(item => {
+    listEl.innerHTML = list.map((item, idx) => {
       const ch = getTalkCharacterById(item.charId);
+      const isSel = isTalkMemberListAdminMode && selectedTalkProfileNamesForDelete.has(item.name);
       return `
-        <div class="talk-member-list-item">
+        <div class="talk-member-list-item" style="${isTalkMemberListAdminMode ? 'cursor:pointer;' : ''}${isSel ? 'border-color:#dc2626; background-color:#fef2f2;' : ''}" ${isTalkMemberListAdminMode ? `onclick="toggleSelectTalkMemberProfile(${idx})"` : ''}>
           <div class="kakao-msg-avatar" style="background: ${ch.bg}; width:26px; height:26px; border-radius:9px; font-size:0.95rem;">${ch.icon}</div>
           <div class="talk-member-list-name">${escapeHtmlText(item.name)}</div>
+          ${isTalkMemberListAdminMode ? `<span style="width:20px; height:20px; border-radius:50%; border:2px solid ${isSel ? '#dc2626' : '#d1d5db'}; background:${isSel ? '#dc2626' : '#ffffff'}; color:#ffffff; display:inline-flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:900; flex-shrink:0;">${isSel ? '✓' : ''}</span>` : ''}
         </div>
       `;
     }).join('');
   }
 
-  async function openTalkMemberListModal() {
+  async function openTalkMemberListModal(adminManageMode = false) {
+    isTalkMemberListAdminMode = Boolean(adminManageMode && isBoardCommentAdminMode);
+    selectedTalkProfileNamesForDelete.clear();
     renderTalkMemberListModalContent();
     const listEl = document.getElementById('talk-member-scroll-list');
     if (listEl) listEl.scrollTop = 0;
@@ -7052,6 +7439,8 @@
   }
 
   function closeTalkMemberListModal() {
+    isTalkMemberListAdminMode = false;
+    selectedTalkProfileNamesForDelete.clear();
     document.getElementById('modal-talk-member-list').classList.remove('show');
   }
 
@@ -7128,6 +7517,7 @@
       charId: Number(profileObj.charId) || 1,
       updatedAt: getNowDate().getTime()
     };
+    safeSetLocalStorage('tabogga_talk_profile_synced', '1');
     cleanupDuplicateTalkProfiles(oldName);
     renderTalkBoardPreview();
     try {
@@ -7926,7 +8316,7 @@
     const zoomModal = document.getElementById('modal-chat-img-zoom');
 
     const mySavedProf = getSavedTalkProfile();
-    if (mySavedProf) {
+    if (mySavedProf && localStorage.getItem('tabogga_talk_profile_synced') !== '1') {
       syncMyTalkProfileToServer(mySavedProf);
     }
 
@@ -8102,13 +8492,13 @@
     }
   });
 
-  // '- 여기까지 읽었습니다 -' 배너가 수다방 화면 최상단부터 보이도록 정렬
+  // '- 여기까지 읽었습니다 -' 배너가 수다방 화면 제일 하단에 위치하도록 정렬 (이전에 읽은 글을 먼저 보고 아래로 스크롤하여 신규 글 확인)
   function alignTalkScrollPosition(bodyEl, mode) {
     if (!bodyEl) return;
     if (mode === 'unread') {
       const unreadEl = document.getElementById('kakao-unread-divider');
       if (unreadEl) {
-        bodyEl.scrollTop = Math.max(0, unreadEl.offsetTop - 8);
+        bodyEl.scrollTop = Math.max(0, (unreadEl.offsetTop + unreadEl.offsetHeight) - bodyEl.clientHeight + 8);
       } else {
         bodyEl.scrollTop = bodyEl.scrollHeight;
       }
@@ -8386,15 +8776,8 @@
     bodyEl.innerHTML = htmlParts.join('');
 
     const ensureUnreadCanReachTop = () => {
-      const unreadEl = document.getElementById('kakao-unread-divider');
       const spacerEl = document.getElementById('kakao-unread-tail-spacer');
-      if (!unreadEl || !spacerEl) return;
-      spacerEl.style.height = '0px';
-      const targetTop = Math.max(0, unreadEl.offsetTop - 8);
-      const maxScroll = bodyEl.scrollHeight - bodyEl.clientHeight;
-      if (targetTop > maxScroll) {
-        spacerEl.style.height = `${targetTop - maxScroll + 12}px`;
-      }
+      if (spacerEl) spacerEl.style.height = '0px';
     };
 
     if (scrollMode === 'unread') {
