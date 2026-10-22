@@ -6912,26 +6912,96 @@
     }
   }
 
-  // 수다방 등록 프로필 목록 가나다순 반환
+  // 중복 등록된 동일 이름 프로필 및 변경 전 이전 프로필을 서버(talkProfiles)에서 자동 정리 (기존 채팅·출석 데이터에는 영향 없음)
+  function cleanupDuplicateTalkProfiles(oldNameToRemove = '') {
+    if (!talkProfiles || typeof talkProfiles !== 'object') return;
+    const myDevId = getMyTalkDeviceId();
+    const mySaved = getSavedTalkProfile();
+    const myCurrentName = (mySaved && mySaved.name) ? String(mySaved.name).trim() : '';
+    const cleanOldName = String(oldNameToRemove || '').trim();
+    const deleteIds = new Set();
+
+    // 1) 프로필 변경 시 기존 이름(oldName)으로 다른 기기ID에 남아있는 이전 프로필 삭제
+    if (cleanOldName && cleanOldName !== myCurrentName) {
+      Object.keys(talkProfiles).forEach(devId => {
+        const p = talkProfiles[devId];
+        const pName = (p && p.name) ? String(p.name).trim() : '';
+        if (devId !== myDevId && pName === cleanOldName) {
+          deleteIds.add(devId);
+        }
+      });
+    }
+
+    // 2) 동일한 이름이 2개 이상 등록된 경우 가장 최근(또는 내 기기) 1개만 남기고 중복 키 삭제
+    const nameGroups = {};
+    Object.keys(talkProfiles).forEach(devId => {
+      if (deleteIds.has(devId)) return;
+      const p = talkProfiles[devId];
+      const pName = (p && p.name) ? String(p.name).trim() : '';
+      if (!pName) {
+        deleteIds.add(devId);
+        return;
+      }
+      if (!nameGroups[pName]) nameGroups[pName] = [];
+      nameGroups[pName].push({
+        devId: devId,
+        updatedAt: Number(p.updatedAt) || 0
+      });
+    });
+
+    Object.keys(nameGroups).forEach(pName => {
+      const group = nameGroups[pName];
+      if (group.length <= 1) return;
+      group.sort((a, b) => {
+        if (pName === myCurrentName) {
+          if (a.devId === myDevId) return -1;
+          if (b.devId === myDevId) return 1;
+        }
+        return b.updatedAt - a.updatedAt;
+      });
+      for (let i = 1; i < group.length; i++) {
+        deleteIds.add(group[i].devId);
+      }
+    });
+
+    if (deleteIds.size > 0) {
+      deleteIds.forEach(devId => {
+        delete talkProfiles[devId];
+        fetch(`${FIREBASE_DB_URL}/clubData/talkProfiles/${devId}.json`, {
+          method: 'DELETE'
+        }).catch(() => {});
+      });
+    }
+  }
+
+  // 수다방 등록 프로필 목록 가나다순 반환 (이름 기준 중복 완벽 제거)
   function getTalkRegisteredProfileList() {
-    const profileMap = {};
+    cleanupDuplicateTalkProfiles();
+    const byNameMap = {};
     Object.keys(talkProfiles || {}).forEach(devId => {
       const p = talkProfiles[devId];
       if (p && p.name && String(p.name).trim()) {
-        profileMap[devId] = {
-          name: String(p.name).trim(),
-          charId: Number(p.charId) || 1
-        };
+        const cleanName = String(p.name).trim();
+        const updatedAt = Number(p.updatedAt) || 0;
+        if (!byNameMap[cleanName] || updatedAt >= byNameMap[cleanName].updatedAt) {
+          byNameMap[cleanName] = {
+            name: cleanName,
+            charId: Number(p.charId) || 1,
+            updatedAt: updatedAt
+          };
+        }
       }
     });
     const mySaved = getSavedTalkProfile();
     if (mySaved && mySaved.name && String(mySaved.name).trim()) {
-      profileMap[getMyTalkDeviceId()] = {
-        name: String(mySaved.name).trim(),
-        charId: Number(mySaved.charId) || 1
+      const myCleanName = String(mySaved.name).trim();
+      byNameMap[myCleanName] = {
+        name: myCleanName,
+        charId: Number(mySaved.charId) || 1,
+        updatedAt: Date.now()
       };
     }
-    const list = Object.values(profileMap);
+    const list = Object.values(byNameMap);
     list.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
     return list;
   }
@@ -7049,15 +7119,16 @@
     document.getElementById('modal-talk-profile').classList.remove('show');
   }
 
-  async function syncMyTalkProfileToServer(profileObj) {
+  async function syncMyTalkProfileToServer(profileObj, oldName = '') {
     if (!profileObj || !profileObj.name) return;
     const myDevId = getMyTalkDeviceId();
     if (!talkProfiles) talkProfiles = {};
     talkProfiles[myDevId] = {
-      name: profileObj.name,
-      charId: profileObj.charId || 1,
+      name: String(profileObj.name).trim(),
+      charId: Number(profileObj.charId) || 1,
       updatedAt: getNowDate().getTime()
     };
+    cleanupDuplicateTalkProfiles(oldName);
     renderTalkBoardPreview();
     try {
       await fetch(`${FIREBASE_DB_URL}/clubData/talkProfiles/${myDevId}.json`, {
@@ -7080,8 +7151,10 @@
       alert('내 캐릭터를 선택해 주세요.');
       return;
     }
+    const prevProfile = getSavedTalkProfile();
+    const oldName = (prevProfile && prevProfile.name) ? String(prevProfile.name).trim() : '';
     const saved = saveTalkProfile(chosenName, selectedTalkCharId);
-    syncMyTalkProfileToServer(saved);
+    syncMyTalkProfileToServer(saved, oldName);
     closeTalkProfileModal();
     renderTalkRoomMessages('none');
 
@@ -7252,6 +7325,12 @@
 
   function selectTalkCalYear(y) {
     talkCalYear = Number(y);
+    if (talkCalYear >= 2027) {
+      talkCalMonth = 1;
+    } else {
+      const now = getNowDate();
+      talkCalMonth = (now.getFullYear() === 2026) ? (now.getMonth() + 1) : 1;
+    }
     renderTalkCalendarUI();
   }
 
