@@ -682,6 +682,7 @@
       width: auto;
       justify-content: flex-start;
       align-items: flex-start;
+      margin-left: -1px;
     }
 
     .board-detail-title {
@@ -696,6 +697,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding-left: 2px;
       padding-bottom: 12px;
       margin-bottom: 14px;
       border-bottom: 1px solid #f3f4f6;
@@ -1277,10 +1279,13 @@
 
     .talk-cal-year-row {
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
       gap: 6px;
       margin-bottom: 10px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .btn-cal-year {
@@ -1292,6 +1297,46 @@
       font-size: 0.85rem;
       font-weight: 700;
       cursor: pointer;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    /* 수다방 등록 프로필 목록 팝업 (10개 표시 및 세로 스크롤) */
+    .talk-member-scroll-box {
+      max-height: 408px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 6px;
+      background-color: #f9fafb;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 14px;
+    }
+
+    .talk-member-list-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 36px;
+      min-height: 36px;
+      padding: 0 10px;
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      text-align: left;
+      flex-shrink: 0;
+    }
+
+    .talk-member-list-name {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #111827;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .btn-cal-year.active {
@@ -2502,7 +2547,7 @@
     <!-- 톡톡 수다방 (테두리 안쪽 영역 클릭 시 수다방 입장) -->
     <div class="talk-board-wrap">
       <div class="talk-board-header">
-        <span class="kids-board-title" style="display:inline-flex; align-items:baseline;"><span>톡톡 수다방</span><span id="talk-member-count-label" class="board-total-count-label">등록 0명</span></span>
+        <span class="kids-board-title" style="display:inline-flex; align-items:baseline;"><span>톡톡 수다방</span><span id="talk-member-count-label" class="board-total-count-label" style="cursor:pointer;" onclick="openTalkMemberListModal()">등록 0명</span></span>
         <div id="talk-unread-info" class="talk-unread-info"></div>
       </div>
       <div id="talk-board-preview" class="kids-board-card" style="cursor: pointer;" onclick="openTalkRoomScreen()">
@@ -2776,8 +2821,8 @@
       </div>
       <div style="display:flex; gap:8px;">
         <button type="button" id="btn-talk-access-config" class="btn-talk-profile-edit" style="display:none; background:#fef08a; color:#111827;" onclick="openTalkCalendarModal()">접속 설정</button>
-        <button type="button" class="btn-talk-profile-edit" onclick="openTalkProfileModal()">프로필 변경</button>
-        <button class="btn-back" style="background: rgba(255,255,255,0.75);" onclick="goBack('screen-menu')">뒤로</button>
+        <button type="button" id="btn-talk-profile-edit" class="btn-talk-profile-edit" onclick="openTalkProfileModal()">프로필 변경</button>
+        <button id="btn-talk-back" class="btn-back" style="background: rgba(255,255,255,0.75);" onclick="goBack('screen-menu')">뒤로</button>
       </div>
     </div>
 
@@ -2832,6 +2877,15 @@
 <div id="modal-chat-img-zoom" class="chat-img-zoom-overlay" onclick="closeChatImageZoom()">
   <button type="button" class="btn-chat-img-zoom-close" onclick="closeChatImageZoom()">✕ 닫기</button>
   <img id="chat-img-zoom-target" class="chat-img-zoom-img" src="" alt="확대 사진" onclick="event.stopPropagation()">
+</div>
+
+<!-- [팝업] 톡톡 수다방 등록 프로필 목록 모달 (가나다순 10개 표시 및 스크롤) -->
+<div id="modal-talk-member-list" class="modal-overlay">
+  <div class="modal-content" style="max-width:340px; padding:22px 18px 18px;">
+    <div id="talk-member-modal-title" class="modal-text" style="font-size:1.05rem; margin-bottom:12px;">수다방 등록 프로필</div>
+    <div id="talk-member-scroll-list" class="talk-member-scroll-box"></div>
+    <button type="button" class="btn-modal-ok" onclick="closeTalkMemberListModal()">확인</button>
+  </div>
 </div>
 
 <!-- [팝업] 톡톡 수다방 최초 1회 이름 및 50종 캐릭터 선택 모달 -->
@@ -4190,6 +4244,8 @@
     const talkTitle = document.getElementById('talk-room-header-title');
     const detailActions = document.getElementById('detail-post-actions');
     const talkAccessBtn = document.getElementById('btn-talk-access-config');
+    const talkProfileBtn = document.getElementById('btn-talk-profile-edit');
+    const talkBackBtn = document.getElementById('btn-talk-back');
     const suffix = isBoardCommentAdminMode ? '<span class="admin-mode-pill">관리자</span>' : '';
     const totalNoticeCount = Object.values(notices || {}).filter(item => item && item.id).length;
     if (listTitle) {
@@ -4199,6 +4255,8 @@
     if (talkTitle) talkTitle.innerHTML = `톡톡 수다방${suffix}`;
     if (detailActions) detailActions.style.display = isBoardCommentAdminMode ? 'flex' : 'none';
     if (talkAccessBtn) talkAccessBtn.style.display = isBoardCommentAdminMode ? 'inline-block' : 'none';
+    if (talkProfileBtn) talkProfileBtn.style.display = isBoardCommentAdminMode ? 'none' : 'inline-block';
+    if (talkBackBtn) talkBackBtn.style.display = isBoardCommentAdminMode ? 'none' : 'inline-block';
   }
 
   let pendingAdminNoticeAction = '';
@@ -6854,20 +6912,77 @@
     }
   }
 
-  // 수다방 등록 인원수 산출 (최초 프로필 등록을 완료한 총 인원수만 반영)
-  function getTalkRegisteredMemberCount() {
-    const registeredIds = new Set();
+  // 수다방 등록 프로필 목록 가나다순 반환
+  function getTalkRegisteredProfileList() {
+    const profileMap = {};
     Object.keys(talkProfiles || {}).forEach(devId => {
       const p = talkProfiles[devId];
       if (p && p.name && String(p.name).trim()) {
-        registeredIds.add(devId);
+        profileMap[devId] = {
+          name: String(p.name).trim(),
+          charId: Number(p.charId) || 1
+        };
       }
     });
     const mySaved = getSavedTalkProfile();
     if (mySaved && mySaved.name && String(mySaved.name).trim()) {
-      registeredIds.add(getMyTalkDeviceId());
+      profileMap[getMyTalkDeviceId()] = {
+        name: String(mySaved.name).trim(),
+        charId: Number(mySaved.charId) || 1
+      };
     }
-    return registeredIds.size;
+    const list = Object.values(profileMap);
+    list.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+    return list;
+  }
+
+  // 수다방 등록 인원수 산출 (최초 프로필 등록을 완료한 총 인원수만 반영)
+  function getTalkRegisteredMemberCount() {
+    return getTalkRegisteredProfileList().length;
+  }
+
+  function renderTalkMemberListModalContent() {
+    const listEl = document.getElementById('talk-member-scroll-list');
+    const titleEl = document.getElementById('talk-member-modal-title');
+    if (!listEl) return;
+
+    const list = getTalkRegisteredProfileList();
+    if (titleEl) {
+      titleEl.innerText = `수다방 등록 프로필 (${list.length}명)`;
+    }
+    if (list.length === 0) {
+      listEl.innerHTML = `<div class="kids-empty-msg" style="padding:18px 0;">등록된 프로필이 없습니다.</div>`;
+      return;
+    }
+    listEl.innerHTML = list.map(item => {
+      const ch = getTalkCharacterById(item.charId);
+      return `
+        <div class="talk-member-list-item">
+          <div class="kakao-msg-avatar" style="background: ${ch.bg}; width:26px; height:26px; border-radius:9px; font-size:0.95rem;">${ch.icon}</div>
+          <div class="talk-member-list-name">${escapeHtmlText(item.name)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function openTalkMemberListModal() {
+    renderTalkMemberListModalContent();
+    const listEl = document.getElementById('talk-member-scroll-list');
+    if (listEl) listEl.scrollTop = 0;
+    document.getElementById('modal-talk-member-list').classList.add('show');
+
+    try {
+      const res = await fetch(`${FIREBASE_DB_URL}/clubData/talkProfiles.json`);
+      if (res.ok) {
+        talkProfiles = (await res.json()) || {};
+        renderTalkBoardPreview();
+        renderTalkMemberListModalContent();
+      }
+    } catch (e) {}
+  }
+
+  function closeTalkMemberListModal() {
+    document.getElementById('modal-talk-member-list').classList.remove('show');
   }
 
   // 메인 화면의 톡톡 수다방 접속 영역 (카카오톡 아이콘 + 안내 문구 표시)
@@ -6891,7 +7006,7 @@
             <path d="M12 4C6.48 4 2 7.52 2 11.86C2 14.66 3.86 17.12 6.68 18.52L5.5 22.15C5.4 22.46 5.75 22.71 6.02 22.52L10.35 19.62C10.89 19.69 11.44 19.72 12 19.72C17.52 19.72 22 16.2 22 11.86C22 7.52 17.52 4 12 4Z"/>
           </svg>
         </span>
-        <span class="talk-entry-text">평일은 키즈 비밀 대화방 / 휴일(Rolling)은 전체 채팅 가능!</span>
+        <span class="talk-entry-text">평일은 키즈 비밀 채팅방 / 휴일(Rolling)은 전체 채팅 가능!</span>
       </div>
     `;
   }
@@ -7122,10 +7237,12 @@
   function openTalkCalendarModal() {
     if (!isBoardCommentAdminMode) return;
     const now = getNowDate();
-    talkCalYear = now.getFullYear();
+    talkCalYear = Math.min(2036, Math.max(2026, now.getFullYear()));
     talkCalMonth = now.getMonth() + 1;
     tempSelectedOpenDates = { ...((talkConfig && talkConfig.openDates) ? talkConfig.openDates : { '2026-10-22': true }) };
     renderTalkCalendarUI();
+    const yearRow = document.getElementById('talk-cal-year-row');
+    if (yearRow) yearRow.scrollLeft = 0;
     document.getElementById('modal-talk-calendar').classList.add('show');
   }
 
@@ -7141,11 +7258,19 @@
   function changeTalkCalMonth(delta) {
     talkCalMonth += delta;
     if (talkCalMonth < 1) {
-      talkCalMonth = 12;
-      talkCalYear -= 1;
+      if (talkCalYear > 2026) {
+        talkCalMonth = 12;
+        talkCalYear -= 1;
+      } else {
+        talkCalMonth = 1;
+      }
     } else if (talkCalMonth > 12) {
-      talkCalMonth = 1;
-      talkCalYear += 1;
+      if (talkCalYear < 2036) {
+        talkCalMonth = 1;
+        talkCalYear += 1;
+      } else {
+        talkCalMonth = 12;
+      }
     }
     renderTalkCalendarUI();
   }
@@ -7166,10 +7291,10 @@
     const grid = document.getElementById('talk-cal-grid');
     if (!yearRow || !monthTitle || !grid) return;
 
-    const baseYear = getNowDate().getFullYear();
-    const years = [baseYear - 1, baseYear, baseYear + 1, baseYear + 2];
-    if (!years.includes(talkCalYear)) years.push(talkCalYear);
-    years.sort((a, b) => a - b);
+    const years = [];
+    for (let y = 2026; y <= 2036; y++) {
+      years.push(y);
+    }
 
     yearRow.innerHTML = years.map(y => `
       <button type="button" class="btn-cal-year ${y === talkCalYear ? 'active' : ''}" onclick="selectTalkCalYear(${y})">${y}년</button>
