@@ -2628,7 +2628,7 @@
             <th>NO</th>
             <th>회원명</th>
             <th>입장시간</th>
-            <th>퇴장시간</th>
+            <th>퇴장(예상)시간</th>
           </tr>
         </thead>
         <tbody id="today-exit-tbody">
@@ -7175,23 +7175,23 @@
     return { entryTime, exitTime };
   }
 
-  function renderTodayExitTable(exitedList) {
+    function renderTodayAttendanceTable(todayList) {
     const exitTbody = document.getElementById('today-exit-tbody');
     if (!exitTbody) return;
     exitTbody.innerHTML = '';
 
-    if (!exitedList || exitedList.length === 0) {
-      exitTbody.innerHTML = `<tr><td colspan="4" style="color:#9ca3af; padding:16px 0;">퇴장한 회원이 없습니다.</td></tr>`;
+    if (!todayList || todayList.length === 0) {
+      exitTbody.innerHTML = `<tr><td colspan="4" style="color:#9ca3af; padding:16px 0;">오늘 출석 체크한 회원이 없습니다.</td></tr>`;
       return;
     }
 
-    exitedList.forEach((item, idx) => {
+    todayList.forEach((item, idx) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><strong>${idx + 1}</strong></td>
         <td>${escapeHtmlText(item.name)}</td>
         <td>${escapeHtmlText(item.entryTime)}</td>
-        <td>${escapeHtmlText(item.exitTime)}</td>
+        <td>${escapeHtmlText(item.exitTime || '-')}</td>
       `;
       exitTbody.appendChild(tr);
     });
@@ -7210,26 +7210,39 @@
     const activeMembers = [];
     const exitedMembers = [];
 
+        const activeMembers = [];
+    const todayList = [];
+
     attendedMembers.forEach(member => {
       const { entryTime, exitTime } = parseTodayAttendTimeInfo(todayMap[member.id]);
+
+      // 출석한 회원은 퇴장 예상시간과 관계없이 리스트에 즉시 등록
+      todayList.push({
+        id: member.id,
+        name: member.name,
+        entryTime: entryTime,
+        exitTime: exitTime
+      });
+
+      // 퇴장 예상시간이 지나지 않은 회원만 롤러장 캐릭터로 표시
       if (exitTime && nowHm >= exitTime) {
-        exitedMembers.push({
-          id: member.id,
-          name: member.name,
-          entryTime: entryTime,
-          exitTime: exitTime
-        });
-      } else {
-        activeMembers.push({
-          member: member,
-          entryTime: entryTime,
-          exitTime: exitTime
-        });
+        return;
       }
+
+      activeMembers.push({
+        member: member,
+        entryTime: entryTime,
+        exitTime: exitTime
+      });
     });
 
-    exitedMembers.sort((a, b) => a.exitTime.localeCompare(b.exitTime) || a.entryTime.localeCompare(b.entryTime));
-    renderTodayExitTable(exitedMembers);
+    // 입장시간 순으로 리스트 정렬
+    todayList.sort((a, b) =>
+      a.entryTime.localeCompare(b.entryTime) ||
+      a.name.localeCompare(b.name)
+    );
+
+    renderTodayAttendanceTable(todayList);
 
     document.getElementById('today-count').innerText = `현재 롤딩 현황: ${activeMembers.length}`;
 
