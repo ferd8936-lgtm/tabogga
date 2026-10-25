@@ -7071,10 +7071,49 @@
     });
   }
 
-  function preloadRinkImage() {
+    function preloadRinkImage() {
     return new Promise((resolve) => {
       const img = new Image();
-      img.onload = () => resolve();
+
+      img.onload = () => {
+        const stage = document.getElementById('rink-stage');
+
+        if (stage && img.naturalWidth > 0 && img.naturalHeight > 0) {
+          stage.dataset.rinkAspectRatio =
+            img.naturalWidth / img.naturalHeight;
+        }
+
+        resolve();
+      };
+
+      img.onerror = () => resolve();
+      img.src = '2.jpg';
+    });
+  }
+
+  function resizeRinkStageToImage() {
+    return new Promise((resolve) => {
+      const stage = document.getElementById('rink-stage');
+
+      if (!stage) {
+        resolve();
+        return;
+      }
+
+      const img = new Image();
+
+      img.onload = () => {
+        const stageWidth = stage.clientWidth;
+
+        if (stageWidth > 0 && img.naturalWidth > 0 && img.naturalHeight > 0) {
+          stage.style.minHeight = '0';
+          stage.style.height =
+            `${stageWidth * img.naturalHeight / img.naturalWidth}px`;
+        }
+
+        resolve();
+      };
+
       img.onerror = () => resolve();
       img.src = '2.jpg';
     });
@@ -7111,6 +7150,8 @@
     ]);
 
     goToScreen('screen-today');
+    await waitForPaint();
+    await resizeRinkStageToImage();
     initRinkSkaters();
     await waitForPaint();
 
