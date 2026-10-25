@@ -2320,23 +2320,23 @@
     }
 
     .skater-avatar {
-      width: 42px;
-      height: 42px;
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
-      filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5));
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
       will-change: transform;
     }
 
     .skater-name {
-      margin-top: 2px;
-      padding: 2px 8px;
+      margin-top: 1px;
+      padding: 1px 6px;
       background: rgba(0, 0, 0, 0.78);
       color: #ffffff;
-      font-size: 0.76rem;
+      font-size: 0.66rem;
       font-weight: 700;
-      border-radius: 8px;
+      border-radius: 6px;
       white-space: nowrap;
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       text-align: center;
@@ -2344,12 +2344,12 @@
 
     .skater-time {
       margin-top: 1px;
-      padding: 1px 6px;
+      padding: 1px 5px;
       background: rgba(37, 99, 235, 0.85);
       color: #ffffff;
-      font-size: 0.68rem;
+      font-size: 0.60rem;
       font-weight: 600;
-      border-radius: 6px;
+      border-radius: 5px;
       white-space: nowrap;
     }
 
@@ -2617,9 +2617,24 @@
       <button class="btn-back" onclick="stopRinkAnimation(); goBack('screen-menu')">뒤로</button>
     </div>
     <div id="today-count" class="today-count-bar">현재 롤딩 현황: 0</div>
-    <div class="rink-wrapper" id="rink-stage">
+    <div class="rink-wrapper" id="rink-stage" style="flex: none; min-height: 420px; height: 420px;">
       <div class="rink-track-line"></div>
       <!-- 출석한 캐릭터들이 이곳에 생성되어 유동적으로 회전함 -->
+    </div>
+    <div class="table-wrapper" style="margin-top: 16px;">
+      <table>
+        <thead>
+          <tr>
+            <th>NO</th>
+            <th>회원명</th>
+            <th>입장시간</th>
+            <th>퇴장시간</th>
+          </tr>
+        </thead>
+        <tbody id="today-exit-tbody">
+          <!-- JS로 퇴장 회원 자동 렌더링 -->
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -2968,6 +2983,26 @@
 <!-- [로딩] 최초 접속 및 페이지 전환용 로딩 아이콘 오버레이 -->
 <div id="loading-overlay" class="loading-overlay show">
   <div class="loading-spinner"></div>
+</div>
+
+<!-- [팝업] 출석 확인 및 롤장 퇴장 예상시간 입력 모달 -->
+<div id="modal-attend-confirm" class="modal-overlay" onclick="if(event.target===this) closeAttendConfirmModal()">
+  <div class="modal-content">
+    <div id="attend-confirm-member-name" style="font-size:1.22rem; font-weight:800; color:#2563eb;"></div>
+    <br>
+    <div style="font-size:1.1rem; font-weight:800; color:#111827;">출석 체크가 맞나요?</div>
+    <br>
+    <div style="border:1.5px solid #d1d5db; border-radius:10px; padding:14px 12px; background-color:#f9fafb; margin-bottom:20px;">
+      <div style="font-size:0.95rem; font-weight:800; color:#374151;">[롤장 퇴장 예상시간]</div>
+      <br>
+      <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+        <input type="text" id="attend-exit-hour" inputmode="numeric" maxlength="2" placeholder="00" style="width:68px; padding:8px; font-size:1.05rem; font-weight:800; text-align:center; border:1.5px solid #cbd5e1; border-radius:8px; outline:none; background:#ffffff;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value.length===2) document.getElementById('attend-exit-min').focus();">
+        <span style="font-size:1.15rem; font-weight:900; color:#111827;">:</span>
+        <input type="text" id="attend-exit-min" inputmode="numeric" maxlength="2" placeholder="00" style="width:68px; padding:8px; font-size:1.05rem; font-weight:800; text-align:center; border:1.5px solid #cbd5e1; border-radius:8px; outline:none; background:#ffffff;" oninput="this.value=this.value.replace(/[^0-9]/g,'');" onkeyup="if(event.key==='Enter') confirmAttendWithExitTime()">
+      </div>
+    </div>
+    <button type="button" class="btn-modal-ok" onclick="confirmAttendWithExitTime()">출석 등록</button>
+  </div>
 </div>
 
 <!-- [팝업] 출석 처리 완료 모달 -->
@@ -3351,7 +3386,7 @@
       ? 'M10 6 H24 V20 H36 C39 20 41 23 41 26 V28 H10 Z'
       : 'M10 13 H25 L38 20 C40 21 41 24 41 26 V28 H10 Z';
     return `
-      <svg viewBox="0 0 48 44" width="40" height="38" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 48 44" width="30" height="28" xmlns="http://www.w3.org/2000/svg">
         <path d="${bootPath}" fill="${p.boot}" stroke="#111" stroke-width="2" stroke-linejoin="round"/>
         <path d="M14 16 H26" stroke="${p.stripe}" stroke-width="2.5" stroke-linecap="round"/>
         <rect x="8" y="28" width="34" height="4" rx="2" fill="#cbd5e1" stroke="#111" stroke-width="1.5"/>
@@ -6829,18 +6864,116 @@
     });
   }
 
-  async function handleAttend(memberId) {
-    if (isProcessingAttend) return;
+  let pendingAttendMemberId = null;
 
-    const myAttendedId = getMyTodayAttendedMemberId();
-    if (myAttendedId !== null && myAttendedId !== memberId) {
-      document.getElementById('modal-proxy-ban').classList.add('show');
+  function closeAttendConfirmModal() {
+    pendingAttendMemberId = null;
+    document.getElementById('modal-attend-confirm').classList.remove('show');
+  }
+
+  async function confirmAttendWithExitTime() {
+    if (isProcessingAttend || !pendingAttendMemberId) return;
+    const memberId = pendingAttendMemberId;
+
+    const hourInput = document.getElementById('attend-exit-hour');
+    const minInput = document.getElementById('attend-exit-min');
+    const rawH = hourInput ? hourInput.value.trim() : '';
+    const rawM = minInput ? minInput.value.trim() : '';
+
+    if (rawH === '' || rawM === '') {
+      alert('롤장 퇴장 예상시간을 입력해 주세요.');
+      if (rawH === '' && hourInput) hourInput.focus();
+      else if (minInput) minInput.focus();
       return;
     }
 
-    if (myAttendedId === null && isAttendedToday(memberId)) {
-      document.getElementById('modal-proxy-ban').classList.add('show');
+    const hh = parseInt(rawH, 10);
+    const mm = parseInt(rawM, 10);
+    if (isNaN(hh) || hh < 0 || hh > 24 || isNaN(mm) || mm < 0 || mm > 59 || (hh === 24 && mm > 0)) {
+      alert('시간(00~24)과 분(00~59)을 올바르게 입력해 주세요.');
       return;
+    }
+
+    const exitTimeStr = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+    closeAttendConfirmModal();
+
+    isProcessingAttend = true;
+    const btn = document.getElementById(`btn-attend-${memberId}`);
+    if (btn) btn.disabled = true;
+
+    try {
+      await syncAttendanceOnlyFromFirebase();
+
+      if (!isCheckinAdminMode) {
+        const refreshedMyId = getMyTodayAttendedMemberId();
+        if (refreshedMyId !== null && refreshedMyId !== memberId) {
+          document.getElementById('modal-proxy-ban').classList.add('show');
+          return;
+        }
+        if (refreshedMyId === null && isAttendedToday(memberId)) {
+          document.getElementById('modal-proxy-ban').classList.add('show');
+          return;
+        }
+      }
+
+      const target = members.find(m => m.id === memberId);
+      if (!target || target.lastGrade === 0 || isAttendedToday(memberId)) {
+        return;
+      }
+
+      const today = getTodayKey();
+      const currentMonth = getCurrentMonthKey();
+      if (!target.monthlyCounts) target.monthlyCounts = {};
+      if (!attendanceLog[today]) attendanceLog[today] = {};
+
+      const timeStr = getCurrentTimeStr();
+      const logValue = `${timeStr}|${exitTimeStr}`;
+      target.thisCount += 1;
+      target.monthlyCounts[currentMonth] = target.thisCount;
+      attendanceLog[today][memberId] = logValue;
+      if (!isCheckinAdminMode) {
+        setMyTodayAttendedMemberId(memberId);
+      }
+
+      await Promise.all([
+        fetch(`${FIREBASE_DB_URL}/clubData/members/${memberId}.json`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            thisCount: target.thisCount,
+            monthlyCounts: target.monthlyCounts
+          })
+        }),
+        fetch(`${FIREBASE_DB_URL}/clubData/attendanceLog/${today}/${memberId}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(logValue)
+        })
+      ]);
+
+      document.getElementById('modal-complete').classList.add('show');
+    } catch (e) {
+      alert('출석 저장 중 네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
+    } finally {
+      isProcessingAttend = false;
+      renderCheckinTable();
+    }
+  }
+
+  async function handleAttend(memberId) {
+    if (isProcessingAttend) return;
+
+    if (!isCheckinAdminMode) {
+      const myAttendedId = getMyTodayAttendedMemberId();
+      if (myAttendedId !== null && myAttendedId !== memberId) {
+        document.getElementById('modal-proxy-ban').classList.add('show');
+        return;
+      }
+
+      if (myAttendedId === null && isAttendedToday(memberId)) {
+        document.getElementById('modal-proxy-ban').classList.add('show');
+        return;
+      }
     }
 
     isProcessingAttend = true;
@@ -6850,15 +6983,17 @@
     try {
       await syncAttendanceOnlyFromFirebase();
 
-      const refreshedMyId = getMyTodayAttendedMemberId();
-      if (refreshedMyId !== null && refreshedMyId !== memberId) {
-        document.getElementById('modal-proxy-ban').classList.add('show');
-        return;
-      }
+      if (!isCheckinAdminMode) {
+        const refreshedMyId = getMyTodayAttendedMemberId();
+        if (refreshedMyId !== null && refreshedMyId !== memberId) {
+          document.getElementById('modal-proxy-ban').classList.add('show');
+          return;
+        }
 
-      if (refreshedMyId === null && isAttendedToday(memberId)) {
-        document.getElementById('modal-proxy-ban').classList.add('show');
-        return;
+        if (refreshedMyId === null && isAttendedToday(memberId)) {
+          document.getElementById('modal-proxy-ban').classList.add('show');
+          return;
+        }
       }
 
       const target = members.find(m => m.id === memberId);
@@ -6877,7 +7012,9 @@
         target.thisCount = Math.max(0, target.thisCount - 1);
         target.monthlyCounts[currentMonth] = target.thisCount;
         delete attendanceLog[today][memberId];
-        setMyTodayAttendedMemberId(null);
+        if (getMyTodayAttendedMemberId() === memberId) {
+          setMyTodayAttendedMemberId(null);
+        }
 
         await Promise.all([
           fetch(`${FIREBASE_DB_URL}/clubData/members/${memberId}.json`, {
@@ -6893,29 +7030,15 @@
           })
         ]);
       } else {
-        const timeStr = getCurrentTimeStr();
-        target.thisCount += 1;
-        target.monthlyCounts[currentMonth] = target.thisCount;
-        attendanceLog[today][memberId] = timeStr;
-        setMyTodayAttendedMemberId(memberId);
-
-        await Promise.all([
-          fetch(`${FIREBASE_DB_URL}/clubData/members/${memberId}.json`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              thisCount: target.thisCount,
-              monthlyCounts: target.monthlyCounts
-            })
-          }),
-          fetch(`${FIREBASE_DB_URL}/clubData/attendanceLog/${today}/${memberId}.json`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(timeStr)
-          })
-        ]);
-
-        document.getElementById('modal-complete').classList.add('show');
+        pendingAttendMemberId = memberId;
+        const nameEl = document.getElementById('attend-confirm-member-name');
+        const hourInput = document.getElementById('attend-exit-hour');
+        const minInput = document.getElementById('attend-exit-min');
+        if (nameEl) nameEl.innerText = target.name;
+        if (hourInput) hourInput.value = '';
+        if (minInput) minInput.value = '';
+        document.getElementById('modal-attend-confirm').classList.add('show');
+        setTimeout(() => { if (hourInput) hourInput.focus(); }, 50);
       }
     } catch (e) {
       alert('출석 저장 중 네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
@@ -7001,6 +7124,38 @@
     }
   }
 
+  function parseTodayAttendTimeInfo(rawVal) {
+    if (typeof rawVal !== 'string') {
+      return { entryTime: '00:00', exitTime: '' };
+    }
+    const parts = rawVal.split('|');
+    const entryTime = (parts[0] && parts[0].includes(':')) ? parts[0].trim() : '00:00';
+    const exitTime = (parts[1] && parts[1].includes(':')) ? parts[1].trim() : '';
+    return { entryTime, exitTime };
+  }
+
+  function renderTodayExitTable(exitedList) {
+    const exitTbody = document.getElementById('today-exit-tbody');
+    if (!exitTbody) return;
+    exitTbody.innerHTML = '';
+
+    if (!exitedList || exitedList.length === 0) {
+      exitTbody.innerHTML = `<tr><td colspan="4" style="color:#9ca3af; padding:16px 0;">퇴장한 회원이 없습니다.</td></tr>`;
+      return;
+    }
+
+    exitedList.forEach((item, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${idx + 1}</strong></td>
+        <td>${escapeHtmlText(item.name)}</td>
+        <td>${escapeHtmlText(item.entryTime)}</td>
+        <td>${escapeHtmlText(item.exitTime)}</td>
+      `;
+      exitTbody.appendChild(tr);
+    });
+  }
+
   function initRinkSkaters() {
     stopRinkAnimation();
     const stage = document.getElementById('rink-stage');
@@ -7008,24 +7163,51 @@
 
     const today = getTodayKey();
     const todayMap = attendanceLog[today] || {};
-    const todayMembers = members.filter(m => m.lastGrade !== 0 && Boolean(todayMap[m.id]));
+    const nowHm = getCurrentTimeStr();
+    const attendedMembers = members.filter(m => m.lastGrade !== 0 && Boolean(todayMap[m.id]));
 
-    document.getElementById('today-count').innerText = `현재 롤딩 현황: ${todayMembers.length}`;
+    const activeMembers = [];
+    const exitedMembers = [];
 
-    if (todayMembers.length === 0) {
+    attendedMembers.forEach(member => {
+      const { entryTime, exitTime } = parseTodayAttendTimeInfo(todayMap[member.id]);
+      if (exitTime && nowHm >= exitTime) {
+        exitedMembers.push({
+          id: member.id,
+          name: member.name,
+          entryTime: entryTime,
+          exitTime: exitTime
+        });
+      } else {
+        activeMembers.push({
+          member: member,
+          entryTime: entryTime,
+          exitTime: exitTime
+        });
+      }
+    });
+
+    exitedMembers.sort((a, b) => a.exitTime.localeCompare(b.exitTime) || a.entryTime.localeCompare(b.entryTime));
+    renderTodayExitTable(exitedMembers);
+
+    document.getElementById('today-count').innerText = `현재 롤딩 현황: ${activeMembers.length}`;
+
+    if (activeMembers.length === 0) {
       const emptyMsg = document.createElement('div');
       emptyMsg.className = 'empty-rink-msg';
-      emptyMsg.innerText = '오늘 출석 체크한 회원이 아직 없습니다.';
+      emptyMsg.innerText = attendedMembers.length > 0
+        ? '현재 롤딩 중인 회원이 없습니다.'
+        : '오늘 출석 체크한 회원이 아직 없습니다.';
       stage.appendChild(emptyMsg);
       return;
     }
 
     skaterAngles = [];
-    const total = todayMembers.length;
+    const total = activeMembers.length;
 
-    todayMembers.forEach((member, idx) => {
-      const rawTime = todayMap[member.id];
-      const timeText = (typeof rawTime === 'string' && rawTime.includes(':')) ? rawTime : '00:00';
+    activeMembers.forEach((info, idx) => {
+      const member = info.member;
+      const timeText = info.entryTime;
 
       const el = document.createElement('div');
       el.className = 'skater';
@@ -7042,6 +7224,7 @@
       skaterAngles.push({
         el: el,
         avatarEl: el.querySelector('.skater-avatar'),
+        exitTime: info.exitTime,
         angle: initialAngle,
         speed: 0.0028 + (idx % 5) * 0.00035,
         baseRx: 33 + laneOffset,
@@ -7054,6 +7237,13 @@
     });
 
     function animate() {
+      const curHm = getCurrentTimeStr();
+      const hasNewlyExited = skaterAngles.some(item => item.exitTime && curHm >= item.exitTime);
+      if (hasNewlyExited) {
+        initRinkSkaters();
+        return;
+      }
+
       skaterAngles.forEach(item => {
         item.angle -= item.speed;
         item.wavePhase += item.waveSpeed;
@@ -7066,47 +7256,7 @@
 
         const flip = Math.sin(item.angle) > 0 ? 1 : -1;
         item.avatarEl.style.transform = `scaleX(${flip})`;
-      });
 
-      const minSepX = 18;
-      const minSepY = 15;
-
-      for (let pass = 0; pass < 3; pass++) {
-        for (let i = 0; i < skaterAngles.length; i++) {
-          for (let j = i + 1; j < skaterAngles.length; j++) {
-            const a = skaterAngles[i];
-            const b = skaterAngles[j];
-            const dx = b.x - a.x;
-            const dy = b.y - a.y;
-
-            const normX = dx / minSepX;
-            const normY = dy / minSepY;
-            const distSq = normX * normX + normY * normY;
-
-            if (distSq < 1 && distSq > 0.0001) {
-              const dist = Math.sqrt(distSq);
-              const overlap = (1 - dist) * 0.5;
-              const pushX = (normX / dist) * overlap * minSepX;
-              const pushY = (normY / dist) * overlap * minSepY;
-
-              a.x -= pushX;
-              a.y -= pushY;
-              b.x += pushX;
-              b.y += pushY;
-            } else if (distSq <= 0.0001) {
-              a.x -= 4;
-              b.x += 4;
-            }
-          }
-        }
-
-        skaterAngles.forEach(item => {
-          item.x = Math.max(12, Math.min(88, item.x));
-          item.y = Math.max(12, Math.min(86, item.y));
-        });
-      }
-
-      skaterAngles.forEach(item => {
         item.el.style.left = `${item.x}%`;
         item.el.style.top = `${item.y}%`;
       });
@@ -7727,10 +7877,9 @@
     return Boolean(talkConfig && talkConfig.openDates && talkConfig.openDates[today]);
   }
 
-  // 휴일↔평일 모드가 서로 바뀔 때만 기존 채팅 기록을 삭제하고, 같은 모드(휴일 연속 또는 평일 연속)일 때는 채팅 기록 유지
+ // 휴일↔평일 모드가 서로 바뀔 때만 기존 채팅 기록을 삭제하고, 같은 모드(휴일 연속 또는 평일 연속)일 때는 구버전 삭제 잠금 및 자동 백업·복구 수행
   async function ensureOpenDateChatCleared() {
     const today = getTodayKey();
-    const currentMode = isTodayTalkOpenDate() ? 'holiday' : 'weekday';
 
     try {
       const cfgRes = await fetch(`${FIREBASE_DB_URL}/clubData/talkConfig.json`);
@@ -7749,9 +7898,10 @@
     const updatedMode = isTodayTalkOpenDate() ? 'holiday' : 'weekday';
     const prevMode = (talkConfig && talkConfig.lastMode) ? talkConfig.lastMode : '';
 
-    // 최초 1회(lastMode가 아직 기록되지 않은 상태)에는 기존 대화를 삭제하지 않고 현재 모드만 기록
+    // 최초 1회(lastMode가 아직 기록되지 않은 상태)에는 기존 대화를 삭제하지 않고 현재 모드와 오늘 날짜 잠금 기록
     if (!prevMode) {
       if (!talkConfig) talkConfig = { openDates: {}, lastClearedDate: today, lastMode: updatedMode };
+      talkConfig.lastClearedDate = today;
       talkConfig.lastMode = updatedMode;
       try {
         await fetch(`${FIREBASE_DB_URL}/clubData/talkConfig.json`, {
@@ -7763,12 +7913,60 @@
       return;
     }
 
-    // 이전 모드와 오늘 모드가 동일하면(예: 휴일→휴일, 평일→평일) 날짜가 바뀌어도 채팅 기록 유지
+    // 이전 모드와 오늘 모드가 동일하면(예: 휴일→휴일, 평일→평일) 구버전 기기가 삭제하지 못하도록 오늘 날짜로 잠금 및 백업 복구 확인
     if (prevMode === updatedMode) {
+      if (talkConfig.lastClearedDate !== today) {
+        talkConfig.lastClearedDate = today;
+        talkConfig.lastMode = updatedMode;
+        fetch(`${FIREBASE_DB_URL}/clubData/talkConfig.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(talkConfig)
+        }).catch(() => {});
+      }
+
+      try {
+        const [chatsRes, backupRes] = await Promise.all([
+          fetch(`${FIREBASE_DB_URL}/clubData/chats.json`),
+          fetch(`${FIREBASE_DB_URL}/clubData/chatsBackup.json`)
+        ]);
+        const serverChats = chatsRes.ok ? (await chatsRes.json()) : null;
+        const backupChats = backupRes.ok ? (await backupRes.json()) : null;
+        const serverCount = serverChats ? Object.keys(serverChats).length : 0;
+        const backupCount = backupChats ? Object.keys(backupChats).length : 0;
+
+        if (serverCount === 0 && backupCount > 0) {
+          chats = backupChats;
+          const sortedRestored = getSortedChats();
+          const lastMsg = sortedRestored.length > 0 ? sortedRestored[sortedRestored.length - 1] : null;
+          const nowMs = getNowDate().getTime();
+          await Promise.all([
+            fetch(`${FIREBASE_DB_URL}/clubData/chats.json`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(backupChats)
+            }),
+            fetch(`${FIREBASE_DB_URL}/clubData/chatMeta.json`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                lastChatId: lastMsg ? lastMsg.id : '',
+                lastChatTs: lastMsg ? (lastMsg.timestamp || nowMs) : nowMs
+              })
+            })
+          ]);
+        } else if (serverCount > 0 && backupCount === 0) {
+          fetch(`${FIREBASE_DB_URL}/clubData/chatsBackup.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(serverChats)
+          }).catch(() => {});
+        }
+      } catch (e) {}
       return;
     }
 
-    // 휴일→평일 또는 평일→휴일로 전환된 경우에만 기존 채팅 기록 삭제
+    // 휴일→평일 또는 평일→휴일로 실제 모드가 전환된 경우에만 기존 채팅 기록 및 백업본 삭제
     const nowMs = getNowDate().getTime();
     chats = {};
     chatImagesCache = {};
@@ -7783,6 +7981,7 @@
     try {
       await Promise.all([
         fetch(`${FIREBASE_DB_URL}/clubData/chats.json`, { method: 'DELETE' }),
+        fetch(`${FIREBASE_DB_URL}/clubData/chatsBackup.json`, { method: 'DELETE' }),
         fetch(`${FIREBASE_DB_URL}/clubChatImages.json`, { method: 'DELETE' }),
         fetch(`${FIREBASE_DB_URL}/clubData/talkConfig.json`, {
           method: 'PUT',
@@ -9104,6 +9303,11 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(chatObj)
         }),
+        fetch(`${FIREBASE_DB_URL}/clubData/chatsBackup/${chatId}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(chatObj)
+        }),
         fetch(`${FIREBASE_DB_URL}/clubData/chatReadStatus/${myDevId}.json`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -9145,6 +9349,11 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(false)
           }).catch(() => {});
+          fetch(`${FIREBASE_DB_URL}/clubData/chatsBackup/${oldItem.id}/hasImage.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(false)
+          }).catch(() => {});
         });
         saveChatImagesCacheToStorage();
       }
@@ -9156,6 +9365,7 @@
           delete chats[oldItem.id];
           delete chatImagesCache[oldItem.id];
           fetch(`${FIREBASE_DB_URL}/clubData/chats/${oldItem.id}.json`, { method: 'DELETE' }).catch(() => {});
+          fetch(`${FIREBASE_DB_URL}/clubData/chatsBackup/${oldItem.id}.json`, { method: 'DELETE' }).catch(() => {});
           if (oldItem.hasImage) {
             fetch(`${FIREBASE_DB_URL}/clubChatImages/${oldItem.id}.json`, { method: 'DELETE' }).catch(() => {});
           }
@@ -9191,6 +9401,7 @@
 
       const delJobs = [
         fetch(`${FIREBASE_DB_URL}/clubData/chats/${chatId}.json`, { method: 'DELETE' }),
+        fetch(`${FIREBASE_DB_URL}/clubData/chatsBackup/${chatId}.json`, { method: 'DELETE' }),
         fetch(`${FIREBASE_DB_URL}/clubData/chatMeta.json`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
