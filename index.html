@@ -5227,11 +5227,11 @@
     const text = String(rawText || '');
     if (!text) return;
 
-    const lines = text.split(/\r?\n/);
+    const lines = text.split(/\r\n|\r|\n/);
     lines.forEach(line => {
       const lineDiv = document.createElement('div');
-      if (line) {
-        lineDiv.innerText = line;
+      if (line.length > 0) {
+        lineDiv.textContent = line;
       } else {
         lineDiv.innerHTML = '<br>';
       }
@@ -5252,46 +5252,108 @@
     }
   }
 
-  // 에디터에서 순수 본문 텍스트만 깔끔하게 추출 (미리보기 박스 제외, 줄바꿈 보존)
+  // 에디터에서 순수 본문 텍스트만 깔끔하게 추출 (미리보기 박스 제외, 줄바꿈 및 칸 띄워쓰기·탭 완벽 보존)
   function extractCleanTextFromEditor(editorEl) {
     if (!editorEl) return '';
-    const clone = editorEl.cloneNode(true);
-    clone.querySelectorAll('.inline-url-preview-box').forEach(el => el.remove());
-
+    const blockTags = new Set(['DIV', 'P', 'LI', 'TR', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'PRE', 'SECTION', 'ARTICLE']);
     const lines = [];
-    if (clone.childNodes.length === 0) {
-      return (clone.innerText || '').trim();
+    let currentLine = '';
+    let hasPendingInline = false;
+
+    function flushCurrentLine() {
+      if (hasPendingInline) {
+        lines.push(currentLine);
+        currentLine = '';
+        hasPendingInline = false;
+      }
     }
 
-    clone.childNodes.forEach(node => {
+    function walk(node) {
+      if (!node) return;
       if (node.nodeType === Node.TEXT_NODE) {
-        lines.push(node.nodeValue || '');
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        if (node.tagName === 'BR') {
-          lines.push('');
-        } else {
-          const t = (node.innerText || '').replace(/\r?\n$/, '');
-          lines.push(t);
-        }
+        const val = (node.nodeValue || '').replace(/\u00A0/g, ' ').replace(/\r\n?/g, '\n');
+        const parts = val.split('\n');
+        parts.forEach((part, idx) => {
+          if (idx > 0) {
+            lines.push(currentLine);
+            currentLine = '';
+          }
+          currentLine += part;
+          hasPendingInline = true;
+        });
+        return;
       }
-    });
-    return lines.join('\n').trim();
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+      if (node.classList && node.classList.contains('inline-url-preview-box')) return;
+
+      if (node.tagName === 'BR') {
+        lines.push(currentLine);
+        currentLine = '';
+        hasPendingInline = false;
+        return;
+      }
+
+      const isBlock = blockTags.has(node.tagName);
+      const childNodes = Array.from(node.childNodes).filter(
+        c => !(c.nodeType === Node.ELEMENT_NODE && c.classList && c.classList.contains('inline-url-preview-box'))
+      );
+
+      if (isBlock) {
+        flushCurrentLine();
+        if (
+          childNodes.length === 0 ||
+          (childNodes.length === 1 && childNodes[0].nodeType === Node.ELEMENT_NODE && childNodes[0].tagName === 'BR')
+        ) {
+          lines.push('');
+          return;
+        }
+        childNodes.forEach((child, idx) => {
+          if (
+            idx === childNodes.length - 1 &&
+            child.nodeType === Node.ELEMENT_NODE &&
+            child.tagName === 'BR' &&
+            hasPendingInline
+          ) {
+            return;
+          }
+          walk(child);
+        });
+        flushCurrentLine();
+      } else {
+        childNodes.forEach(child => walk(child));
+      }
+    }
+
+    Array.from(editorEl.childNodes).forEach(child => walk(child));
+    flushCurrentLine();
+
+    const result = lines.join('\n').replace(/^\n+|\n+$/g, '');
+    return result.trim().length === 0 ? '' : result;
   }
 
   // 타이핑 중인 커서를 방해하지 않고, 완성된 URL 줄 바로 아래에 미리보기 박스를 동기화
   function syncEditorInlinePreviews(editorEl, forceActiveLine = false) {
     if (!editorEl) return;
 
-    // 1. 에디터 최상위에 직접 놓인 텍스트 노드가 있다면 안전한 블록(div)으로 감싸기
+    // 1. 에디터 최상위에 직접 놓인 텍스트 노드가 있다면 줄 단위 블록(div)으로 안전하게 감싸기
     const sel = window.getSelection();
     const activeNode = (sel && sel.rangeCount > 0) ? sel.anchorNode : null;
 
     Array.from(editorEl.childNodes).forEach(node => {
-      if (node.nodeType === Node.TEXT_NODE && (node.nodeValue || '').trim() !== '') {
+      if (node.nodeType === Node.TEXT_NODE && (node.nodeValue || '') !== '') {
         if (!forceActiveLine && node === activeNode) return;
-        const wrapper = document.createElement('div');
-        wrapper.innerText = node.nodeValue;
-        editorEl.replaceChild(wrapper, node);
+        const rawLines = String(node.nodeValue || '').replace(/\u00A0/g, ' ').replace(/\r\n?/g, '\n').split('\n');
+        const frag = document.createDocumentFragment();
+        rawLines.forEach(lineStr => {
+          const wrapper = document.createElement('div');
+          if (lineStr.length > 0) {
+            wrapper.textContent = lineStr;
+          } else {
+            wrapper.innerHTML = '<br>';
+          }
+          frag.appendChild(wrapper);
+        });
+        editorEl.replaceChild(frag, node);
       }
     });
 
@@ -5450,16 +5512,17 @@
 
     const allUrls = extractAllUrlsFromText(text);
     if (allUrls.length === 0) {
-      contentEl.innerText = text;
+      contentEl.textContent = text;
       return;
     }
 
     contentEl.innerHTML = '';
-    const lines = text.split(/\r?\n/);
+    const lines = text.split(/\r\n|\r|\n/);
     lines.forEach((line, idx) => {
       const lineDiv = document.createElement('div');
-      lineDiv.innerText = line;
-      if (!line && idx < lines.length - 1) {
+      if (line.length > 0) {
+        lineDiv.textContent = line;
+      } else if (idx < lines.length - 1) {
         lineDiv.innerHTML = '<br>';
       }
       contentEl.appendChild(lineDiv);
