@@ -3642,15 +3642,16 @@
       let g = (m.lastGrade >= 1 && m.lastGrade <= 4) ? m.lastGrade : 1;
       if (g === 1) {
         if (recent.length >= 2 && c1 >= 2 && c2 >= 2) g = 2;
+        else if (twoMonthsZero) g = 0;
       } else if (g === 2) {
         const avg3 = recent.length >= 3 ? (c1 + c2 + c3) / 3 : null;
         if (recent.length >= 3 && c1 >= 2 && c2 >= 2 && c3 >= 2) g = 3;
-        else if (twoMonthsZero || (avg3 !== null && avg3 < 2)) g = 1;
+        else if (twoMonthsZero || (avg3 !== null && avg3 <= 2)) g = 1;
       } else if (g === 3) {
         const sixMonthsOk = last6.length >= 6 && last6.every(cnt => cnt >= 3);
         const avg6 = last6.length >= 6 ? last6.reduce((a, b) => a + b, 0) / 6 : null;
         if (sixMonthsOk) g = 4;
-        else if (twoMonthsZero || (avg6 !== null && avg6 < 3)) g = 2;
+        else if (twoMonthsZero || (avg6 !== null && avg6 <= 3)) g = 2;
       } else if (g === 4) {
         if (twoMonthsZero || c1 < 4) g = 3;
       }
@@ -4121,15 +4122,16 @@
           const monthSpan = getMonthRangeList(dbCurrentMonth, verifiedCurrentMonth);
           members.forEach(m => {
             if (!m.monthlyCounts) m.monthlyCounts = {};
-            m.monthlyCounts[dbCurrentMonth] = m.thisCount;
+            m.monthlyCounts[dbCurrentMonth] = Math.max(Number(m.monthlyCounts[dbCurrentMonth]) || 0, Number(m.thisCount) || 0);
             monthSpan.forEach(ym => {
-              if (ym !== currentMonth && m.monthlyCounts[ym] === undefined) {
+              if (ym !== verifiedCurrentMonth && m.monthlyCounts[ym] === undefined) {
                 m.monthlyCounts[ym] = 0;
               }
             });
-            m.lastCount = m.monthlyCounts[prevMonth] ?? 0;
-            m.thisCount = 0;
-            m.monthlyCounts[currentMonth] = 0;
+            m.lastCount = Number(m.monthlyCounts[prevMonth]) || 0;
+            const curMonthLogCnt = Number(m.monthlyCounts[verifiedCurrentMonth]) || 0;
+            m.thisCount = curMonthLogCnt;
+            m.monthlyCounts[verifiedCurrentMonth] = curMonthLogCnt;
           });
           recalculateGrades(members);
 
@@ -4147,6 +4149,8 @@
           }
 
           needUpdateDB = true;
+        } else if (needUpdate) {
+          recalculateGrades(members);
         }
 
         if (needUpdateDB) {
@@ -6952,11 +6956,10 @@
 
     const hh = parseInt(rawH, 10);
     const mm = parseInt(rawM, 10);
-    if (isNaN(hh) || hh < 0 || hh > 24 || isNaN(mm) || mm < 0 || mm > 59 || (hh === 24 && mm > 0)) {
-      alert('시간(00~24)과 분(00~59)을 올바르게 입력해 주세요.');
+    if (isNaN(hh) || hh < 12 || hh > 24 || isNaN(mm) || mm < 0 || mm > 59 || (hh === 24 && mm > 0)) {
+      alert('오후 시간(12~24시)으로 입력해 주세요.');
       return;
     }
-
     const exitTimeStr = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
     closeAttendConfirmModal();
 
