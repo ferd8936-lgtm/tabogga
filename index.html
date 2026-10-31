@@ -3013,6 +3013,15 @@
   </div>
 </div>
 
+<!-- [팝업] 누적 현황 월별 출석 기록 리스트 모달 -->
+<div id="modal-month-attend-list" class="modal-overlay" onclick="if(event.target===this) closeMonthAttendListModal()">
+  <div class="modal-content" style="max-width:350px; padding:22px 18px 18px;">
+    <div id="month-attend-modal-title" class="modal-text" style="font-size:1.05rem; margin-bottom:12px;">출석 기록</div>
+    <div id="month-attend-scroll-list" class="talk-member-scroll-box" style="max-height:320px;"></div>
+    <button type="button" class="btn-modal-ok" onclick="closeMonthAttendListModal()">확인</button>
+  </div>
+</div>
+
 <!-- [팝업] 대리 출석 금지 모달 -->
 <div id="modal-proxy-ban" class="modal-overlay">
   <div class="modal-content">
@@ -7496,7 +7505,7 @@
       const countsObj = member.monthlyCounts || {};
       const monthCells = monthKeys.map(ymKey => {
         const cnt = (ymKey === currentMonthKey) ? (member.thisCount ?? countsObj[ymKey] ?? 0) : (countsObj[ymKey] || 0);
-        return `<td style="padding: 12px 10px; white-space: nowrap;"><strong>${cnt}</strong></td>`;
+        return `<td style="padding: 12px 10px; white-space: nowrap; cursor: pointer;" onclick="openMonthAttendListModal(${member.id}, '${ymKey}')"><strong>${cnt}</strong></td>`;
       }).join('');
 
       const tr = document.createElement('tr');
@@ -7507,6 +7516,56 @@
       `;
       tbody.appendChild(tr);
     });
+  }
+
+  function openMonthAttendListModal(memberId, ymKey) {
+    const member = members.find(m => m.id === Number(memberId));
+    if (!member) return;
+
+    const [y, m] = String(ymKey || '').split('-').map(Number);
+    const titleEl = document.getElementById('month-attend-modal-title');
+    const listEl = document.getElementById('month-attend-scroll-list');
+    if (!titleEl || !listEl) return;
+
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const records = [];
+
+    Object.keys(attendanceLog || {}).sort().forEach(dateKey => {
+      if (dateKey.startsWith(ymKey + '-')) {
+        const rawVal = attendanceLog[dateKey] ? attendanceLog[dateKey][member.id] : null;
+        if (rawVal) {
+          const { entryTime, exitTime } = parseTodayAttendTimeInfo(rawVal);
+          const parts = dateKey.split('-').map(Number);
+          const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+          const dow = dayNames[dt.getDay()] || '';
+          records.push({
+            dateLabel: `${parts[1]}월 ${parts[2]}일 (${dow})`,
+            entryTime: entryTime,
+            exitTime: exitTime
+          });
+        }
+      }
+    });
+
+    titleEl.innerText = `${member.name} (${y}년 ${m}월 출석 기록)`;
+
+    if (records.length === 0) {
+      listEl.innerHTML = `<div class="kids-empty-msg" style="padding:18px 0;">해당 월의 출석 기록이 없습니다.</div>`;
+    } else {
+      listEl.innerHTML = records.map((rec, idx) => `
+        <div class="talk-member-list-item" style="justify-content: space-between;">
+          <span style="font-size:0.86rem; font-weight:800; color:#111827;">${idx + 1}. ${escapeHtmlText(rec.dateLabel)}</span>
+          <span style="font-size:0.82rem; font-weight:700; color:#2563eb;">${escapeHtmlText(rec.entryTime)}${rec.exitTime ? ' ~ ' + escapeHtmlText(rec.exitTime) : ''}</span>
+        </div>
+      `).join('');
+    }
+
+    listEl.scrollTop = 0;
+    document.getElementById('modal-month-attend-list').classList.add('show');
+  }
+
+  function closeMonthAttendListModal() {
+    document.getElementById('modal-month-attend-list').classList.remove('show');
   }
 
   // 최초 URL 접속 시 이미지·글씨체·버튼 텍스트·데이터 로딩 및 접속 수 기록 후 화면 표시
