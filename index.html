@@ -3869,6 +3869,60 @@
       });
     }
 
+    // 수민 가족(ID: 15) 2026년 10월 31일 12:00~18:00 출석 기록 고정 반영
+    if (!attendanceLog || typeof attendanceLog !== 'object') attendanceLog = {};
+    if (!attendanceLog['2026-10-31']) attendanceLog['2026-10-31'] = {};
+    if (attendanceLog['2026-10-31'][15] !== '12:00|18:00') {
+      attendanceLog['2026-10-31'][15] = '12:00|18:00';
+      needUpdate = true;
+    }
+
+    // 일별 출석 기록(attendanceLog)에서 월별 실제 출석 회수를 집계하여 누락된 지난달/이번달 회수 복원
+    const logCountsByMonth = {};
+    Object.keys(attendanceLog).forEach(dateKey => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return;
+      const ym = dateKey.slice(0, 7);
+      const dayMap = attendanceLog[dateKey] || {};
+      if (!logCountsByMonth[ym]) logCountsByMonth[ym] = {};
+      Object.keys(dayMap).forEach(mId => {
+        if (dayMap[mId]) {
+          const numMId = Number(mId);
+          logCountsByMonth[ym][numMId] = (logCountsByMonth[ym][numMId] || 0) + 1;
+        }
+      });
+    });
+
+    const allMonths = getMonthRangeList('2026-10', currentMonth);
+    baseList.forEach(m => {
+      if (!m.monthlyCounts) m.monthlyCounts = {};
+      allMonths.forEach(ym => {
+        const logCnt = (logCountsByMonth[ym] && logCountsByMonth[ym][m.id]) || 0;
+        const savedCnt = Number(m.monthlyCounts[ym]) || 0;
+        if (savedCnt < logCnt) {
+          m.monthlyCounts[ym] = logCnt;
+          needUpdate = true;
+        } else if (m.monthlyCounts[ym] === undefined) {
+          m.monthlyCounts[ym] = 0;
+          needUpdate = true;
+        }
+      });
+
+      const prevCnt = Number(m.monthlyCounts[prevMonth]) || 0;
+      if (m.lastCount !== prevCnt) {
+        m.lastCount = prevCnt;
+        needUpdate = true;
+      }
+
+      if (!dbCurrentMonth || dbCurrentMonth === currentMonth) {
+        const curCnt = Math.max(Number(m.thisCount) || 0, Number(m.monthlyCounts[currentMonth]) || 0);
+        if (m.thisCount !== curCnt || m.monthlyCounts[currentMonth] !== curCnt) {
+          m.thisCount = curCnt;
+          m.monthlyCounts[currentMonth] = curCnt;
+          needUpdate = true;
+        }
+      }
+    });
+
     return { mergedMembers: baseList, needUpdate };
   }
 
@@ -3895,8 +3949,11 @@
       }
 
       attendanceLog = dbLog;
-      const { mergedMembers } = buildMergedMemberList(dbMembers, dbMonth || currentMonth);
+      const { mergedMembers, needUpdate } = buildMergedMemberList(dbMembers, dbMonth || currentMonth);
       members = mergedMembers;
+      if (needUpdate) {
+        await syncFromFirebase();
+      }
     } catch (e) {
       console.error('출석 경량 동기화 오류:', e);
     }
